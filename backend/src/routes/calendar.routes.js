@@ -4,17 +4,10 @@ const router = express.Router();
 const { isUserLogin } = require("../middleware/auth.middleware");
 const wrapAsync = require("../middleware/wrapAsync");
 
-router.post(
+router.get(
   "/:date/:month/:year",
   isUserLogin,
   wrapAsync(calendarControllers.getDataByDate),
 );
-
-router.post(
-  "/history/:year/:month",
-  isUserLogin,
-  wrapAsync(calendarControllers.getDataByMonth),
-);
-
 
 module.exports = router;

@@ -9,4 +9,10 @@ router
   .get(isUserLogin, wrapAsync(expensesController.getAllNotes))
   .post(isUserLogin, wrapAsync(expensesController.createExpense));
 
+router.get(
+  "/history/:year/:month",
+  isUserLogin,
+  wrapAsync(expensesController.getDataByMonth),
+);
+
 module.exports = router;

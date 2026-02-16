@@ -56,24 +56,6 @@ const getDataByDate = async (req, res) => {
   }
 };
 
-const getDataByMonth = async (req, res) => {
-  try {
-    const { month, year } = req.params;
-
-    res.status(200).json({
-      success: true,
-      month,
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
-  }
-};
-
 module.exports = {
   getDataByDate,
-  getDataByMonth,
 };
