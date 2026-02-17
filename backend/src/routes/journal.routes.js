@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Journal = require("../models/journal.model");
+const wrapAsync = require("../middleware/wrapAsync");
 const { isUserLogin } = require("../middleware/auth.middleware");
 const journalController = require("../controllers/journal.controller");
 
@@ -8,8 +8,14 @@ const journalController = require("../controllers/journal.controller");
 router
   .route("/")
 
-  .post(isUserLogin, journalController.newJouranl);
+  .post(isUserLogin, wrapAsync(journalController.newJouranl))
+  .put(isUserLogin, wrapAsync(journalController.editJournal));
 
-router.get("/:skip/:limit", isUserLogin, journalController.getData);
+router.delete(
+  "/:journalId",
+  isUserLogin,
+  wrapAsync(journalController.deleteJournal),
+);
+router.get("/:skip/:limit", isUserLogin, wrapAsync(journalController.getData));
 
 module.exports = router;

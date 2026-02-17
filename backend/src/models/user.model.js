@@ -14,7 +14,6 @@ const userSchema = new mongoose.Schema(
     isApproved: { type: Boolean, default: true },
     appPassword: { type: String },
     password: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now, required: true },
 
     // // References to other models
     // tasks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Task" }],
