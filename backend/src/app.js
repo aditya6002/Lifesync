@@ -33,8 +33,15 @@ app.use("/notes", require("./routes/notes.routes.js"));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ success: false, message: "Server error." });
+  console.error(err);
+
+  const statusCode = err.statusCode || 500;
+  const message = err.message || "Server error";
+
+  res.status(statusCode).json({
+    success: false,
+    message,
+  });
 });
 
 module.exports = app;

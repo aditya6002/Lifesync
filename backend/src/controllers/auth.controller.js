@@ -3,272 +3,252 @@ const User = require("../models/user.model");
 const UsernameReservation = require("../models/usernameReservation.model");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
+const AppError = require("../middleware/AppError");
 
-// Register a new user
+// Utility: Generate JWT
+const generateToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
+};
+
+// Utility: Generate OTP (6 digit)
+const generateOTP = () => {
+  return crypto.randomInt(100000, 1000000).toString();
+};
+
+// REGISTER
 const newUserFunction = async (req, res) => {
-  try {
-    // Extracting user details from the request body
-    const { name, username, email, password } = req.body;
+  const { name, username, email, password } = req.body;
 
-    // Check username available or not
-    const isUsernameAvailable = await User.findOne({ username });
-    if (isUsernameAvailable) {
-      return res.status(400).json({
-        success: false,
-        message: "Username already exist",
-      });
-    }
-
-    // Check email available or not
-    const isEmailAvailable = await User.findOne({ email });
-    if (isEmailAvailable) {
-      return res.status(400).json({
-        success: false,
-        message: "Email already exist",
-      });
-    }
-
-    const emailVerificationCode = crypto.randomInt(100000, 1000000).toString();
-    const emailVerificationCodeExpires = Date.now() + 10 * 60; // 10 min
-
-    // Creating a new user
-    const hashPassword = await bcryptjs.hash(password, 10);
-    const hashCode = await bcryptjs.hash(emailVerificationCode, 10);
-    const newUser = await User.create({
-      name,
-      username,
-      email,
-      emailVerificationCode: hashCode,
-      emailVerificationCodeExpires,
-      password: hashPassword,
-    });
-
-    // Sending email verification
-    await sendOTP(email, emailVerificationCode);
-    const isUsernameReserve = UsernameReservation.findOne({ username });
-
-    if (isUsernameReserve) {
-      UsernameReservation.findByIdAndDelete({ _id: isUsernameReserve._id });
-    }
-
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
-
-    res.cookie("token", token);
-    // Responding with success message
-    res.status(201).json({
-      success: true,
-      message: "User registered successfully",
-    });
-  } catch (error) {
-    // Logging the error and responding with a server error message
-    console.log(error);
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
+  if (!name || !username || !email || !password) {
+    throw new AppError("Please provide all required fields", 400);
   }
+
+  // Check username
+  const existingUsername = await User.findOne({ username });
+  if (existingUsername) {
+    throw new AppError("Username already exists", 409);
+  }
+
+  // Check email
+  const existingEmail = await User.findOne({ email });
+  if (existingEmail) {
+    throw new AppError("Email already exists", 409);
+  }
+
+  const otp = generateOTP();
+  const hashedOtp = await bcryptjs.hash(otp, 10);
+
+  const user = await User.create({
+    name,
+    username,
+    email,
+    password: await bcryptjs.hash(password, 10),
+    emailVerificationCode: hashedOtp,
+    emailVerificationCodeExpires: Date.now() + 10 * 60 * 1000, // 10 min
+  });
+
+  await sendOTP(email, otp);
+
+  // Remove reserved username if exists
+  const reserved = await UsernameReservation.findOne({ username });
+  if (reserved) {
+    await UsernameReservation.findByIdAndDelete(reserved._id);
+  }
+
+  const token = generateToken(user._id);
+
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+
+  res.status(201).json({
+    success: true,
+    message: "User registered successfully",
+  });
 };
 
-// Login user function
+// LOGIN
 const loginUserFunction = async (req, res) => {
-  try {
-    // Extracting email and password from the request body
-    const { email, password } = req.body;
-    // Finding the user by email
-    const user = await User.findOne({ email });
-    // If user not found, respond with an error message
-    if (!user) {
-      return res
-        .status(400)
-        .json({ success: false, response: "Invalid credentials" });
-    }
-    // Comparing the provided password with the stored hashed password
-    const isPasswordValid = await bcryptjs.compare(password, user.password);
-    // If the password is invalid, respond with an error message
-    if (!isPasswordValid) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid credentials",
-      });
-    }
-    // Generating a JWT token for the authenticated user
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
-    // Setting the token in a cookie and responding with user details
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
+  const { email, password } = req.body;
 
-    res.status(200).json({
-      success: true,
-      message: "User logged in successfully",
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-      },
-    });
-  } catch (error) {
-    // Logging the error and responding with a server error message
-    console.log(error);
-    res.status(500).json({
-      success: false,
-      message: "Server error.",
-    });
+  if (!email || !password) {
+    throw new AppError("Please provide email and password", 400);
   }
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new AppError("Invalid credentials", 401);
+  }
+
+  const isValid = await bcryptjs.compare(password, user.password);
+  if (!isValid) {
+    throw new AppError("Invalid credentials", 401);
+  }
+
+  const token = generateToken(user._id);
+
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "User logged in successfully",
+    user: {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+    },
+  });
 };
 
-// Logout user function
+// LOGOUT
 const logoutFunction = async (req, res) => {
-  try {
-    res.clearCookie("token");
-    res
-      .status(200)
-      .json({ success: true, message: "User logged out successfully" });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ success: false, message: "Server error." });
-  }
+  res.clearCookie("token");
+  res.status(200).json({
+    success: true,
+    message: "User logged out successfully",
+  });
 };
 
-// Email verification function
+// VERIFY EMAIL
 const verifyEmailFunction = async (req, res) => {
-  try {
-    const { otp } = req.body;
+  const { otp } = req.body;
 
-    const decoded = jwt.verify(req.cookies.token, process.env.JWT_SECRET);
-
-    const user = await User.findOne({ _id: decoded.id });
-
-    if (user.isEmailVerified) {
-      return res
-        .status(403)
-        .json({ success: false, message: "User email already verified " });
-    }
-
-    const isCodeValid = await bcryptjs.compare(otp, user.emailVerificationCode);
-
-    const createdAt = user.emailVerificationCodeExpires;
-    const now = new Date();
-
-    const diff = now - createdAt;
-    let emailExpire;
-
-    if (diff > 10 * 60 * 1000) {
-      emailExpire = true;
-    } else {
-      emailExpire = false;
-    }
-
-    if (!isCodeValid || emailExpire) {
-      const newOtp = crypto.randomInt(100000, 1000000).toString();
-      user.emailVerificationCode = await bcryptjs.hash(newOtp, 10);
-      user.emailVerificationCodeExpires = new Date() + 10 * 60;
-      await user.save();
-      await sendOTP(user.email, newOtp);
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid or expired OTP" });
-    }
-
-    user.isEmailVerified = true;
-    user.emailVerificationCode = undefined;
-    user.emailVerificationCodeExpires = undefined;
-    await user.save();
-
-    res
-      .status(200)
-      .json({ success: true, message: "Email verified successfully" });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ success: false, message: "Server error." });
+  if (!otp) {
+    throw new AppError("OTP is required", 400);
   }
+
+  const decoded = jwt.verify(req.cookies.token, process.env.JWT_SECRET);
+  const user = await User.findById(decoded.id);
+
+  if (!user) throw new AppError("User not found", 404);
+
+  if (user.isEmailVerified) {
+    throw new AppError("Email already verified", 400);
+  }
+
+  // Expiry check
+  if (Date.now() > user.emailVerificationCodeExpires) {
+    throw new AppError("OTP expired. Please request new one.", 400);
+  }
+
+  const isValid = await bcryptjs.compare(otp, user.emailVerificationCode);
+  if (!isValid) {
+    throw new AppError("Invalid OTP", 400);
+  }
+
+  user.isEmailVerified = true;
+  user.emailVerificationCode = undefined;
+  user.emailVerificationCodeExpires = undefined;
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Email verified successfully",
+  });
 };
 
-// Sending email verification token
+// RESEND OTP
 const reSendEmailVerificationFunction = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const user = await User.findOne({ _id: userId });
-    const email = user.email;
-    if (!user) {
-      return res
-        .status(400)
-        .json({ success: false, message: "User not found" });
-    }
-    if (user.isEmailVerified) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Email already verified" });
-    }
-    const emailVerificationToken = crypto.randomInt(100000, 1000000).toString();
-    user.emailVerificationCode = emailVerificationToken;
-    user.emailVerificationCodeExpires = Date.now() + 10 * 60; //10 min
-    await user.save();
-    await sendOTP(email, emailVerificationToken);
-    res.status(200).json({
-      success: true,
-      message: "Verification email resent successfully",
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ success: false, message: "Server error." });
+  const user = await User.findById(req.user.id);
+
+  if (!user) throw new AppError("User not found", 404);
+
+  if (user.isEmailVerified) {
+    throw new AppError("Email already verified", 400);
   }
+
+  const otp = generateOTP();
+  user.emailVerificationCode = await bcryptjs.hash(otp, 10);
+  user.emailVerificationCodeExpires = Date.now() + 10 * 60 * 1000;
+
+  await user.save();
+  await sendOTP(user.email, otp);
+
+  res.status(200).json({
+    success: true,
+    message: "Verification email resent successfully",
+  });
 };
 
-// Check username exist or not
+// CHECK USERNAME
 const checkUsername = async (req, res) => {
   const { username } = req.body;
-  const isUser = await User.findOne({ username });
 
-  if (isUser) {
-    return res.status(409).json({
-      success: false,
-      message: "Username already taken",
-    });
+  if (!username) {
+    throw new AppError("Username required", 400);
   }
 
-  const isUserReserve = await UsernameReservation.findOne({ username });
-  if (isUserReserve) {
-    return res.status(409).json({
-      success: false,
-      message: "Username already taken",
-    });
+  const exists = await User.findOne({ username });
+  const reserved = await UsernameReservation.findOne({ username });
+
+  if (exists || reserved) {
+    throw new AppError("Username already taken", 409);
   }
 
   await UsernameReservation.create({ username });
 
   res.status(201).json({
     success: true,
-    message: "Username Available",
+    message: "Username available",
   });
 };
-//
-const isUserLoggedIn = async (req, res) => {
-  try {
-    const user = await User.findOne({ _id: req.user.id });
 
-    res.status(200).json({
-      success: true,
-      message: "User logged in",
-      user: {
-        name: user.name,
-        username: user.username,
-        email: user.email,
-        isEmailVerified: user.isEmailVerified,
-      },
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
+// CHECK LOGIN
+const isUserLoggedIn = async (req, res) => {
+  const user = await User.findById(req.user.id);
+
+  if (!user) throw new AppError("User not found", 404);
+
+  res.status(200).json({
+    success: true,
+    message: "User logged in",
+    user: {
+      name: user.name,
+      username: user.username,
+      email: user.email,
+      isEmailVerified: user.isEmailVerified,
+    },
+  });
 };
 
-// Exports all function
+// CHANGE PASSWORD
+const changePassword = async (req, res) => {
+  const { oldPassword, password, confirmPassword } = req.body;
+
+  if (!oldPassword || !password || !confirmPassword) {
+    throw new AppError("Please provide all details", 400);
+  }
+
+  if (password !== confirmPassword) {
+    throw new AppError("Passwords do not match", 400);
+  }
+
+  const user = await User.findById(req.user.id);
+  if (!user) throw new AppError("User not found", 404);
+
+  const isMatch = await bcryptjs.compare(oldPassword, user.password);
+  if (!isMatch) {
+    throw new AppError("Invalid old password", 401);
+  }
+
+  user.password = await bcryptjs.hash(password, 10);
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Password changed successfully",
+  });
+};
+
 module.exports = {
   newUser: newUserFunction,
   login: loginUserFunction,
@@ -277,6 +257,7 @@ module.exports = {
   reSendEmailVerification: reSendEmailVerificationFunction,
   checkUsername,
   isUserLoggedIn,
+  changePassword,
 };
 
 // Helper function to send email verification
@@ -328,59 +309,55 @@ If you didn’t create this account, you can ignore this email.
 }
 
 async function sendOTP(email, otp) {
-  console.log(otp);
+  const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    secure: process.env.EMAIL_SECURE === "true",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  (async () => {
+    const info = await transporter.sendMail({
+      from: `"LifeSync " <${process.env.EMAIL_FROM}>`,
+      to: email,
+      subject: "Verify Your Email",
+      text: `
+          Hi,
+          Your One-Time Password (OTP) for verification is: ${otp}
+          This OTP is valid for 10 minutes.
+          If you did not request this, please ignore this email.
+
+          Thanks,
+          LifeSync Team
+  `,
+      html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
+            <div style="max-width: 500px; margin: auto; background: #ffffff; padding: 20px; border-radius: 8px;">
+
+              <h2 style="text-align: center; color: #333;">Verify Your Email</h2>
+
+              <p>Hi,</p>
+
+              <p>Your One-Time Password (OTP) for verification is:</p>
+
+              <div style="text-align: center; margin: 20px 0;">
+                <span style="font-size: 28px; letter-spacing: 5px; font-weight: bold; color: #4CAF50;">
+                  ${otp}
+                </span>
+              </div>
+
+              <p>This OTP is valid for <strong>10 minutes</strong>.</p>
+
+              <p>If you did not request this, please ignore this email.</p>
+
+              <p style="margin-top: 30px;">Thanks,<br/>LifeSync</p>
+
+            </div>
+          </div>
+          `,
+    });
+  })().catch(console.error);
 }
-
-// async function sendOTP(email, otp) {
-//   const transporter = nodemailer.createTransport({
-//     host: process.env.EMAIL_HOST,
-//     port: process.env.EMAIL_PORT,
-//     secure: process.env.EMAIL_SECURE === "true",
-//     auth: {
-//       user: process.env.EMAIL_USER,
-//       pass: process.env.EMAIL_PASS,
-//     },
-//   });
-
-//   (async () => {
-//     const info = await transporter.sendMail({
-//       from: `"LifeSync " <${process.env.EMAIL_FROM}>`,
-//       to: email,
-//       subject: "Verify Your Email",
-//       text: `
-//           Hi,
-//           Your One-Time Password (OTP) for verification is: ${otp}
-//           This OTP is valid for 10 minutes.
-//           If you did not request this, please ignore this email.
-
-//           Thanks,
-//           LifeSync Team
-//   `,
-//       html: `
-//           <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
-//             <div style="max-width: 500px; margin: auto; background: #ffffff; padding: 20px; border-radius: 8px;">
-
-//               <h2 style="text-align: center; color: #333;">Verify Your Email</h2>
-
-//               <p>Hi,</p>
-
-//               <p>Your One-Time Password (OTP) for verification is:</p>
-
-//               <div style="text-align: center; margin: 20px 0;">
-//                 <span style="font-size: 28px; letter-spacing: 5px; font-weight: bold; color: #4CAF50;">
-//                   ${otp}
-//                 </span>
-//               </div>
-
-//               <p>This OTP is valid for <strong>10 minutes</strong>.</p>
-
-//               <p>If you did not request this, please ignore this email.</p>
-
-//               <p style="margin-top: 30px;">Thanks,<br/>LifeSync</p>
-
-//             </div>
-//           </div>
-//           `,
-//     });
-//   })().catch(console.error);
-// }

@@ -30,7 +30,11 @@ router.get("/me", isUserLogin, wrapAsync(authControllers.isUserLoggedIn));
 
 // router.post("/forgot-password", );
 
-// router.post("/change-password", isUserLogin);
+router.put(
+  "/change-password",
+  isUserLogin,
+  wrapAsync(authControllers.changePassword),
+);
 
 // Send Emial verification token
 router.post(
