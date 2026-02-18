@@ -4,6 +4,7 @@ const UsernameReservation = require("../models/usernameReservation.model");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const AppError = require("../middleware/AppError");
+const nodemailer = require("nodemailer");
 
 // Utility: Generate JWT
 const generateToken = (id) => {
@@ -104,6 +105,7 @@ const loginUserFunction = async (req, res) => {
       id: user._id,
       username: user.username,
       email: user.email,
+      isEmailVerified: user.isEmailVerified,
     },
   });
 };
@@ -249,6 +251,11 @@ const changePassword = async (req, res) => {
   });
 };
 
+const deleteUser = (req, res) => {
+  const user = User.findById({ _id: req.user.id });
+  
+};
+
 module.exports = {
   newUser: newUserFunction,
   login: loginUserFunction,
@@ -258,6 +265,7 @@ module.exports = {
   checkUsername,
   isUserLoggedIn,
   changePassword,
+  deleteUser,
 };
 
 // Helper function to send email verification
