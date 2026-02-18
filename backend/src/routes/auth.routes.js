@@ -28,8 +28,7 @@ router.post("/logout", isUserLogin, wrapAsync(authControllers.logout));
 // Is User logged in or not
 router.get("/me", isUserLogin, wrapAsync(authControllers.isUserLoggedIn));
 
-// router.post("/forgot-password", );
-
+// Change Password
 router.put(
   "/change-password",
   isUserLogin,
@@ -48,6 +47,15 @@ router.post(
   "/verify-email",
   isUserLogin,
   wrapAsync(authControllers.verifyEmail),
+);
+
+//Send Reset Password Link
+router.post("/reset-password", wrapAsync(authControllers.sendResetPassLink));
+
+// Verify reset password link
+router.post(
+  "/reset-password/:resetToken",
+  wrapAsync(authControllers.verifyResetToken),
 );
 
 module.exports = router;

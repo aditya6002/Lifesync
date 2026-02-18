@@ -7,9 +7,9 @@ const AppError = require("../middleware/AppError");
 const nodemailer = require("nodemailer");
 
 // Utility: Generate JWT
-const generateToken = (id) => {
+const generateToken = (id, expireIn = "7d") => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
+    expiresIn: expireIn,
   });
 };
 
@@ -253,7 +253,98 @@ const changePassword = async (req, res) => {
 
 const deleteUser = (req, res) => {
   const user = User.findById({ _id: req.user.id });
-  
+};
+
+const verifyResetToken = async (req, res) => {
+  const { resetToken } = req.params;
+  const { password, confirmPassword } = req.body;
+
+  if (
+    !password ||
+    !password.trim() ||
+    !confirmPassword ||
+    !confirmPassword.trim()
+  ) {
+    throw new AppError("All details are required", 400);
+  } else if (password !== confirmPassword) {
+    throw new AppError("Password does not matched", 401);
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+  } catch (err) {
+    throw new AppError("Invalid or expired token", 401);
+  }
+
+  console.log(decoded);
+  const user = await User.findById(decoded.id);
+
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  let tokenSendAgain = false;
+
+  if (user.resetPasswordTokenExpires < new Date()) {
+    tokenSendAgain = true;
+  }
+
+  if (user.resetPasswordToken !== resetToken) {
+    tokenSendAgain = true;
+  }
+
+  if (tokenSendAgain) {
+    const verifyToken = await generateToken(user._id, "10m");
+    user.resetPasswordToken = verifyToken;
+    user.resetPasswordTokenExpires = new Date(Date.now() + 10 * 60 * 1000);
+    await user.save();
+    sendResetPasswordEmail(user.email, verifyToken);
+    throw new AppError("Invalid token", 401);
+  }
+
+  const hashPassword = await bcryptjs.hash(password, 10);
+  user.resetPasswordToken = null;
+  user.resetPasswordTokenExpires = null;
+  user.password = hashPassword;
+  await user.save();
+
+  res
+    .status(200)
+    .json({ success: true, message: "Password changed successfully" });
+};
+
+const sendResetPassLink = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email || !email.trim()) {
+    throw new AppError("Email is required", 400);
+  }
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new AppError("User does not exist", 404);
+  }
+
+  if (
+    user.resetPasswordTokenExpires &&
+    user.resetPasswordTokenExpires > Date.now()
+  ) {
+    throw new AppError("Reset link already sent. Please wait.", 429);
+  }
+
+  const token = generateToken(user._id, "10m");
+
+  user.resetPasswordToken = token;
+  user.resetPasswordTokenExpires = Date.now() + 10 * 60 * 1000;
+
+  await user.save();
+  await sendResetPasswordEmail(email, token);
+
+  res.status(200).json({
+    success: true,
+    message: "Reset password link sent successfully",
+  });
 };
 
 module.exports = {
@@ -266,6 +357,8 @@ module.exports = {
   isUserLoggedIn,
   changePassword,
   deleteUser,
+  sendResetPassLink,
+  verifyResetToken,
 };
 
 // Helper function to send email verification
@@ -314,6 +407,59 @@ If you didn’t create this account, you can ignore this email.
   `,
     });
   })().catch(console.error);
+}
+
+async function sendResetPasswordEmail(email, resetToken) {
+  const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    secure: process.env.EMAIL_SECURE === "true",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  const resetLink = `http://localhost:8080/auth/reset-password?token=${resetToken}`;
+
+  await transporter.sendMail({
+    from: `"LifeSync" <${process.env.EMAIL_FROM}>`,
+    to: email,
+    subject: "Reset Your Password (Valid for 10 Minutes)",
+    text: `
+Hi,
+
+You requested to reset your password.
+
+Click the link below to reset your password:
+${resetLink}
+
+⚠ This link will expire in 10 minutes.
+
+If you did not request a password reset, please ignore this email.
+    `,
+    html: `
+    <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
+      <h3>Reset Your Password</h3>
+      <p>You requested to reset your password.</p>
+
+      <a href="${resetLink}"
+        style="display: inline-block; padding: 12px 24px;
+               background-color: #ef4444; color: #ffffff;
+               text-decoration: none; border-radius: 6px;">
+        Reset Password
+      </a>
+
+      <p style="margin-top: 15px; font-size: 14px;">
+        ⏳ This link will expire in <strong>10 minutes</strong>.
+      </p>
+
+      <p style="margin-top: 15px; font-size: 12px; color: #777;">
+        If you didn’t request this, you can safely ignore this email.
+      </p>
+    </div>
+    `,
+  });
 }
 
 async function sendOTP(email, otp) {

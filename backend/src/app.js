@@ -6,7 +6,7 @@ const multer = require("multer");
 const path = require("path");
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ debug: true, override: true, quiet: true });
 
 // Initialize Express app
 const app = express();
@@ -30,6 +30,10 @@ app.use("/calendar", require("./routes/calendar.routes.js"));
 app.use("/home", require("./routes/home.routes.js"));
 app.use("/journal", require("./routes/journal.routes.js"));
 app.use("/notes", require("./routes/notes.routes.js"));
+
+app.use("/", (req, res) => {
+  res.redirect("/home");
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
