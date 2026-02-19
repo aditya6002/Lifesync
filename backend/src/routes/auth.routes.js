@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const authControllers = require("../controllers/auth.controller");
-const wrapAsync = require("../middleware/wrapAsync.js");
+const wrapAsync = require("../middleware/wrapAsync.middleware.js");
 const authMiddleware = require("../middleware/authValidation.middleware.js");
 const { isUserLogin } = require("../middleware/auth.middleware");
 

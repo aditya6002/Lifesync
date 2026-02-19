@@ -11,7 +11,7 @@ const getHomeData = async (req, res) => {
       Journal.find({ userId }).sort({ _id: -1 }).limit(5),
       Note.find({ userId }).sort({ _id: -1 }).limit(5),
       Expense.find({ userId }).sort({ _id: -1 }).limit(10),
-      Task.find({ userId }), //.sort({ _id: -1 }).limit(15)
+      Task.find({ userId }).sort({ _id: -1 }).limit(15),
       (await Journal.find({ userId })).length,
       (await Note.find({ userId })).length,
     ]);

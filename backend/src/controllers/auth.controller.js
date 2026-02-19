@@ -3,7 +3,7 @@ const User = require("../models/user.model");
 const UsernameReservation = require("../models/usernameReservation.model");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const AppError = require("../middleware/AppError");
+const AppError = require("../middleware/AppError.middleware");
 const nodemailer = require("nodemailer");
 
 // Utility: Generate JWT

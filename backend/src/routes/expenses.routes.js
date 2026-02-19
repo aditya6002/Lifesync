@@ -1,7 +1,7 @@
 const express = require("express");
 const { isUserLogin } = require("../middleware/auth.middleware.js");
 const router = express.Router();
-const wrapAsync = require("../middleware/wrapAsync.js");
+const wrapAsync = require("../middleware/wrapAsync.middleware.js");
 const expensesController = require("../controllers/expenses.controller.js");
 
 router
