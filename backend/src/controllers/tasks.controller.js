@@ -23,26 +23,33 @@ const getAllTasks = async (req, res) => {
 
 // Create a task
 const addNewTask = async (req, res) => {
-  const { title, content, createdAt = Date.now } = req.body;
+  const { title, content, createdAt = new Date() } = req.body;
 
   if (!title || !content || !title.trim() || !content.trim()) {
     throw new AppError("All field are required", 403);
   }
 
-  await Task.create({ title, content, createdAt, userId: req.user.id });
+  const newTask = await Task.create({
+    title,
+    content,
+    createdAt,
+    userId: req.user.id,
+  });
 
   res.status(201).json({
     success: true,
     message: "Task created",
+    newTask,
   });
 };
 
 // Edit Task
 const editTask = async (req, res) => {
-  const task = req.body.task;
+  const { task } = req.body;
   if (!task) {
     throw new AppError("Task is required", 400);
   }
+
   const editedTask = await Task.findByIdAndUpdate(
     task._id,
     { title: task.title, content: task.content, isDone: task.isDone },

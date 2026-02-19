@@ -5,14 +5,7 @@ const AppError = require("../middleware/AppError.middleware.js");
 const createExpenses = async (req, res) => {
   const { title, content, amount, createdAt = new Date() } = req.body;
 
-  if (
-    !title ||
-    !title.trim() ||
-    !content ||
-    !content.trim() ||
-    !amount ||
-    !amount.trim()
-  ) {
+  if (!title || !title.trim() || !content || !content.trim() || !amount) {
     throw new AppError("Required all field", 400);
   }
 

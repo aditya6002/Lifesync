@@ -42,7 +42,7 @@ const createNote = async (req, res) => {
 
 // Edit Note
 const editNote = async (req, res) => {
-  const note = req.body;
+  const { note } = req.body;
   if (!note) {
     throw new AppError("Note is required", 400);
   }
@@ -52,6 +52,7 @@ const editNote = async (req, res) => {
     { ...note },
     { new: true },
   );
+
   if (!editedNote) {
     throw new AppError("Note not found", 404);
   }

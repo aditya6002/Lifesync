@@ -14,7 +14,7 @@ const getData = async (req, res) => {
 
 // Create new journal
 const newJouranl = async (req, res) => {
-  const { title, content, createdAt = Date.now } = req.body;
+  const { title, content, createdAt = new Date() } = req.body;
 
   if (!title || !title.trim() || !content || !content.trim()) {
     throw new AppError("All field required", 400);
@@ -60,7 +60,7 @@ const editJournal = async (req, res) => {
 // Delete journal
 const deleteJournal = async (req, res) => {
   const { journalId } = req.params;
-  const deleteJournal = await Journal.findByIdAndDelete({ journalId });
+  const deleteJournal = await Journal.findByIdAndDelete(journalId);
   if (!deleteJournal) {
     throw new AppError("Journal not found", 404);
   }
