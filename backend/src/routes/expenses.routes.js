@@ -6,11 +6,15 @@ const expensesController = require("../controllers/expenses.controller.js");
 
 router
   .route("/")
-  .get(isUserLogin, wrapAsync(expensesController.getAllNotes))
-  .post(isUserLogin, wrapAsync(expensesController.createExpense));
+
+  .post(isUserLogin, wrapAsync(expensesController.createExpense))
+  .put(isUserLogin, wrapAsync(expensesController.editExpense))
+  
+
+router.delete("/:expenseId",isUserLogin,wrapAsync(expensesController.deleteExpense))
 
 router.get(
-  "/history/:year/:month",
+  "/:year/:month/:skip/:limit",
   isUserLogin,
   wrapAsync(expensesController.getDataByMonth),
 );
