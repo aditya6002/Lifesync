@@ -11,48 +11,60 @@ const validateResult = (req, res, next) => {
   next();
 };
 
-const journalValidationRules = [
-  body("title").isString().withMessage("Invalid  title").isLength({ min: 5 }),
-  body("content")
-    .isString()
-    .withMessage("Content must be string")
-    .isLength({ min: 5 }),
-  validateResult,
-];
-
-const expenseValidationRules = [
+const createJournalValidationRules = [
   body("title")
     .isString()
-    .withMessage("Invalid  category")
-    .isLength({ min: 5 }),
+    .withMessage("Invalid  title")
+    .isLength({ min: 5, max: 60 })
+    .withMessage("Invalid title"),
   body("content")
     .isString()
-    .withMessage("Description must be string")
-    .isLength({ min: 5 }),
+    .withMessage("Invalid content")
+    .isLength({ min: 1 })
+    .withMessage("Invalid content"),
   validateResult,
 ];
 
-const noteValidationRules = [
-  body("title").isString().withMessage("Invalid  title").isLength({ min: 5 }),
-  body("content")
-    .isString()
-    .withMessage("Content must be string")
-    .isLength({ min: 5 }),
+const editJournalValidationRules = [
+  body("journal.userId")
+    .notEmpty()
+    .withMessage("UserId is required")
+    .isMongoId()
+    .withMessage("Invalid UserId"),
+
+  body("journal.title")
+    .notEmpty()
+    .withMessage("Title is required")
+    .isLength({ min: 3 })
+    .withMessage("Title must be at least 3 characters"),
+
+  body("journal.content")
+    .notEmpty()
+    .withMessage("Content is required")
+    .isLength({ min: 5 })
+    .withMessage("Content must be at least 5 characters"),
+
   validateResult,
 ];
 
-const taskValidationRules = [
-  body("title").isString().withMessage("Invalid  title").isLength({ min: 5 }),
-  body("content")
-    .isString()
-    .withMessage("Content must be string")
-    .isLength({ min: 5 }),
+const getAllJournalValidationRules = [
+  param("skip").notEmpty().withMessage("Skip is required"),
+  param("limit").notEmpty().withMessage("Limit is required"),
+  validateResult,
+];
+
+const deleteJournalValidationRules = [
+  param("journalId")
+    .notEmpty()
+    .withMessage("Journal id is required")
+    .isMongoId()
+    .withMessage("Wrong journal id"),
   validateResult,
 ];
 
 module.exports = {
-  journalValidationRules,
-  expenseValidationRules,
-  noteValidationRules,
-  taskValidationRules,
+  createRules: createJournalValidationRules,
+  editRules: editJournalValidationRules,
+  getRules: getAllJournalValidationRules,
+  deleteRules: deleteJournalValidationRules,
 };

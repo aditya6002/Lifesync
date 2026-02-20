@@ -3,21 +3,19 @@ const router = express.Router();
 const wrapAsync = require("../middleware/wrapAsync.middleware");
 const { isUserLogin } = require("../middleware/auth.middleware");
 const journalController = require("../controllers/journal.controller");
-const {
-  journalValidationRules,
-} = require("../middleware/validation.middleware");
+const journalValidator = require("../middleware/journalValidation.middleware");
 
 // Create and Edit Journal Route
 router
   .route("/")
   .post(
     isUserLogin,
-    journalValidationRules,
+    journalValidator.createRules,
     wrapAsync(journalController.newJouranl),
   )
   .put(
     isUserLogin,
-
+    journalValidator.editRules,
     wrapAsync(journalController.editJournal),
   );
 
@@ -25,10 +23,16 @@ router
 router.delete(
   "/:journalId",
   isUserLogin,
+  journalValidator.deleteRules,
   wrapAsync(journalController.deleteJournal),
 );
 
 // Get Journals
-router.get("/:skip/:limit", isUserLogin, wrapAsync(journalController.getData));
+router.get(
+  "/:skip/:limit",
+  isUserLogin,
+  journalValidator.getRules,
+  wrapAsync(journalController.getData),
+);
 
 module.exports = router;
