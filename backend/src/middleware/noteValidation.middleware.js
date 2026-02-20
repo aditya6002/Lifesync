@@ -11,7 +11,7 @@ const validateResult = (req, res, next) => {
   next();
 };
 
-const createJournalValidationRules = [
+const createNoteValidationRules = [
   body("title")
     .isString()
     .withMessage("Invalid  title")
@@ -25,20 +25,20 @@ const createJournalValidationRules = [
   validateResult,
 ];
 
-const editJournalValidationRules = [
-  body("journal.userId")
+const editNoteValidationRules = [
+  body("note.userId")
     .notEmpty()
     .withMessage("UserId is required")
     .isMongoId()
     .withMessage("Invalid UserId"),
 
-  body("journal.title")
+  body("note.title")
     .notEmpty()
     .withMessage("Title is required")
     .isLength({ min: 3 })
     .withMessage("Title must be at least 3 characters"),
 
-  body("journal.content")
+  body("note.content")
     .notEmpty()
     .withMessage("Content is required")
     .isLength({ min: 5 })
@@ -47,24 +47,24 @@ const editJournalValidationRules = [
   validateResult,
 ];
 
-const getAllJournalValidationRules = [
+const getAllNoteValidationRules = [
   param("skip").notEmpty().withMessage("Skip is required"),
   param("limit").notEmpty().withMessage("Limit is required"),
   validateResult,
 ];
 
-const deleteJournalValidationRules = [
-  param("journalId")
+const deleteNoteValidationRules = [
+  param("noteId")
     .notEmpty()
-    .withMessage("Journal id is required")
+    .withMessage("Note id is required")
     .isMongoId()
     .withMessage("Wrong journal id"),
   validateResult,
 ];
 
 module.exports = {
-  createRules: createJournalValidationRules,
-  editRules: editJournalValidationRules,
-  getRules: getAllJournalValidationRules,
-  deleteRules: deleteJournalValidationRules,
+  createRules: createNoteValidationRules,
+  editRules: editNoteValidationRules,
+  getRules: getAllNoteValidationRules,
+  deleteRules: deleteNoteValidationRules,
 };
