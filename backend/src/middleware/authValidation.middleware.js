@@ -1,14 +1,12 @@
 const { body, param, validationResult } = require("express-validator");
+const AppError = require("./AppError.middleware");
 
 const validateResult = (req, res, next) => {
   const errors = validationResult(req);
-
   if (!errors.isEmpty()) {
-    return res.status(400).json({
-      errors: errors.array(),
-    });
+    const msg = errors.array()[0]?.msg || "Validation error";
+    throw new AppError(msg, 400);
   }
-  console.log('middleware')
   next();
 };
 
@@ -44,7 +42,27 @@ const loginValidationRules = [
   validateResult,
 ];
 
+const changePassWordValidationRules = [
+  body("oldPassword")
+    .notEmpty()
+    .withMessage("Password is required")
+    .isLength({ min: 8 })
+    .withMessage("Password must be 8 letters"),
+  body("newPassword")
+    .notEmpty()
+    .withMessage("New Password is required")
+    .isLength({ min: 8 })
+    .withMessage("New Password must be 8 letters"),
+  body("confirmPassword")
+    .notEmpty()
+    .withMessage("Confirm Password is required")
+    .isLength({ min: 8 })
+    .withMessage("Confirm Password must be 8 letters"),
+  validateResult,
+];
+
 module.exports = {
   registerValidationRules,
   loginValidationRules,
+  changePassWordValidationRules,
 };

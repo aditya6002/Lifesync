@@ -1,10 +1,15 @@
 const express = require("express");
-const { isUserLoggedIn } = require("../controllers/auth.controller");
+const { isUserLogin } = require("../middleware/auth.middleware");
 const wrapAsync = require("../middleware/wrapAsync.middleware");
 const router = express.Router();
 const chatbotController = require("../controllers/chatbot.controller");
-// Remove the node-fetch import
+const chatbotValidationRules = require("../middleware/chatbotValidation.middleware");
 
-router.post("/", wrapAsync(chatbotController.chatbot));
+router.post(
+  "/",
+  isUserLogin,
+  chatbotValidationRules.chatbotValidationRules,
+  wrapAsync(chatbotController.chatbot),
+);
 
 module.exports = router;

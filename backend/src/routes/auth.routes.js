@@ -32,6 +32,7 @@ router.get("/me", isUserLogin, wrapAsync(authControllers.isUserLoggedIn));
 router.put(
   "/change-password",
   isUserLogin,
+  authMiddleware.changePassWordValidationRules,
   wrapAsync(authControllers.changePassword),
 );
 
