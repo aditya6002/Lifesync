@@ -3,19 +3,33 @@ const { isUserLogin } = require("../middleware/auth.middleware.js");
 const router = express.Router();
 const wrapAsync = require("../middleware/wrapAsync.middleware.js");
 const expensesController = require("../controllers/expenses.controller.js");
+const expenseValidationRules = require("../middleware/expenseValidation.middleware.js");
 
 router
   .route("/")
 
-  .post(isUserLogin, wrapAsync(expensesController.createExpense))
-  .put(isUserLogin, wrapAsync(expensesController.editExpense))
-  
+  .post(
+    isUserLogin,
+    expenseValidationRules.createRules,
+    wrapAsync(expensesController.createExpense),
+  )
+  .put(
+    isUserLogin,
+    expenseValidationRules.editRules,
+    wrapAsync(expensesController.editExpense),
+  );
 
-router.delete("/:expenseId",isUserLogin,wrapAsync(expensesController.deleteExpense))
+router.delete(
+  "/:expenseId",
+  isUserLogin,
+  expenseValidationRules.deleteRules,
+  wrapAsync(expensesController.deleteExpense),
+);
 
 router.get(
   "/:year/:month/:skip/:limit",
   isUserLogin,
+  expenseValidationRules.getAllRules,
   wrapAsync(expensesController.getDataByMonth),
 );
 
