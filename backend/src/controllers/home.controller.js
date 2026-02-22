@@ -2,6 +2,7 @@ const Expense = require("../models/expenses.model");
 const Journal = require("../models/journal.model");
 const Note = require("../models/Note.model");
 const Task = require("../models/task.model");
+const jwt = require("jsonwebtoken");
 
 const getHomeData = async (req, res) => {
   const userId = req.user.id;
@@ -15,7 +16,11 @@ const getHomeData = async (req, res) => {
       (await Journal.find({ userId })).length,
       (await Note.find({ userId })).length,
     ]);
+  const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
+    expiresIn: "3d",
+  });
 
+  res.cookie("token", token);
   res.status(200).json({
     success: true,
     message: "Data fetched",
