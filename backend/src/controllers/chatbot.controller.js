@@ -1,4 +1,5 @@
 const AppError = require("../middleware/AppError.middleware");
+const callAiModel = require("../services/chatbot");
 
 const chatbot = async (req, res) => {
   const { message } = req.body;
@@ -7,15 +8,7 @@ const chatbot = async (req, res) => {
     throw new AppError("Message is required and must be a string", 400);
   }
 
-  const response = await fetch("http://localhost:11434/api/generate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "phi3:mini",
-      prompt: message,
-      stream: false,
-    }),
-  });
+  const response = await callAiModel(message);
 
   if (!response.ok) {
     throw new AppError(
