@@ -1,14 +1,33 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import HomeUpper from "../components/Home/HomeUpper";
 import HomeMiddle from "../components/Home/HomeMiddle";
 import HomeBottom from "../components/Home/HomeBottom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import gsap from "gsap";
-import {createNote} from '../api/Auth.js';
+import { createNote } from "../api/Auth.js";
+import axios from "axios";
 
 const Home = () => {
   const tl = gsap.timeline();
   createNote({ title: "Sample Note", content: "This is a sample note." });
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        const response = await axios.get("http://localhost:8080/home", {
+          withCredentials: true,
+        });
+        const data = response.data;
+        console.log(data);
+      } catch (error) {
+        console.error("Error fetching home data:", error);
+      }
+    };
+
+    getData();
+  }, []);
 
   const diary = useSelector((state) => state.diary.entry);
   const notes = useSelector((state) => state.notes.notes);

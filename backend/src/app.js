@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser");
 const multer = require("multer");
 const path = require("path");
 
+
 // Load environment variables
 dotenv.config({ debug: true, override: true, quiet: true });
 
@@ -14,7 +15,7 @@ const app = express();
 // Middleware
 app.use(
   cors({
-    origin: "http://localhost:8080",
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
     credentials: true,
   }),
 );
