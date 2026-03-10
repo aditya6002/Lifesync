@@ -8,7 +8,7 @@ const {
   sendEmail,
   sendOTP,
   sendResetPasswordEmail,
-} = require("../services/mail");
+} = require("../services/mail.service");
 
 // Utility: Generate JWT
 const generateToken = (id, expireIn = "7d") => {

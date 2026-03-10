@@ -1,5 +1,5 @@
 const AppError = require("../middleware/AppError.middleware");
-const callAiModel = require("../services/chatbot");
+const callAiModel = require("../services/mail.service");
 
 const chatbot = async (req, res) => {
   const { message } = req.body;
