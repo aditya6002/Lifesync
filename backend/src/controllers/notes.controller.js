@@ -1,4 +1,4 @@
-const AppError = require("../middleware/AppError.middleware.js");
+const {AppError} = require("../middleware/AppError.middleware.js");
 const Note = require("../models/Note.model.js");
 
 // Get Notes
