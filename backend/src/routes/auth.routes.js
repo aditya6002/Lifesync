@@ -4,6 +4,7 @@ const authControllers = require("../controllers/auth.controller");
 const wrapAsync = require("../middleware/wrapAsync.middleware.js");
 const authMiddleware = require("../middleware/authValidation.middleware.js");
 const { isUserLogin } = require("../middleware/auth.middleware");
+const { authRateLimiter } = require("../middleware/rateLimiter.middleware.js");
 
 // Check username available or not
 router.post("/username-available", wrapAsync(authControllers.checkUsername));
@@ -12,6 +13,7 @@ router.post("/username-available", wrapAsync(authControllers.checkUsername));
 router.post(
   "/login",
   authMiddleware.loginValidationRules,
+  authRateLimiter,
   wrapAsync(authControllers.login),
 );
 
@@ -19,26 +21,39 @@ router.post(
 router.post(
   "/register",
   authMiddleware.registerValidationRules,
+  authRateLimiter,
   wrapAsync(authControllers.newUser),
 );
 
 // Logout route
-router.post("/logout", isUserLogin, wrapAsync(authControllers.logout));
+router.post(
+  "/logout",
+  authRateLimiter,
+  isUserLogin,
+  wrapAsync(authControllers.logout),
+);
 
 // Is User logged in or not
-router.get("/me", isUserLogin, wrapAsync(authControllers.isUserLoggedIn));
+router.get(
+  "/me",
+  authRateLimiter,
+  isUserLogin,
+  wrapAsync(authControllers.isUserLoggedIn),
+);
 
 // Change Password
 router.put(
   "/change-password",
+  authRateLimiter,
   isUserLogin,
   authMiddleware.changePassWordValidationRules,
   wrapAsync(authControllers.changePassword),
 );
 
-// Send Emial verification token
+// Send Email verification token
 router.post(
   "/send-email-verification-token",
+  authRateLimiter,
   isUserLogin,
   wrapAsync(authControllers.reSendEmailVerification),
 );
@@ -47,15 +62,21 @@ router.post(
 router.post(
   "/verify-email",
   isUserLogin,
+  authRateLimiter,
   wrapAsync(authControllers.verifyEmail),
 );
 
 //Send Reset Password Link
-router.post("/reset-password", wrapAsync(authControllers.sendResetPassLink));
+router.post(
+  "/reset-password",
+  authRateLimiter,
+  wrapAsync(authControllers.sendResetPassLink),
+);
 
 // Verify reset password link
 router.post(
   "/reset-password/:resetToken",
+  authRateLimiter,
   wrapAsync(authControllers.verifyResetToken),
 );
 

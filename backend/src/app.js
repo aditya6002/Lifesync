@@ -15,7 +15,7 @@ const app = express();
 
 const globalRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: 100,
   message: "Too many requests from this IP, please try again later.",
   standardHeaders: true,
   legacyHeaders: false,
@@ -24,13 +24,13 @@ const globalRateLimiter = rateLimit({
   },
 });
 
-// Middleware
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: "http://localhost:8080", // process.env.CLIENT_URL || "http://localhost:5173",
     credentials: true,
   }),
 );
+
 app.use(
   express.json({
     limit: "10mb", // Limit request body size
@@ -45,8 +45,6 @@ app.use(
 );
 app.use(cookieParser());
 app.use(compression());
-app.use(helmet());
-app.use(globalRateLimiter);
 
 process.env.NODE_ENV === "development"
   ? app.use(morgan("dev"))
@@ -54,27 +52,61 @@ process.env.NODE_ENV === "development"
 
 const upload = multer({ dest: "uploads/" }); //({ storage: multer.memoryStorage() });
 
+console.log("Code is working");
+
 app.get("/health", (req, res) => {
   res.status(200).json({
     status: "ok",
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: NODE_ENV,
+    environment: process.env.NODE_ENV,
     message: "Server is running",
   });
 });
 
-app.use("/auth", require("./routes/auth.routes.js"));
-app.use("/tasks", require("./routes/tasks.routes.js"));
-app.use("/expenses", require("./routes/expenses.routes"));
-app.use("/chatbot", require("./routes/chatbot.routes.js"));
-app.use("/calendar", require("./routes/calendar.routes.js"));
-app.use("/home", require("./routes/home.routes.js"));
-app.use("/journal", require("./routes/journal.routes.js"));
-app.use("/notes", require("./routes/notes.routes.js"));
+app.use(helmet());
+app.use(globalRateLimiter);
 
-app.use("/", (req, res) => {
-  res.redirect("/home");
+// API Routes
+app.use("/api/auth", require("./routes/auth.routes.js"));
+app.use("/api/tasks", require("./routes/tasks.routes.js"));
+app.use("/api/expenses", require("./routes/expenses.routes.js"));
+app.use("/api/chatbot", require("./routes/chatbot.routes.js"));
+app.use("/api/calendar", require("./routes/calendar.routes.js"));
+app.use("/api/home", require("./routes/home.routes.js"));
+app.use("/api/journal", require("./routes/journal.routes.js"));
+app.use("/api/notes", require("./routes/notes.routes.js"));
+
+// File upload endpoint
+app.post("/upload", upload.single("file"), (req, res) => {
+  const data = req.body;
+  const file = req.file;
+
+  if (!file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+
+  // Process the file and data as needed
+  console.log("Received file:", file);
+  console.log("Received data:", data);
+
+  res.json({ success: true, message: "File uploaded successfully" });
+});
+
+// File serving endpoint
+app.get("/file", async (req, res) => {
+  try {
+    const { filename } = req.query;
+    if (!filename) {
+      return res.status(400).json({ error: "Filename is required" });
+    }
+
+    const filePath = path.join(__dirname, "..", "uploads", filename);
+    res.sendFile(filePath);
+  } catch (error) {
+    console.error("Error serving file:", error);
+    res.status(500).json({ error: "Failed to serve file" });
+  }
 });
 
 app.use((req, res, next) => {
@@ -90,6 +122,10 @@ app.use((req, res, next) => {
   });
 });
 
+app.use("/", (req, res) => {
+  res.redirect("/home");
+});
+
 const errorHandler = (err, req, res, next) => {
   console.error("Error:", {
     name: err.name,
@@ -100,6 +136,7 @@ const errorHandler = (err, req, res, next) => {
     method: req.method,
     timestamp: new Date().toISOString(),
   });
+
   // Default error
   let statusCode = 500;
   let code = "INTERNAL_SERVER_ERROR";
@@ -137,6 +174,7 @@ const errorHandler = (err, req, res, next) => {
 
 app.use(errorHandler);
 
+// Global error handlers for unhandled exceptions
 process.on("uncaughtException", (error) => {
   console.error("UNCAUGHT EXCEPTION:", {
     name: error.name,
@@ -156,7 +194,7 @@ process.on("unhandledRejection", (reason, promise) => {
   });
 });
 
-// Error handling middleware
+// Final error handling middleware
 app.use((err, req, res, next) => {
   console.error(err);
 
@@ -170,36 +208,3 @@ app.use((err, req, res, next) => {
 });
 
 module.exports = app;
-
-
-
-
-app.post("/upload", upload.single("file"), (req, res) => {
-  const data = req.body;
-  const file = req.file;
-
-  if (!file) {
-    return res.status(400).json({ error: "No file uploaded" });
-  }
-
-  // Process the file and data as needed
-  console.log("Received file:", file);
-  console.log("Received data:", data);
-
-  res.json({ success: true, message: "File uploaded successfully" });
-});
-
-app.get("/file", async (req, res) => {
-  try {
-    const { filename } = req.query;
-    if (!filename) {
-      return res.status(400).json({ error: "Filename is required" });
-    }
-
-    const filePath = path.join(__dirname, "..", "uploads", filename);
-    res.sendFile(filePath);
-  } catch (error) {
-    console.error("Error serving file:", error);
-    res.status(500).json({ error: "Failed to serve file" });
-  }
-});

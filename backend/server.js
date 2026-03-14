@@ -8,7 +8,6 @@ const port = process.env.PORT;
 
 // Start the server
 app.listen(port, () => {
-  console.log("base url - http://localhost:8080/");
   console.log(`
 ╔════════════════════════════════════════════════════════════╗
 ║         🚀 SERVER STARTED SUCCESSFULLY 🚀                ║

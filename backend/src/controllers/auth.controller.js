@@ -11,14 +11,9 @@ const {
 } = require("../services/mail.service");
 const rateLimiter = require("../helper/rateLimiter.helper");
 
-const getUserIP = require("../utils/getUserIP.util");
+const getJWTToken = require("../utils/generateJwtToken.js");
 
-// Utility: Generate JWT
-const generateToken = (id, expireIn = "7d") => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: expireIn,
-  });
-};
+const getUserIP = require("../utils/getUserIP.util");
 
 // Utility: Generate OTP (6 digit)
 const generateOTP = () => {
@@ -27,56 +22,83 @@ const generateOTP = () => {
 
 // REGISTER
 const newUserFunction = async (req, res) => {
-  const { name, username, email, password } = req.body;
+  try {
+    const { name, username, email, password } = req.body;
 
-  if (!name || !username || !email || !password) {
-    throw new AppError("Please provide all required fields", 400);
+    const ipAddress = getUserIP(req);
+
+    if (!name || !username || !email || !password) {
+      throw new AppError("Please provide all required fields", 400);
+    }
+
+    const signupCheck = await rateLimiter.checkSignupAttempt(ipAddress);
+    if (!signupCheck.allowed) {
+      return res.status(429).json({
+        success: false,
+        message: signupCheck.reason,
+        remainingTime: signupCheck.remainingTime,
+      });
+    }
+
+    // Check username
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      return res.status(400).json({ message: "Username already exists" });
+    }
+
+    // Check email
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      await rateLimiter.recordFailedSignupAttempt(ipAddress, email);
+      throw new AppError("Email already exists", 409);
+    }
+
+    const otp = generateOTP();
+    const hashedOtp = await bcryptjs.hash(otp, 10);
+
+    const user = await User.create({
+      name,
+      username,
+      email,
+      password: await bcryptjs.hash(password, 10),
+      emailVerificationCode: hashedOtp,
+      emailVerificationCodeExpires: Date.now() + 10 * 60 * 1000, // 10 min
+    });
+
+    await sendOTP(email, otp);
+
+    // Remove reserved username if exists
+    const reserved = await UsernameReservation.findOne({ username });
+    if (reserved) {
+      await UsernameReservation.findByIdAndDelete(reserved._id);
+    }
+
+    const token = generateToken(user._id);
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Signup successful",
+      token,
+      user: {
+        id: newUser._id,
+        email: newUser.email,
+        name: newUser.name,
+      },
+    });
+  } catch (error) {
+    console.error("Signup error:", error);
+    const ipAddress = getUserIP(req);
+    if (req.body.email) {
+      await rateLimiter.recordFailedSignupAttempt(ipAddress, req.body.email);
+    }
+    res.status(500).json({ message: "Internal server error" });
   }
-
-  // Check username
-  const existingUsername = await User.findOne({ username });
-  if (existingUsername) {
-    throw new AppError("Username already exists", 409);
-  }
-
-  // Check email
-  const existingEmail = await User.findOne({ email });
-  if (existingEmail) {
-    throw new AppError("Email already exists", 409);
-  }
-
-  const otp = generateOTP();
-  const hashedOtp = await bcryptjs.hash(otp, 10);
-
-  const user = await User.create({
-    name,
-    username,
-    email,
-    password: await bcryptjs.hash(password, 10),
-    emailVerificationCode: hashedOtp,
-    emailVerificationCodeExpires: Date.now() + 10 * 60 * 1000, // 10 min
-  });
-
-  await sendOTP(email, otp);
-
-  // Remove reserved username if exists
-  const reserved = await UsernameReservation.findOne({ username });
-  if (reserved) {
-    await UsernameReservation.findByIdAndDelete(reserved._id);
-  }
-
-  const token = generateToken(user._id);
-
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-  });
-
-  res.status(201).json({
-    success: true,
-    message: "User registered successfully",
-  });
 };
 
 // LOGIN
@@ -113,17 +135,24 @@ const loginUserFunction = async (req, res) => {
     }
 
     await rateLimiter.clearLoginAttempts(email);
-    const token = generateToken(user._id);
+    const accessToken = getJWTToken.getAccessToken(user);
+    const refreshToken = getJWTToken.getRefreshToken(user);
 
-    res.cookie("token", token, {
+    res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
     });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
     res.json({
       success: true,
       message: "Login successful",
-      token,
+      accessToken,
       user: {
         id: user._id,
         email: user.email,
@@ -375,6 +404,169 @@ const sendResetPassLink = async (req, res) => {
     success: true,
     message: "Reset password link sent successfully",
   });
+};
+
+const forgotPasswordController = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const ipAddress = getUserIP(req);
+
+    if (!email) {
+      return res.status(400).json({ message: "Email required" });
+    }
+
+    // ✅ Step 1: Check rate limit
+    const resetCheck = await rateLimiter.checkPasswordResetAttempt(
+      email,
+      ipAddress,
+    );
+
+    if (!resetCheck.allowed) {
+      return res.status(429).json({
+        success: false,
+        message: resetCheck.reason,
+        remainingTime: resetCheck.remainingTime,
+      });
+    }
+
+    // ✅ Step 2: Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      // Record failed attempt (security: don't reveal if email exists)
+      await rateLimiter.recordFailedPasswordResetAttempt(email, ipAddress);
+      // But send success message for security
+      return res.json({
+        success: true,
+        message: "If email exists, reset link has been sent",
+      });
+    }
+
+    // ✅ Step 3: Generate reset token
+    const resetToken = user.generatePasswordResetToken();
+    await user.save();
+
+    // ✅ Step 4: Send email (ye tumhara function hoga)
+    // await sendPasswordResetEmail(user.email, resetToken);
+
+    // ✅ Step 5: Clear attempts on success
+    await rateLimiter.clearPasswordResetAttempts(email);
+
+    res.json({
+      success: true,
+      message: "Password reset link sent to email",
+    });
+  } catch (error) {
+    console.error("Password reset error:", error);
+    const ipAddress = getUserIP(req);
+    await rateLimiter.recordFailedPasswordResetAttempt(
+      req.body.email,
+      ipAddress,
+    );
+
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const verifyOTPController = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const ipAddress = getUserIP(req);
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP required" });
+    }
+
+    // ✅ Step 1: Check rate limit
+    const otpCheck = await rateLimiter.checkOtpVerificationAttempt(
+      email,
+      ipAddress,
+    );
+
+    if (!otpCheck.allowed) {
+      return res.status(429).json({
+        success: false,
+        message: otpCheck.reason,
+        remainingTime: otpCheck.remainingTime,
+      });
+    }
+
+    // ✅ Step 2: Verify OTP (ye tumhara function)
+    const user = await User.findOne({ email });
+    if (!user || !user.verifyOTP(otp)) {
+      // Record failed attempt
+      await rateLimiter.recordFailedOtpVerificationAttempt(email, ipAddress);
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    // ✅ Step 3: Clear OTP verification attempts
+    await rateLimiter.clearOtpVerificationAttempts(email);
+
+    // ✅ Step 4: Update user
+    user.isVerified = true;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Email verified successfully",
+    });
+  } catch (error) {
+    console.error("OTP verification error:", error);
+    const ipAddress = getUserIP(req);
+    await rateLimiter.recordFailedOtpVerificationAttempt(
+      req.body.email,
+      ipAddress,
+    );
+
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const adminRoute = async (req, res) => {
+  try {
+    const stats = await rateLimiter.getStatistics();
+    res.json({ success: true, data: stats });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const adminRateLimitUnlockController = async (req, res) => {
+  try {
+    const { identifier, operationType } = req.body;
+
+    if (!identifier) {
+      return res.status(400).json({ message: "Identifier required" });
+    }
+
+    const result = await rateLimiter.forceUnlock(
+      identifier,
+      operationType || "login",
+    );
+
+    if (result.success) {
+      return res.json(result);
+    }
+
+    res.status(404).json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * Get all rate limit records for an identifier
+ * @route GET /admin/rate-limit/:identifier
+ * @access Admin only
+ */
+const adminRateLimitIdentifierController = async (req, res) => {
+  try {
+    const { identifier } = req.params;
+    const result = await rateLimiter.getRecordsByIdentifier(identifier);
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 module.exports = {
