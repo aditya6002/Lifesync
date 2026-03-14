@@ -1,4 +1,4 @@
-const {AppError} = require("../middleware/AppError.middleware");
+const {AppError} = require("../middleware/errors.middleware");
 const callAiModel = require("../services/mail.service");
 
 const chatbot = async (req, res) => {

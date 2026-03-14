@@ -1,5 +1,5 @@
 const Journal = require("../models/journal.model");
-const {AppError} = require("../middleware/AppError.middleware");
+const {AppError} = require("../middleware/errors.middleware");
 
 // Get all journals
 const getData = async (req, res) => {

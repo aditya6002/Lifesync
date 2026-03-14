@@ -1,5 +1,5 @@
 const Expenses = require("../models/expenses.model.js");
-const {AppError} = require("../middleware/AppError.middleware.js");
+const {AppError} = require("../middleware/errors.middleware.js");
 
 // New Expense
 const createExpenses = async (req, res) => {

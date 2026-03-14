@@ -1,4 +1,4 @@
-const {AppError} = require("../middleware/AppError.middleware.js");
+const {AppError} = require("../middleware/errors.middleware.js");
 const Task = require("../models/task.model.js");
 
 // Get taskk

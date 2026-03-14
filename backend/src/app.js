@@ -8,7 +8,7 @@ const compression = require("compression");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
-const { ApiError } = require("./middleware/AppError.middleware.js");
+const { ApiError } = require("./middleware/errors.middleware.js");
 dotenv.config({ debug: true, override: true, quiet: true });
 
 const app = express();
@@ -137,6 +137,25 @@ const errorHandler = (err, req, res, next) => {
 
 app.use(errorHandler);
 
+process.on("uncaughtException", (error) => {
+  console.error("UNCAUGHT EXCEPTION:", {
+    name: error.name,
+    message: error.message,
+    stack: error.stack,
+    timestamp: new Date().toISOString(),
+  });
+
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("UNHANDLED REJECTION:", {
+    promise,
+    reason,
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err);
@@ -151,6 +170,9 @@ app.use((err, req, res, next) => {
 });
 
 module.exports = app;
+
+
+
 
 app.post("/upload", upload.single("file"), (req, res) => {
   const data = req.body;
