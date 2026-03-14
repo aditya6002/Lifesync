@@ -50,7 +50,7 @@ process.env.NODE_ENV === "development"
   ? app.use(morgan("dev"))
   : app.use(morgan("combined"));
 
-const upload = multer({ dest: "uploads/" }); //({ storage: multer.memoryStorage() });
+
 
 console.log("Code is working");
 
@@ -76,38 +76,6 @@ app.use("/api/calendar", require("./routes/calendar.routes.js"));
 app.use("/api/home", require("./routes/home.routes.js"));
 app.use("/api/journal", require("./routes/journal.routes.js"));
 app.use("/api/notes", require("./routes/notes.routes.js"));
-
-// File upload endpoint
-app.post("/upload", upload.single("file"), (req, res) => {
-  const data = req.body;
-  const file = req.file;
-
-  if (!file) {
-    return res.status(400).json({ error: "No file uploaded" });
-  }
-
-  // Process the file and data as needed
-  console.log("Received file:", file);
-  console.log("Received data:", data);
-
-  res.json({ success: true, message: "File uploaded successfully" });
-});
-
-// File serving endpoint
-app.get("/file", async (req, res) => {
-  try {
-    const { filename } = req.query;
-    if (!filename) {
-      return res.status(400).json({ error: "Filename is required" });
-    }
-
-    const filePath = path.join(__dirname, "..", "uploads", filename);
-    res.sendFile(filePath);
-  } catch (error) {
-    console.error("Error serving file:", error);
-    res.status(500).json({ error: "Failed to serve file" });
-  }
-});
 
 app.use((req, res, next) => {
   res.status(404).json({

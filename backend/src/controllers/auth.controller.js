@@ -15,6 +15,8 @@ const getJWTToken = require("../utils/generateJwtToken.js");
 
 const getUserIP = require("../utils/getUserIP.util");
 
+const { uploadImage } = require("../services/image.service.js");
+
 // Utility: Generate OTP (6 digit)
 const generateOTP = () => {
   return crypto.randomInt(100000, 1000000).toString();
@@ -617,6 +619,52 @@ const adminRateLimitIdentifierController = async (req, res) => {
   }
 };
 
+const addProfilePicture = async (req, res) => {
+  try {
+    const user = req.user;
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded",
+      });
+    }
+
+    const file = req.file;
+    if (!file.mimetype.startsWith("image/")) {
+      return res.status(400).json({
+        success: false,
+        message: "Only image files are allowed",
+      });
+    }
+
+    const uploadResult = await uploadImage(file);
+
+    const updatedUser = await User.findByIdAndUpdate(
+      user._id,
+      { profilePictureUrl: uploadResult.secure_url },
+      { new: true },
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Profile picture updated successfully",
+      profilePicture: uploadResult.secure_url,
+      user: {
+        updatedUser,
+      },
+    });
+  } catch (error) {
+    console.log("Profile route error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      code: "INTERNAL_SERVER_ERROR",
+    });
+  }
+};
+
 module.exports = {
   newUser: newUserFunction,
   login: loginUserFunction,
@@ -635,4 +683,5 @@ module.exports = {
   adminRoute,
   adminRateLimitUnlockController,
   adminRateLimitIdentifierController,
+  addProfilePicture,
 };

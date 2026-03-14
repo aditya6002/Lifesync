@@ -5,6 +5,7 @@ const wrapAsync = require("../middleware/wrapAsync.middleware.js");
 const authMiddleware = require("../middleware/authValidation.middleware.js");
 const { isUserLogin } = require("../middleware/auth.middleware");
 const { authRateLimiter } = require("../middleware/rateLimiter.middleware.js");
+const upload = require("../middleware/multer.middleware.js");
 
 // Check username available or not
 router.post("/username-available", wrapAsync(authControllers.checkUsername));
@@ -47,6 +48,15 @@ router.post(
   authRateLimiter,
   isUserLogin,
   wrapAsync(authControllers.refreshToken),
+);
+
+// Add profile picture
+router.post(
+  "/profile-picture",
+  authRateLimiter,
+  isUserLogin,
+  upload.single("profilePicture"),
+  wrapAsync(authControllers.addProfilePicture),
 );
 
 // Change Password

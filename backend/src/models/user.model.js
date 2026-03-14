@@ -19,19 +19,55 @@ const userSchema = new mongoose.Schema(
     appPassword: { type: String },
     password: { type: String, required: true },
 
-    // // References to other models
-    // tasks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Task" }],
-    // notes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Note" }],
-    // diaries: [{ type: mongoose.Schema.Types.ObjectId, ref: "Diary" }],
-    // expenses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Expense" }],
+    isAccountLocked: { type: Boolean, default: false },
+    accountLockedUntil: { type: Date },
+
+    profilePictureUrl: { type: String, default: null },
   },
   { timestamps: true },
 );
 
-userSchema.pre("save", function (next) {
-  if (this.isModified("password")) {
-    this.password = bcrypt.hashSync(this.password, 10);
+userSchema.methods.isAccountCurrentlyLocked = function () {
+  if (!this.isAccountLocked) return false;
+  if (!this.accountLockedUntil) return true;
+  return new Date() < this.accountLockedUntil;
+};
+
+userSchema.methods.lockAccount = function (durationMinutes) {
+  this.isAccountLocked = true;
+  if (durationMinutes) {
+    this.accountLockedUntil = new Date(
+      Date.now() + durationMinutes * 60 * 1000,
+    );
+  } else {
+    this.accountLockedUntil = null;
   }
+  return this.save();
+};
+
+userSchema.methods.unlockAccount = function () {
+  this.isAccountLocked = false;
+  this.accountLockedUntil = null;
+  return this.save();
+};
+
+userSchema.methods.getRemainingLockTime = function () {
+  if (!this.isAccountLocked || !this.accountLockedUntil) return 0;
+  const remaining = this.accountLockedUntil - new Date();
+  return remaining > 0 ? Math.ceil(remaining / 1000) : 0;
+};
+
+userSchema.methods.addFailedEmailAttempt = function (email) {
+  return Promise.resolve();
+};
+
+userSchema.methods.resetFailedEmailAttempts = function () {
+  return Promise.resolve();
+};
+
+userSchema.pre("save", function (next) {
+  if (!this.isModified("password")) return next();
+  this.password = bcrypt.hashSync(this.password, 10);
   next();
 });
 
