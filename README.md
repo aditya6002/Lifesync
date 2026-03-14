@@ -1,6 +1,6 @@
-# LifeSync 🚀
+# Lumina 🚀
 
-LifeSync is a **full-stack personal life management web application** built to digitize everything people usually manage on pen & paper — diaries, expenses, tasks, notes, and routines — into **one secure, smart platform**.
+Lumina is a **full-stack personal life management web application** built to digitize everything people usually manage on pen & paper — diaries, expenses, tasks, notes, and routines — into **one secure, smart platform**.
 
 It focuses on **productivity, privacy, and clarity**, with a clean UI, smooth animations, and encrypted personal data.
 
@@ -174,7 +174,7 @@ MERN Stack Developer
 
 ## ⭐ Why This Project Matters
 
-LifeSync is not just a CRUD app.
+Lumina is not just a CRUD app.
 It’s a **real-life problem solver**, built to show:
 
 * System design thinking
