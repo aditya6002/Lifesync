@@ -3,6 +3,7 @@ import { useState } from "react";
 import { C, FONTS } from "../styles/tokens";
 import { Glass, FInput } from "../components/ui/Atoms";
 
+
 const ALL_INTERESTS = [
   "📚 Student",
   "💼 Professional",
@@ -17,8 +18,8 @@ const ALL_INTERESTS = [
 export default function SignupPage({ onSignup, onGoLogin, onBack }) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
-    name: "Arjun Sharma",
-    email: "arjun@lumina.app",
+    name: "",
+    email: "",
     pass: "",
     confirm: "",
   });
@@ -342,8 +343,7 @@ export default function SignupPage({ onSignup, onGoLogin, onBack }) {
                   >
                     Continue →
                   </button>
-                  
-                  
+
                   <div
                     style={{ display: "flex", alignItems: "center", gap: 10 }}
                   >
@@ -357,7 +357,7 @@ export default function SignupPage({ onSignup, onGoLogin, onBack }) {
                       style={{ flex: 1, height: 1, background: C.glassBorder }}
                     />
                   </div>
-                  
+
                   <button
                     style={{
                       width: "100%",

@@ -33,3 +33,4 @@ export const FONTS = {
   display: "'Playfair Display', serif",
   body:    "'DM Sans', sans-serif",
 };
+

@@ -1,26 +1,57 @@
-// src/pages/LoginPage.jsx
 import { useState } from "react";
-import { C, FONTS } from "../styles/tokens";
-import { Glass, FInput } from "../components/ui/Atoms";
+import { C, FONTS } from "../../../styles/tokens";
+import { Glass, FInput } from "../../../components/ui/Atoms";
+
+import { useNavigate } from "react-router";
+import { useSelector, useDispatch } from "react-redux";
+import { authApi } from "../auth.api";
+import {
+  setUser,
+  setLoading,
+  setError,
+  setAccessToken,
+} from "../../../app/features/auth/authSlice";
 
 export default function LoginPage({ onLogin, onGoSignup, onBack }) {
-  const [email, setEmail] = useState("arjun@lumina.app");
-  const [password, setPassword] = useState("password123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [formLoading, setFormLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const error = useSelector((state) => state.auth.error);
+  const loading = useSelector((state) => state.auth.loading);
 
-  const submit = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const submit = async () => {
     if (!email || !password) {
-      setError("Please fill all fields.");
+      dispatch(setError("Please fill in all fields"));
       return;
     }
-    setError("");
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      onLogin({ name: email.split("@")[0], email });
-    }, 1100);
+
+    dispatch(setError(""));
+    dispatch(setLoading(true));
+    setFormLoading(true);
+
+    const startTime = Date.now();
+
+    try {
+      const res = await authApi.login(email, password);
+      // Ensure at least 500ms of loading display
+      const elapsed = Date.now() - startTime;
+      if (elapsed < 500) {
+        await new Promise((r) => setTimeout(r, 500 - elapsed));
+      }
+
+      dispatch(setUser(res.user));
+      dispatch(setAccessToken(res.accessToken));
+      navigate("/dashboard");
+    } catch (err) {
+      dispatch(setError(err.message || "Login failed"));
+    } finally {
+      dispatch(setLoading(false));
+      setFormLoading(false);
+    }
   };
 
   return (
@@ -197,7 +228,9 @@ export default function LoginPage({ onLogin, onGoSignup, onBack }) {
                       fontSize: 14,
                     }}
                   >
-                    {showPass ? "🙈" : "👁"}
+                    <span style={{ color: "white" }}>
+                      {!showPass ? "︵" : "𓁺"}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -227,23 +260,23 @@ export default function LoginPage({ onLogin, onGoSignup, onBack }) {
 
               <button
                 onClick={submit}
-                disabled={loading}
+                disabled={formLoading}
                 style={{
                   width: "100%",
                   padding: 12,
                   borderRadius: 11,
-                  background: loading
+                  background: formLoading
                     ? "rgba(124,58,237,.5)"
                     : `linear-gradient(135deg,${C.violet},${C.violetLight})`,
                   border: "none",
                   color: "#fff",
-                  cursor: loading ? "not-allowed" : "pointer",
+                  cursor: formLoading ? "not-allowed" : "pointer",
                   fontSize: 14,
                   fontWeight: 700,
                   transition: "all .15s",
                 }}
               >
-                {loading ? "Signing in..." : "Sign In →"}
+                {formLoading ? "Signing in..." : "Sign In →"}
               </button>
 
               {/* Divider */}

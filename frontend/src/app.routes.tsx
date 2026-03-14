@@ -1,11 +1,31 @@
 import { createBrowserRouter } from "react-router";
-import Login from "./features/auth/pages/Login";
+
+// Auth pages
+import Login from "./features/auth/pages/LoginPage.jsx";
+import Signup from "./pages/SignupPage";
+
+// Features Pages
+import AppPage from "./pages/AppPage.jsx";
+import ProfilePage from "./modules/profile/ProfilePage";
+
+//
 import Protected from "./features/auth/components/Protected";
-import Signup from "./features/auth/pages/Signup";
 import LandingPage from "./pages/LandingPage.jsx";
 
 export const router = createBrowserRouter([
+  { path: "*", element: <LandingPage /> },
   { path: "/login", element: <Login /> },
   { path: "/signup", element: <Signup /> },
-  { path: "/", element: <LandingPage /> },
+  {
+    path: "/dashboard",
+    element: (
+      <Protected>
+        <AppPage />
+      </Protected>
+    ),
+  },
+  {
+    path: "/profile",
+    element: <ProfilePage />,
+  },
 ]);

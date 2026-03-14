@@ -26,7 +26,7 @@ const globalRateLimiter = rateLimit({
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: process.env.CORS_ORIGIN,
     credentials: true,
   }),
 );
