@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { C, FONTS } from "../../styles/tokens";
 import { Glass, Btn, FInput, FTextarea } from "../../components/ui/Atoms";
-// import { Modal, ViewModal } from "../../components/ui/Modal";
 import { Modal, ViewModal } from "../../components/ui/Model";
 import { MOODS, MOOD_LBL } from "../../data/constants";
 import { DEMO_JOURNAL } from "../../data/demo";

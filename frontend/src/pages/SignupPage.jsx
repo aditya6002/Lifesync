@@ -3,7 +3,6 @@ import { useState } from "react";
 import { C, FONTS } from "../styles/tokens";
 import { Glass, FInput } from "../components/ui/Atoms";
 
-
 const ALL_INTERESTS = [
   "📚 Student",
   "💼 Professional",
@@ -18,8 +17,8 @@ const ALL_INTERESTS = [
 export default function SignupPage({ onSignup, onGoLogin, onBack }) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
-    name: "",
-    email: "",
+    name: "Arjun Sharma",
+    email: "arjun@lumina.app",
     pass: "",
     confirm: "",
   });
@@ -227,6 +226,39 @@ export default function SignupPage({ onSignup, onGoLogin, onBack }) {
                 <div
                   style={{ display: "flex", flexDirection: "column", gap: 15 }}
                 >
+                  <button
+                    style={{
+                      width: "100%",
+                      padding: 10,
+                      borderRadius: 10,
+                      background: "rgba(255,255,255,.05)",
+                      border: `1px solid ${C.glassBorder}`,
+                      color: C.text,
+                      cursor: "pointer",
+                      fontSize: 13,
+                      fontWeight: 500,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                    }}
+                  >
+                    🌐 Continue with Google
+                  </button>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 10 }}
+                  >
+                    <div
+                      style={{ flex: 1, height: 1, background: C.glassBorder }}
+                    />
+                    <span style={{ fontSize: 11, color: C.textDim }}>
+                      or with email
+                    </span>
+                    <div
+                      style={{ flex: 1, height: 1, background: C.glassBorder }}
+                    />
+                  </div>
+
                   <FInput
                     label="Full Name"
                     value={form.name}
@@ -342,40 +374,6 @@ export default function SignupPage({ onSignup, onGoLogin, onBack }) {
                     }}
                   >
                     Continue →
-                  </button>
-
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 10 }}
-                  >
-                    <div
-                      style={{ flex: 1, height: 1, background: C.glassBorder }}
-                    />
-                    <span style={{ fontSize: 11, color: C.textDim }}>
-                      or with email
-                    </span>
-                    <div
-                      style={{ flex: 1, height: 1, background: C.glassBorder }}
-                    />
-                  </div>
-
-                  <button
-                    style={{
-                      width: "100%",
-                      padding: 10,
-                      borderRadius: 10,
-                      background: "rgba(255,255,255,.05)",
-                      border: `1px solid ${C.glassBorder}`,
-                      color: C.text,
-                      cursor: "pointer",
-                      fontSize: 13,
-                      fontWeight: 500,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                    }}
-                  >
-                    Continue with Google
                   </button>
                 </div>
               </Glass>

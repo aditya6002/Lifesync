@@ -33,6 +33,89 @@ const userSchema = new mongoose.Schema(
     },
     goal: { type: String, default: "" },
     bio: { type: String, default: "" },
+    achievements: {
+      type: Array[
+        {
+          title: String,
+          icon: String,
+          description: String,
+          isAchievement: Boolean,
+          date: Date,
+        }
+      ],
+      default: [
+        {
+          title: "7-Day Streak",
+          icon: "🔥",
+          description: "Journaled 7 days in a row",
+          isAchievement: false,
+          date: Date,
+        },
+        {
+          title: "30-Day Streak",
+          description: "Journal 30 days consecutively",
+          icon: "🌟",
+          isAchievement: false,
+          date: Date,
+        },
+        {
+          title: "Goal Achiever",
+          icon: "🎯",
+          description: "Complete all tasks in a week",
+          isAchievement: false,
+          date: Date,
+        },
+        {
+          title: "Budget Master",
+          icon: "💰",
+          description: "Stayed under budget for a month",
+          isAchievement: false,
+          date: Date,
+        },
+        {
+          title: "Power User",
+          icon: "💎",
+          description: "Used the app for 100 days",
+          isAchievement: false,
+          date: Date,
+        },
+        {
+          title: "Zen Master",
+          icon: "🧘",
+          description: "Log positive mood for 14 days",
+          isAchievement: false,
+          date: Date,
+        },
+        {
+          title: "Task Crusher",
+          icon: "🚀",
+          description: "Completed 100+ tasks in a month",
+          isAchievement: false,
+          date: Date,
+        },
+        {
+          title: "Knowledge Keeper",
+          icon: "📚",
+          description: "Created 200+ notes",
+          isAchievement: false,
+          date: Date,
+        },
+        {
+          title: "Consistency King/Queen",
+          description: "Journaled 1000 entries",
+          icon: "🏆",
+          isAchievement: false,
+          date: Date,
+        },
+        {
+          title: "Year-Round Journaler",
+          description: "Journaled every day for a year",
+          icon: "📅",
+          isAchievement: false,
+          date: Date,
+        },
+      ],
+    },
 
     preferredLanguage: { type: String, default: "en" },
 

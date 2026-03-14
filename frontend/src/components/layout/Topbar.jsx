@@ -2,7 +2,7 @@
 import { C } from "../../styles/tokens";
 import { greeting, initials } from "../../utils/helpers";
 
-export default function Topbar({ user }) {
+export default function Topbar({ user, setActive }) {
   return (
     <div
       style={{
@@ -60,6 +60,8 @@ export default function Topbar({ user }) {
         </button>
 
         <div
+          onClick={() => setActive?.("profile")}
+          title="View Profile"
           style={{
             width: 32,
             height: 32,
@@ -73,6 +75,13 @@ export default function Topbar({ user }) {
             cursor: "pointer",
             color: "#c4b5fd",
             fontWeight: 700,
+            transition: "all .15s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "rgba(124,58,237,.5)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "rgba(124,58,237,.28)";
           }}
         >
           {initials(user?.name)}

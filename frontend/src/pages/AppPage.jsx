@@ -11,14 +11,15 @@ import JournalPage from "../modules/journal/JournalPage";
 import NotesPage from "../modules/notes/NotesPage";
 import TasksPage from "../modules/tasks/TasksPage";
 import AIAssistantPage from "../modules/ai/AIAssistantPage";
-import { useSelector } from "react-redux";
+import ProfilePage from "../modules/profile/ProfilePage";
 
-export default function AppPage({ onLogout }) {
+export default function AppPage({ user, onLogout }) {
   const [active, setActive] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [toast, setToast] = useState(null);
 
-  const user = useSelector((state) => state.auth.user);
+  const [user2, setUser2] = useState(user);
+
   const screens = {
     dashboard: <DashboardPage setActive={setActive} />,
     expenses: <ExpensesPage toast={setToast} />,
@@ -26,6 +27,13 @@ export default function AppPage({ onLogout }) {
     notes: <NotesPage toast={setToast} />,
     tasks: <TasksPage toast={setToast} />,
     ai: <AIAssistantPage />,
+    profile: (
+      <ProfilePage
+        user={user2}
+        onUpdateUser={(u) => setUser2(u)}
+        toast={setToast}
+      />
+    ),
   };
 
   return (
@@ -74,7 +82,7 @@ export default function AppPage({ onLogout }) {
           zIndex: 1,
         }}
       >
-        <Topbar user={user} />
+        <Topbar user={user2} setActive={setActive} />
 
         {/* Screen area */}
         <div

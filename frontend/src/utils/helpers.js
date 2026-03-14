@@ -6,7 +6,10 @@ export const uid = () => Date.now() + Math.random();
 /** Format a date string to "11 Mar" style */
 export const fmtDate = (d) => {
   try {
-    return new Date(d).toLocaleDateString("en-IN", { day:"numeric", month:"short" });
+    return new Date(d).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+    });
   } catch {
     return d;
   }
@@ -17,7 +20,12 @@ export const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
 
 /** Get initials from a full name */
 export const initials = (name = "") =>
-  name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+  name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
 /** Get hour-based greeting */
 export const greeting = () => {

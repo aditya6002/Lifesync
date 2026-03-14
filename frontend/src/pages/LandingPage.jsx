@@ -1,7 +1,6 @@
 // src/pages/LandingPage.jsx
 import { C, FONTS } from "../styles/tokens";
 import { Glass } from "../components/ui/Atoms";
-import { useNavigate } from "react-router-dom";
 
 const FEATURES = [
   {
@@ -72,10 +71,7 @@ const TESTIMONIALS = [
   },
 ];
 
-export default function LandingPage() {
-  //{ onLogin, onSignup }
-  const navigate = useNavigate();
-
+export default function LandingPage({ onLogin, onSignup }) {
   return (
     <div style={{ minHeight: "100vh", background: C.bg, overflowX: "hidden" }}>
       {/* Ambient blobs */}
@@ -152,10 +148,7 @@ export default function LandingPage() {
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           <button
-            onClick={() => {
-              // onLogin();
-              navigate("/login");
-            }}
+            onClick={onLogin}
             style={{
               padding: "8px 20px",
               borderRadius: 10,
@@ -170,10 +163,7 @@ export default function LandingPage() {
             Log In
           </button>
           <button
-            onClick={() => {
-              // onSignup();
-              navigate("/signup");
-            }}
+            onClick={onSignup}
             style={{
               padding: "8px 22px",
               borderRadius: 10,
@@ -286,10 +276,7 @@ export default function LandingPage() {
           >
             <button
               className="hov-lift"
-              onClick={() => {
-                // onSignup()
-                navigate("/signup");
-              }}
+              onClick={onSignup}
               style={{
                 padding: "13px 32px",
                 borderRadius: 12,
@@ -306,10 +293,7 @@ export default function LandingPage() {
               Start for Free →
             </button>
             <button
-              onClick={() => {
-                // onLogin()
-                navigate("/login");
-              }}
+              onClick={onLogin}
               style={{
                 padding: "13px 28px",
                 borderRadius: 12,
@@ -661,8 +645,7 @@ export default function LandingPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))",
-            // gridTemplateColumns: "repeat(3,1fr)",
+            gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))",
             gap: 16,
           }}
         >
@@ -744,10 +727,7 @@ export default function LandingPage() {
               Ready to get organized?
             </div>
             <button
-              onClick={() => {
-                // onSignup()
-                navigate("/signup");
-              }}
+              onClick={onSignup}
               style={{
                 padding: "10px 24px",
                 borderRadius: 10,
@@ -887,10 +867,7 @@ export default function LandingPage() {
         </p>
         <button
           className="hov-lift"
-          onClick={() => {
-            // onSignup()
-            navigate("/signup");
-          }}
+          onClick={onSignup}
           style={{
             padding: "14px 44px",
             borderRadius: 12,
