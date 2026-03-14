@@ -3,12 +3,15 @@ const User = require("../models/user.model");
 const UsernameReservation = require("../models/usernameReservation.model");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const {AppError} = require("../middleware/errors.middleware");
+const { AppError } = require("../middleware/errors.middleware");
 const {
   sendEmail,
   sendOTP,
   sendResetPasswordEmail,
 } = require("../services/mail.service");
+const rateLimiter = require("../helper/rateLimiter.helper");
+
+const getUserIP = require("../utils/getUserIP.util");
 
 // Utility: Generate JWT
 const generateToken = (id, expireIn = "7d") => {
@@ -78,40 +81,63 @@ const newUserFunction = async (req, res) => {
 
 // LOGIN
 const loginUserFunction = async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
+    const ipAddress = getUserIP(req);
 
-  if (!email || !password) {
-    throw new AppError("Please provide email and password", 400);
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password required" });
+    }
+
+    const loginCheck = await rateLimiter.checkLoginAttempt(email, ipAddress);
+
+    if (!loginCheck.allowed) {
+      return res.status(429).json({
+        success: false,
+        message: loginCheck.reason,
+        remainingTime: loginCheck.remainingTime,
+        locked: loginCheck.locked,
+      });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      await rateLimiter.recordFailedLoginAttempt(email, ipAddress);
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const isPasswordCorrect = await user.verifyPassword(password);
+    if (!isPasswordCorrect) {
+      await rateLimiter.recordFailedLoginAttempt(email, ipAddress);
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    await rateLimiter.clearLoginAttempts(email);
+    const token = generateToken(user._id);
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+    res.json({
+      success: true,
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({
+      message: "Internal server error",
+      code: "INTERNAL_SERVER_ERROR",
+      details: { error: error.message },
+    });
   }
-
-  const user = await User.findOne({ email });
-  if (!user) {
-    throw new AppError("Invalid credentials", 401);
-  }
-
-  const isValid = await bcryptjs.compare(password, user.password);
-  if (!isValid) {
-    throw new AppError("Invalid credentials", 401);
-  }
-
-  const token = generateToken(user._id);
-
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-  });
-
-  res.status(200).json({
-    success: true,
-    message: "User logged in successfully",
-    user: {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-      isEmailVerified: user.isEmailVerified,
-    },
-  });
 };
 
 // LOGOUT

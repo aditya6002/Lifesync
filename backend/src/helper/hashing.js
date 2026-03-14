@@ -15,6 +15,6 @@ function decryptString(encryptedData, secret) {
 }
 
 module.exports = {
-  hashPassword,
-  generateSalt,
+  encryptString,
+  decryptString,
 };
