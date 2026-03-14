@@ -7,17 +7,17 @@ import AppLayout from "../shared/components/layout/AppLayout";
 
 // ── Public pages ──────────────────────────────────────────
 import LandingPage from "../features/auth/pages/LandingPage";
-import LoginPage from "../features/auth/pages/LandingPage";
+import LoginPage from "../features/auth/pages/LoginPage";
 import SignupPage from "../features/auth/pages/Signup";
 
 // ── App pages ─────────────────────────────────────────────
 import DashboardPage from "../features/dashboard/pages/DashboardPage";
+import ProfilePage from "../features/profile/pages/ProfilePage";
 import ExpensesPage from "../features/expenses/pages/ExpensesPage";
 import JournalPage from "../features/journal/pages/JournalPage";
 import NotesPage from "../features/notes/pages/NotesPage";
 import TasksPage from "../features/tasks/pages/TasksPage";
 import AIAssistantPage from "../features/ai/pages/AIAssistantPage";
-import ProfilePage from "../features/profile/pages/ProfilePage";
 
 // ── Guards ────────────────────────────────────────────────
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -73,12 +73,12 @@ export default function AppRoutes() {
         }
       >
         <Route path="dashboard" element={<DashboardPage />} />
-        {/*<Route path="expenses" element={<ExpensesPage />} />
+        <Route path="expenses" element={<ExpensesPage />} />
         <Route path="journal" element={<JournalPage />} />
         <Route path="notes" element={<NotesPage />} />
         <Route path="tasks" element={<TasksPage />} />
         <Route path="ai" element={<AIAssistantPage />} />
-        <Route path="profile" element={<ProfilePage />} /> */}
+        <Route path="profile" element={<ProfilePage />} />
       </Route>
 
       {/* ── Fallback ── */}

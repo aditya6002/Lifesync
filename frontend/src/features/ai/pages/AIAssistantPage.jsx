@@ -1,8 +1,8 @@
 // src/modules/ai/AIAssistantPage.jsx
 import { useState, useEffect, useRef } from "react";
-import { C, FONTS } from "../../styles/tokens";
-import { Glass } from "../../components/ui/Atoms";
-import { DEMO_CHAT_HISTORY, AI_REPLIES } from "../../data/demo";
+import { C, FONTS } from "../../../styles/tokens";
+import { Glass } from "../../../components/ui/Atoms";
+import { DEMO_CHAT_HISTORY, AI_REPLIES } from "../../../data/demo";
 
 const QUICK_PROMPTS = [
   "📊 Analyze my expenses",
