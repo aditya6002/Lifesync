@@ -3,6 +3,7 @@ const noteController = require("../controllers/notes.controller");
 const { isUserLogin } = require("../middleware/auth.middleware");
 const wrapAsync = require("../middleware/wrapAsync.middleware");
 const noteValidationRules = require("../middleware/noteValidation.middleware");
+const logActivity = require("../middleware/activityLogger.middleware");
 
 const router = express.Router();
 // Create and edit route
@@ -11,6 +12,7 @@ router
   .post(
     isUserLogin,
     noteValidationRules.createRules,
+    logActivity("journal", "created"),
     wrapAsync(noteController.createNote),
   )
   .put(

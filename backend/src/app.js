@@ -74,6 +74,7 @@ app.use("/api/calendar", require("./routes/calendar.routes.js"));
 app.use("/api/home", require("./routes/home.routes.js"));
 app.use("/api/journal", require("./routes/journal.routes.js"));
 app.use("/api/notes", require("./routes/notes.routes.js"));
+app.use("/api/activity", require("./routes/activity.route.js"));
 
 app.use((req, res, next) => {
   res.status(404).json({
