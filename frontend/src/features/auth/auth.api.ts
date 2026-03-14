@@ -103,9 +103,21 @@ const refreshToken = async () => {
     }
 }
 
+const getMe = async()=>{
+    try {
+        const res =  await api.get('/auth/me')
+        
+        return res.data;
+    } catch (error) {
+        console.dir(error)
+        console.log(error)
+    }
+}
+
 export const authApi = {
     login,
     signup,
     logout,
     refreshToken,
+    getMe
 };

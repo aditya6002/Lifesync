@@ -8,7 +8,9 @@ const globalRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => {
-    return req.path === "/health";
+    req.path === "/health";
+    req.path === "/me";
+    return;
   },
 });
 

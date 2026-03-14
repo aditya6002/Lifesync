@@ -37,7 +37,7 @@ router.post(
 // Is User logged in or not
 router.get(
   "/me",
-  authRateLimiter,
+  // authRateLimiter,
   isUserLogin,
   wrapAsync(authControllers.isUserLoggedIn),
 );

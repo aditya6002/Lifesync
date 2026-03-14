@@ -11,7 +11,7 @@ export interface CounterState {
 const initialState: CounterState = {
   user: null,
   error: null,
-  loading: false,
+  loading: true,
   accessToken: null,
 }
 
