@@ -107,6 +107,7 @@ const newUserFunction = async (req, res) => {
 const loginUserFunction = async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log("Login attempt:", { email, ip: getUserIP(req) });
     const ipAddress = getUserIP(req);
 
     if (!email || !password) {
@@ -151,6 +152,7 @@ const loginUserFunction = async (req, res) => {
       sameSite: "strict",
     });
 
+    console.log("Res this login successfully");
     res.json({
       success: true,
       message: "Login successful",

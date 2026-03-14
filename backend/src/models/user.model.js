@@ -65,14 +65,14 @@ userSchema.methods.resetFailedEmailAttempts = function () {
   return Promise.resolve();
 };
 
-userSchema.pre("save", function (next) {
-  if (!this.isModified("password")) return next();
-  this.password = bcrypt.hashSync(this.password, 10);
-  next();
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+  this.password = await bcrypt.hash(this.password, 10);
 });
 
 userSchema.methods.verifyPassword = function (password) {
   return bcrypt.compareSync(password, this.password);
 };
+
 
 module.exports = mongoose.model("User", userSchema);

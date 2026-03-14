@@ -26,7 +26,7 @@ const globalRateLimiter = rateLimit({
 
 app.use(
   cors({
-    origin: "http://localhost:8080", // process.env.CLIENT_URL || "http://localhost:5173",
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
     credentials: true,
   }),
 );
@@ -49,8 +49,6 @@ app.use(compression());
 process.env.NODE_ENV === "development"
   ? app.use(morgan("dev"))
   : app.use(morgan("combined"));
-
-
 
 console.log("Code is working");
 
