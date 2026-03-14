@@ -1,14 +1,17 @@
 import React from "react";
 import { useAuth } from "../hooks/useAuth.hooks";
+import { useNavigate } from "react-router";
 
 const Login = () => {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const { handleLogin } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     handleLogin(email, password);
+    navigate("/");
   };
 
   return (

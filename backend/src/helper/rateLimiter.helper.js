@@ -10,7 +10,7 @@ const LIMITS = {
     resetTime: 30 * 60 * 1000, // 30 minutes
   },
   SIGNUP: {
-    maxAttempts: 3,
+    maxAttempts: 6,
     lockTime: 30 * 60 * 1000, // 30 minutes
     resetTime: 60 * 60 * 1000, // 60 minutes
   },
