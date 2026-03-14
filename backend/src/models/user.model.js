@@ -7,6 +7,35 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true },
     username: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
+    phoneNumber: { type: String, unique: true, sparse: true, default: "" },
+    location: { type: String, default: "" },
+
+    workPlace: { type: String, default: "" },
+    yearOrRole: {
+      type: String,
+      default: "",
+      enum: [
+        "1st Year",
+        "2nd Year",
+        "3rd Year",
+        "4th Year",
+        "Graduate",
+        "Postgraduate",
+        "Professional",
+        "Freelancer",
+        "Other",
+      ],
+    },
+    profession: {
+      type: String,
+      default: "",
+      enum: ["student", "professional", "other"],
+    },
+    goal: { type: String, default: "" },
+    bio: { type: String, default: "" },
+
+    preferredLanguage: { type: String, default: "en" },
+
     isEmailVerified: { type: Boolean, default: false },
     emailVerificationCode: { type: String },
     emailVerificationCodeExpires: { type: Date },
@@ -73,6 +102,5 @@ userSchema.pre("save", async function () {
 userSchema.methods.verifyPassword = function (password) {
   return bcrypt.compareSync(password, this.password);
 };
-
 
 module.exports = mongoose.model("User", userSchema);
