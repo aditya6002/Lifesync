@@ -12,8 +12,8 @@ router.post("/username-available", wrapAsync(authControllers.checkUsername));
 // Login user
 router.post(
   "/login",
-  authMiddleware.loginValidationRules,
   authRateLimiter,
+  authMiddleware.loginValidationRules,
   wrapAsync(authControllers.login),
 );
 
@@ -39,6 +39,14 @@ router.get(
   authRateLimiter,
   isUserLogin,
   wrapAsync(authControllers.isUserLoggedIn),
+);
+
+// Refresh access token
+router.post(
+  "/refresh-token",
+  authRateLimiter,
+  isUserLogin,
+  wrapAsync(authControllers.refreshToken),
 );
 
 // Change Password

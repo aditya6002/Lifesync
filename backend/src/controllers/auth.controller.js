@@ -406,6 +406,54 @@ const sendResetPassLink = async (req, res) => {
   });
 };
 
+const refreshToken = async (req, res) => {
+  const refreshToken = req.cookies?.refreshToken || req.headers.split(" ")[1];
+
+  if (!refreshToken) {
+    return res.status(401).json({
+      message: "Refresh token missing",
+      code: "REFRESH_TOKEN_MISSING",
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(refreshToken, process.env.REFRESH_JWT_SECRET);
+    const user = req.user;
+
+    if (!user) {
+      return res
+        .status(401)
+        .json({ message: "User not found", code: "USER_NOT_FOUND" });
+    }
+
+    const newAccessToken = getJWTToken.getAccessToken(user);
+    const newRefreshToken = getJWTToken.getRefreshToken(user);
+
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
+    res.json({
+      success: true,
+      message: "Token refreshed successfully",
+      accessToken: newAccessToken,
+    });
+  } catch (error) {
+    console.error("Refresh token error:", error);
+    res.status(401).json({
+      message: "Invalid or expired refresh token",
+      code: "INVALID_REFRESH_TOKEN",
+    });
+  }
+};
+
 const forgotPasswordController = async (req, res) => {
   try {
     const { email } = req.body;
@@ -581,4 +629,10 @@ module.exports = {
   deleteUser,
   sendResetPassLink,
   verifyResetToken,
+  refreshToken,
+  forgotPasswordController,
+  verifyOTPController,
+  adminRoute,
+  adminRateLimitUnlockController,
+  adminRateLimitIdentifierController,
 };
