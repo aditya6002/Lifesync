@@ -8,7 +8,7 @@ import { useTasks } from "../../tasks/tasks.context";
 import { useNotes } from "../../notes/notes.context";
 import { useActivity } from "../../activity/activity.context";
 import { timeAgo } from "../../../shared/utils/helpers";
-import calcProductivityScore from "../../../utils/calcProductivityScore";
+import calcProductivityScore from "../../../shared/utils/calcProductivityScore";
 
 const MODULE_ICONS = {
   expenses: "🍜",
@@ -28,12 +28,13 @@ export default function DashboardPage() {
 
   const pending = tasks.filter((t) => !t.done).length;
 
-  const score = calcProductivityScore({
-    expense: total,
-    journal: streak,
-    tasks: pending,
-    notes: notes.length,
-  }) || 0;
+  const score =
+    calcProductivityScore({
+      expense: total,
+      journal: streak,
+      tasks: pending,
+      notes: notes.length,
+    }) || 0;
 
   const stats = [
     {

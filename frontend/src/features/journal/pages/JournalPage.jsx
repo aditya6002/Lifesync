@@ -1,11 +1,16 @@
 // src/modules/journal/JournalPage.jsx
 import { useState } from "react";
-import { C, FONTS } from "../../../styles/tokens";
-import { Glass, Btn, FInput, FTextarea } from "../../../components/ui/Atoms";
-import { Modal, ViewModal } from "../../../components/ui/Model";
+import { C, FONTS } from "../../../shared/styles/tokens";
+import {
+  Glass,
+  Btn,
+  FInput,
+  FTextarea,
+} from "../../../shared/components/ui/Atoms";
+import { Modal, ViewModal } from "../../../shared/components/ui/Modal";
 import { MOODS, MOOD_LBL } from "../../../data/constants";
 import { DEMO_JOURNAL } from "../../../data/demo";
-import { uid, fmtDate } from "../../../utils/helpers";
+import { uid, fmtDate } from "../../../shared/utils/helpers";
 
 export default function JournalPage({ toast }) {
   const [entries, setEntries] = useState(DEMO_JOURNAL);

@@ -1,14 +1,14 @@
 // src/modules/profile/ProfilePage.jsx
 import { useState } from "react";
-import { C, FONTS } from "../../../styles/tokens";
+import { C, FONTS } from "../../../shared/styles/tokens";
 import {
   Glass,
   Btn,
   FInput,
   FTextarea,
   FSelect,
-} from "../../../components/ui/Atoms";
-import { Modal } from "../../../components/ui/Model";
+} from "../../../shared/components/ui/Atoms";
+import { Modal } from "../../../shared/components/ui/Modal";
 
 // ── helpers ───────────────────────────────────────────────
 const initials = (name = "") =>

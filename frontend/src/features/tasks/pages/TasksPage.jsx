@@ -1,11 +1,17 @@
 // src/modules/tasks/TasksPage.jsx
 import { useState } from "react";
-import { C, FONTS } from "../../../styles/tokens";
-import { Glass, Btn, Badge, FInput, FSelect } from "../../../components/ui/Atoms";
-import { Modal, ViewModal } from "../../../components/ui/Model";
+import { C, FONTS } from "../../../shared/styles/tokens";
+import {
+  Glass,
+  Btn,
+  Badge,
+  FInput,
+  FSelect,
+} from "../../../shared/components/ui/Atoms";
+import { Modal, ViewModal } from "../../../shared/components/ui/Modal";
 import { PRI_CFG } from "../../../data/constants";
 import { DEMO_TASKS } from "../../../data/demo";
-import { uid, fmtDate } from "../../../utils/helpers";
+import { uid, fmtDate } from "../../../shared/utils/helpers";
 
 const GROUPS = [
   { key: "today", label: "Today" },

@@ -1,6 +1,6 @@
 // src/modules/notes/NotesPage.jsx
 import { useState } from "react";
-import { C, FONTS } from "../../../styles/tokens";
+import { C, FONTS } from "../../../shared/styles/tokens";
 import {
   Glass,
   Btn,
@@ -8,11 +8,11 @@ import {
   FInput,
   FTextarea,
   FSelect,
-} from "../../../components/ui/Atoms";
-import { Modal, ViewModal } from "../../../components/ui/Model";
+} from "../../../shared/components/ui/Atoms";
+import { Modal, ViewModal } from "../../../shared/components/ui/Modal";
 import { NOTE_TAGS, NOTE_COLS } from "../../../data/constants";
 import { DEMO_NOTES } from "../../../data/demo";
-import { uid } from "../../../utils/helpers";
+import { uid } from "../../../shared/utils/helpers";
 
 export default function NotesPage({ toast }) {
   const [notes, setNotes] = useState(DEMO_NOTES);

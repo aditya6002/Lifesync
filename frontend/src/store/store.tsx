@@ -4,6 +4,7 @@ import journalReducer from "./features/journal/journalSlice";
 import notesReducer from "./features/notes/notesSlice";
 import tasksReducer from "./features/tasks/tasksSlice";
 import expensesReducer from "./features/expenses/expensesSlice";
+import aiReducer from "./features/ai/aiSlice";
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     notes: notesReducer,
     tasks: tasksReducer,
     expenses: expensesReducer,
+    ai: aiReducer,
   },
 });
 
