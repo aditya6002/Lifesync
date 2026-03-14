@@ -1,52 +1,105 @@
-import { createContext } from "react";
+import { createContext, useContext, useEffect } from "react";
+import type { ReactNode } from "react";
+import type { User, LoginPayload, SignupPayload } from "../../shared/types";
+import { authApi } from "./auth.api";
 import { useDispatch, useSelector } from "react-redux";
-import type { RootState } from "../../app/store";
+import type { RootState } from "../../store/store";
 import {
+  setUser as setUserAction,
+  setAccessToken,
   setError as setErrorAction,
   setLoading as setLoadingAction,
-  setUser as setUserAction,
-  setAccessToken as setAccessTokenAction,
-} from "../../app/features/auth/authSlice";
+  setToast as setToastAction,
+} from "../../store/features/auth/authSlice";
 
-export const AuthContext = createContext();
+interface AuthContextType {
+  user: User | null;
+  token: string | null;
+  loading: boolean;
+  login: (payload: LoginPayload) => Promise<void>;
+  signup: (payload: SignupPayload) => Promise<void>;
+  logout: () => void;
+  updateUser: (u: Partial<User>) => void;
+}
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
   const user = useSelector((state: RootState) => state.auth.user);
+  const token = useSelector((state: RootState) => state.auth.accessToken);
   const loading = useSelector((state: RootState) => state.auth.loading);
-  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
-  const error = useSelector((state: RootState) => state.auth.error);
-
   const dispatch = useDispatch();
-  const setLoading = (val: boolean) => {
-    dispatch(setLoadingAction(val));
+
+  const setUser: (u: User | null) => void = (u) => dispatch(setUserAction(u));
+  const setToken = (t: string | null) => dispatch(setAccessToken(t));
+  const setLoading = (l: boolean) => dispatch(setLoadingAction(l));
+  const setError = (e: string) => dispatch(setErrorAction(e));
+  const setToast = (t: { type: "success" | "error"; message: string }) =>
+    dispatch(setToastAction(t));
+
+  useEffect(() => {
+    try {
+      const getAndSetUser = async () => {
+        const res = await authApi.getMe();
+        setUser(res.data.user);
+        setLoading(false);
+      };
+      getAndSetUser();
+    } catch (error) {
+      setUser(null);
+      setError(
+        error instanceof Error ? error.message : "An unknown error occurred",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const login = async (payload: LoginPayload) => {
+    const res = await authApi.login(payload);
+    localStorage.setItem("token", res.data.token);
+    setToken(res.data.token);
+    setUser(res.data.user);
   };
 
-  const setUser = (val: object) => {
-    dispatch(setUserAction(val));
+  const signup = async (payload: SignupPayload) => {
+    const res = await authApi.signup(payload);
+    localStorage.setItem("token", res.data.token);
+    setToken(res.data.token);
+    setUser(res.data.user);
   };
 
-  const setAccessToken = (val: string) => {
-    dispatch(setAccessTokenAction(val));
+  const logout = () => {
+    localStorage.removeItem("token");
+    setToken(null);
+    setUser(null);
   };
 
-  const setError = (val: string) => {
-    dispatch(setErrorAction(val));
-  };
+  const updateUser = (u: Partial<User>) =>
+    setUser((prev) => (prev ? { ...prev, ...u } : null));
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        setUser,
+        token,
         loading,
-        setLoading,
-        accessToken,
-        setAccessToken,
-        error,
+        login,
+        signup,
+        logout,
+        updateUser,
         setError,
+        setToast,
+        setLoading,
       }}
     >
-      {children}{" "}
+      {children}
     </AuthContext.Provider>
   );
-};
+}
+
+export function useAuth(): AuthContextType {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+  return ctx;
+}

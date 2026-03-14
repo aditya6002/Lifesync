@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Navigate } from "react-router";
 import type { RootState } from "../../../app/store";
 import { authApi } from "../auth.api.ts";
-import { setError, setLoading, setUser } from "../../../app/features/auth/authSlice.ts";
+import { setError, setLoading, setUser } from "../../../store/features/auth/authSlice.ts";
 
 const Protected = ({children}: {children: React.ReactNode}) => {
   

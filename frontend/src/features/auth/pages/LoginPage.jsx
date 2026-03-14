@@ -1,58 +1,15 @@
+// src/features/auth/pages/LoginPage.tsx
 import { useState } from "react";
-import { C, FONTS } from "../../../styles/tokens";
-import { Glass, FInput } from "../../../components/ui/Atoms";
+import { useNavigate } from "react-router-dom";
+import { C, FONTS } from "../../../shared/styles/tokens";
+import { Glass, FInput, Btn } from "../../../shared/components/ui/Atoms";
+import { useLoginForm } from "../hooks/useAuthForm";
 
-import { useNavigate } from "react-router";
-import { useSelector, useDispatch } from "react-redux";
-import { authApi } from "../auth.api";
-import {
-  setUser,
-  setLoading,
-  setError,
-  setAccessToken,
-} from "../../../app/features/auth/authSlice";
-
-export default function LoginPage({ onLogin, onGoSignup, onBack }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [formLoading, setFormLoading] = useState(false);
+export default function LoginPage() {
+  const nav = useNavigate();
+  const { email, setEmail, password, setPassword, loading, error, submit } =
+    useLoginForm();
   const [showPass, setShowPass] = useState(false);
-  const error = useSelector((state) => state.auth.error);
-  const loading = useSelector((state) => state.auth.loading);
-
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  const submit = async () => {
-    if (!email || !password) {
-      dispatch(setError("Please fill in all fields"));
-      return;
-    }
-
-    dispatch(setError(""));
-    dispatch(setLoading(true));
-    setFormLoading(true);
-
-    const startTime = Date.now();
-
-    try {
-      const res = await authApi.login(email, password);
-      // Ensure at least 500ms of loading display
-      const elapsed = Date.now() - startTime;
-      if (elapsed < 500) {
-        await new Promise((r) => setTimeout(r, 500 - elapsed));
-      }
-
-      dispatch(setUser(res.user));
-      dispatch(setAccessToken(res.accessToken));
-      navigate("/dashboard");
-    } catch (err) {
-      dispatch(setError(err.message || "Login failed"));
-    } finally {
-      dispatch(setLoading(false));
-      setFormLoading(false);
-    }
-  };
 
   return (
     <div
@@ -63,7 +20,6 @@ export default function LoginPage({ onLogin, onGoSignup, onBack }) {
         flexDirection: "column",
       }}
     >
-      {/* Ambient */}
       <div
         style={{
           position: "fixed",
@@ -88,7 +44,7 @@ export default function LoginPage({ onLogin, onGoSignup, onBack }) {
         }}
       >
         <button
-          onClick={onBack}
+          onClick={() => nav("/")}
           style={{
             display: "flex",
             alignItems: "center",
@@ -130,7 +86,6 @@ export default function LoginPage({ onLogin, onGoSignup, onBack }) {
         </div>
       </div>
 
-      {/* Form */}
       <div
         style={{
           flex: 1,
@@ -141,7 +96,6 @@ export default function LoginPage({ onLogin, onGoSignup, onBack }) {
         }}
       >
         <div className="screen-in" style={{ width: "100%", maxWidth: 420 }}>
-          {/* Header */}
           <div style={{ textAlign: "center", marginBottom: 32 }}>
             <div
               style={{
@@ -176,18 +130,46 @@ export default function LoginPage({ onLogin, onGoSignup, onBack }) {
 
           <Glass style={{ padding: 28 }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <button
+                style={{
+                  width: "100%",
+                  padding: 10,
+                  borderRadius: 10,
+                  background: "rgba(255,255,255,.05)",
+                  border: `1px solid ${C.glassBorder}`,
+                  color: C.text,
+                  cursor: "pointer",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                }}
+              >
+                🌐 Continue with Google
+              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div
+                  style={{ flex: 1, height: 1, background: C.glassBorder }}
+                />
+                <span style={{ fontSize: 11, color: C.textDim }}>
+                  or with email
+                </span>
+                <div
+                  style={{ flex: 1, height: 1, background: C.glassBorder }}
+                />
+              </div>
+
               <FInput
                 label="Email address"
                 value={email}
-                onChange={(v) => {
-                  setEmail(v);
-                  setError("");
-                }}
+                onChange={setEmail}
                 placeholder="you@example.com"
                 type="email"
               />
 
-              {/* Password */}
+              {/* Password with show/hide */}
               <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                 <label
                   style={{ fontSize: 12, color: C.textMid, fontWeight: 500 }}
@@ -198,14 +180,11 @@ export default function LoginPage({ onLogin, onGoSignup, onBack }) {
                   <input
                     type={showPass ? "text" : "password"}
                     value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      setError("");
-                    }}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
                     style={{
                       background: "rgba(255,255,255,.05)",
-                      border: `1px solid ${error ? C.red : C.glassBorder}`,
+                      border: `1px solid ${C.glassBorder}`,
                       borderRadius: 10,
                       padding: "10px 40px 10px 13px",
                       color: C.text,
@@ -228,9 +207,7 @@ export default function LoginPage({ onLogin, onGoSignup, onBack }) {
                       fontSize: 14,
                     }}
                   >
-                    <span style={{ color: "white" }}>
-                      {!showPass ? "︵" : "𓁺"}
-                    </span>
+                    {showPass ? "🙈" : "👁"}
                   </button>
                 </div>
               </div>
@@ -258,59 +235,13 @@ export default function LoginPage({ onLogin, onGoSignup, onBack }) {
                 </span>
               </div>
 
-              <button
+              <Btn
                 onClick={submit}
-                disabled={formLoading}
-                style={{
-                  width: "100%",
-                  padding: 12,
-                  borderRadius: 11,
-                  background: formLoading
-                    ? "rgba(124,58,237,.5)"
-                    : `linear-gradient(135deg,${C.violet},${C.violetLight})`,
-                  border: "none",
-                  color: "#fff",
-                  cursor: formLoading ? "not-allowed" : "pointer",
-                  fontSize: 14,
-                  fontWeight: 700,
-                  transition: "all .15s",
-                }}
+                disabled={loading}
+                style={{ width: "100%", padding: "12px" }}
               >
-                {formLoading ? "Signing in..." : "Sign In →"}
-              </button>
-
-              {/* Divider */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div
-                  style={{ flex: 1, height: 1, background: C.glassBorder }}
-                />
-                <span style={{ fontSize: 11, color: C.textDim }}>
-                  or with email
-                </span>
-                <div
-                  style={{ flex: 1, height: 1, background: C.glassBorder }}
-                />
-              </div>
-              {/* Google */}
-              <button
-                style={{
-                  width: "100%",
-                  padding: 10,
-                  borderRadius: 10,
-                  background: "rgba(255,255,255,.05)",
-                  border: `1px solid ${C.glassBorder}`,
-                  color: C.text,
-                  cursor: "pointer",
-                  fontSize: 13,
-                  fontWeight: 500,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                }}
-              >
-                Continue with Google
-              </button>
+                {loading ? "Signing in..." : "Sign In →"}
+              </Btn>
             </div>
           </Glass>
 
@@ -324,7 +255,7 @@ export default function LoginPage({ onLogin, onGoSignup, onBack }) {
           >
             Don't have an account?{" "}
             <span
-              onClick={onGoSignup}
+              onClick={() => nav("/signup")}
               style={{ color: C.violet, cursor: "pointer", fontWeight: 600 }}
             >
               Sign up free
