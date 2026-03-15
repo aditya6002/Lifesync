@@ -18,7 +18,7 @@ export interface User {
 // ── Auth ──────────────────────────────────────────────────
 export interface LoginPayload  { email: string; password: string }
 export interface SignupPayload { name: string; email: string; password: string }
-export interface AuthResponse  { token: string; user: User; message?: string }
+export interface AuthResponse  { user: User; message?: string , accessToken?: string }
 export interface getUserResponse { user: object; message?: string }
 
 // ── Expense ───────────────────────────────────────────────

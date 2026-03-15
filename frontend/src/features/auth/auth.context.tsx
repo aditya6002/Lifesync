@@ -11,6 +11,7 @@ import {
   setLoading as setLoadingAction,
   setToast as setToastAction,
 } from "../../store/features/auth/authSlice";
+import { useLoader } from "../../shared/components/ui/GlobalLoader";
 
 interface AuthContextType {
   user: User | null;
@@ -36,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const setError = (e: string) => dispatch(setErrorAction(e));
   const setToast = (t: { type: "success" | "error"; message: string }) =>
     dispatch(setToastAction(t));
+  const { withLoader } = useLoader();
 
   useEffect(() => {
     try {
@@ -56,16 +58,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (payload: LoginPayload) => {
-    const res = await authApi.login(payload);
-    localStorage.setItem("token", res.data.token);
-    setToken(res.data.token);
-    setUser(res.data.user);
+    await withLoader(async () => {
+      const res = await authApi.login(payload);
+      setToken(res.data.accessToken);
+      setUser(res.data.user);
+    }, "Signing you in...");
   };
 
   const signup = async (payload: SignupPayload) => {
     const res = await authApi.signup(payload);
-    localStorage.setItem("token", res.data.token);
-    setToken(res.data.token);
+    localStorage.setItem("token", res.data.accessToken);
+    setToken(res.data.accessToken);
     setUser(res.data.user);
   };
 

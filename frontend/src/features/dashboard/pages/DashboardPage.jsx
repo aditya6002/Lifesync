@@ -1,4 +1,3 @@
-// src/features/dashboard/pages/DashboardPage.tsx
 import { useNavigate } from "react-router-dom";
 import { C, FONTS } from "../../../shared/styles/tokens";
 import { Glass, Btn } from "../../../shared/components/ui/Atoms";
