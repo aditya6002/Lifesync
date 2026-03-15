@@ -169,7 +169,7 @@ export default function DashboardPage() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill,minmax(178px,1fr))",
+          gridTemplateColumns: "repeat(auto-fill,minmax(250px,1fr))", //178
           gap: 12,
         }}
       >
@@ -219,7 +219,14 @@ export default function DashboardPage() {
       </div>
 
       {/* Bottom row */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div
+        style={{
+          display: "grid",
+          height: 370,
+          gridTemplateColumns: "1fr 1fr",
+          gap: 16,
+        }}
+      >
         {/* AI Insights */}
         <Glass style={{ padding: 20 }}>
           <div
@@ -304,6 +311,14 @@ export default function DashboardPage() {
                   text: "3 high-priority tasks pending. Tackle before noon.",
                   color: C.red,
                 },
+                {
+                  text: "Your notes are well-organized. Keep it up!",
+                  color: C.blue,
+                },
+                {
+                  text: `${score}% overall productivity score. Aim for 85%+ tomorrow.`,
+                  color: C.violet,
+                },
               ].map((ins, i) => (
                 <div
                   key={i}
@@ -362,8 +377,11 @@ export default function DashboardPage() {
               style={{
                 fontSize: 13,
                 color: C.textDim,
-                textAlign: "center",
+                justifyContent: "center",
+                display: "flex",
+                alignItems: "center",
                 padding: 20,
+                height: "85%",
               }}
             >
               No activity yet. Start using the app!
