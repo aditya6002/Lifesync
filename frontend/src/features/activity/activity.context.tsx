@@ -5,7 +5,7 @@ import {
   useState,
   useEffect,
   useCallback,
-  ReactNode,
+  type ReactNode,
 } from "react";
 import type { HeatmapCell, ActivityLog, DailyScore } from "../../shared/types";
 import { activityApi } from "./activity.api";

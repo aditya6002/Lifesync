@@ -1,5 +1,3 @@
-// src/features/activity/activity.api.ts
-import { apiClient } from "../../shared/utils/apiClient";
 import type {
   ActivityLog,
   ActivityModule,
@@ -7,6 +5,7 @@ import type {
   HeatmapCell,
   DailyScore,
 } from "../../shared/types";
+import axios from "axios";
 
 interface LogPayload {
   module:      ActivityModule;
@@ -16,22 +15,26 @@ interface LogPayload {
   meta?:       Record<string, unknown>;
 }
 
+const api = axios.create({
+  baseURL:import.meta.env.VITE_API_BASE_URL,
+  withCredentials:true
+})
 export const activityApi = {
-  // Log a single action (called from context/hooks after mutations)
+
   log: (payload: LogPayload) =>
-    apiClient.post<ActivityLog>("/activity", payload),
+    api.post<ActivityLog>("/activity", payload),
 
-  // Fetch heatmap data — last N days
+
   getHeatmap: (days = 70) =>
-    apiClient.get<HeatmapCell[]>(`/activity/heatmap?days=${days}`),
+    api.get<HeatmapCell[]>(`/activity/heatmap?days=${days}`),
 
-  // Fetch recent activity feed
+
   getRecent: (limit = 10) =>
-    apiClient.get<ActivityLog[]>(`/activity/recent?limit=${limit}`),
+    api.get<ActivityLog[]>(`/activity/recent?limit=${limit}`),
 
-  // Fetch today's productivity score
+
   getScore: (date?: string) =>
-    apiClient.get<DailyScore>(
+    api.get<DailyScore>(
       `/activity/score${date ? `?date=${date}` : ""}`
     ),
 };
