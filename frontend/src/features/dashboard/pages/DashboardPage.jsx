@@ -1,3 +1,4 @@
+// src/features/dashboard/pages/DashboardPage.tsx
 import { useNavigate } from "react-router-dom";
 import { C, FONTS } from "../../../shared/styles/tokens";
 import { Glass, Btn } from "../../../shared/components/ui/Atoms";
@@ -7,7 +8,6 @@ import { useTasks } from "../../tasks/tasks.context";
 import { useNotes } from "../../notes/notes.context";
 import { useActivity } from "../../activity/activity.context";
 import { timeAgo } from "../../../shared/utils/helpers";
-import calcProductivityScore from "../../../shared/utils/calcProductivityScore";
 
 const MODULE_ICONS = {
   expenses: "🍜",
@@ -27,14 +27,6 @@ export default function DashboardPage() {
 
   const pending = tasks.filter((t) => !t.done).length;
 
-  const score =
-    calcProductivityScore({
-      expense: total,
-      journal: streak,
-      tasks: pending,
-      notes: notes.length,
-    }) || 0;
-
   const stats = [
     {
       label: "Spent This Month",
@@ -49,7 +41,7 @@ export default function DashboardPage() {
       value: `${streak} days 🔥`,
       icon: "✦",
       color: C.yellow,
-      sub: "Keep it up!",
+      sub: "Keep it up",
       path: "/journal",
     },
     {
@@ -70,7 +62,7 @@ export default function DashboardPage() {
     },
   ];
 
-  // const score = dailyScore?.score ?? 82;
+  const score = dailyScore?.score ?? 82;
 
   return (
     <div
@@ -169,7 +161,7 @@ export default function DashboardPage() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill,minmax(250px,1fr))", //178
+          gridTemplateColumns: "repeat(auto-fill,minmax(178px,1fr))",
           gap: 12,
         }}
       >
@@ -219,14 +211,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Bottom row */}
-      <div
-        style={{
-          display: "grid",
-          height: 370,
-          gridTemplateColumns: "1fr 1fr",
-          gap: 16,
-        }}
-      >
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         {/* AI Insights */}
         <Glass style={{ padding: 20 }}>
           <div
@@ -304,20 +289,12 @@ export default function DashboardPage() {
                   color: C.orange,
                 },
                 {
-                  text: "Mood positive for 4 days straight! Great streak.",
+                  text: "Mood positive for 4 days straight Great streak.",
                   color: C.green,
                 },
                 {
                   text: "3 high-priority tasks pending. Tackle before noon.",
                   color: C.red,
-                },
-                {
-                  text: "Your notes are well-organized. Keep it up!",
-                  color: C.blue,
-                },
-                {
-                  text: `${score}% overall productivity score. Aim for 85%+ tomorrow.`,
-                  color: C.violet,
                 },
               ].map((ins, i) => (
                 <div
@@ -377,14 +354,11 @@ export default function DashboardPage() {
               style={{
                 fontSize: 13,
                 color: C.textDim,
-                justifyContent: "center",
-                display: "flex",
-                alignItems: "center",
+                textAlign: "center",
                 padding: 20,
-                height: "85%",
               }}
             >
-              No activity yet. Start using the app!
+              No activity yet. Start using the app
             </div>
           ) : (
             recentLogs.slice(0, 5).map((a, i) => (
