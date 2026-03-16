@@ -255,7 +255,7 @@ export default function LandingPage() {
             flexWrap: "wrap",
           }}
         >
-          {["✓ Free forever", "✓ No credit card", "✓ Setup in 60 sec"].map(
+          {[ "✓ Setup in 60 sec"].map( //"✓ Free forever", "✓ No credit card",
             (t, i) => (
               <span key={i} style={{ fontSize: 12, color: C.textDim }}>
                 {t}

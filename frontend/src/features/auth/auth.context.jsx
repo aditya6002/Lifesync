@@ -1,4 +1,3 @@
-// src/features/auth/auth.context.jsx
 import { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext(null);
@@ -8,7 +7,7 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
 
   const login = async ({ email }) => {
-    await new Promise((r) => setTimeout(r, 800));
+    // await new Promise((r) => setTimeout(r, 1800));
     const u = {
       id: "u1",
       name: email.split("@")[0] || "User",
@@ -20,7 +19,7 @@ export function AuthProvider({ children }) {
   };
 
   const signup = async ({ name, email }) => {
-    await new Promise((r) => setTimeout(r, 1000));
+    // await new Promise((r) => setTimeout(r, 1000));
     const u = { id: "u1", name, email, createdAt: new Date().toISOString() };
     setUser(u);
     setToken("demo-token");
