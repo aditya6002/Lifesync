@@ -11,6 +11,10 @@ export default function LoginPage() {
     useLoginForm();
   const [showPass, setShowPass] = useState(false);
 
+  if (loading) {
+    return "Loading";
+  }
+
   return (
     <div
       style={{
@@ -130,37 +134,6 @@ export default function LoginPage() {
 
           <Glass style={{ padding: 28 }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <button
-                style={{
-                  width: "100%",
-                  padding: 10,
-                  borderRadius: 10,
-                  background: "rgba(255,255,255,.05)",
-                  border: `1px solid ${C.glassBorder}`,
-                  color: C.text,
-                  cursor: "pointer",
-                  fontSize: 13,
-                  fontWeight: 500,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                }}
-              >
-                🌐 Continue with Google
-              </button>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div
-                  style={{ flex: 1, height: 1, background: C.glassBorder }}
-                />
-                <span style={{ fontSize: 11, color: C.textDim }}>
-                  or with email
-                </span>
-                <div
-                  style={{ flex: 1, height: 1, background: C.glassBorder }}
-                />
-              </div>
-
               <FInput
                 label="Email address"
                 value={email}
@@ -242,6 +215,36 @@ export default function LoginPage() {
               >
                 {loading ? "Signing in..." : "Sign In →"}
               </Btn>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div
+                  style={{ flex: 1, height: 1, background: C.glassBorder }}
+                />
+                <span style={{ fontSize: 11, color: C.textDim }}>
+                  or with email
+                </span>
+                <div
+                  style={{ flex: 1, height: 1, background: C.glassBorder }}
+                />
+              </div>
+              <button
+                style={{
+                  width: "100%",
+                  padding: 10,
+                  borderRadius: 10,
+                  background: "rgba(255,255,255,.05)",
+                  border: `1px solid ${C.glassBorder}`,
+                  color: C.text,
+                  cursor: "pointer",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                }}
+              >
+                Continue with Google
+              </button>
             </div>
           </Glass>
 

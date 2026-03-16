@@ -1,12 +1,13 @@
 // src/features/auth/hooks/useAuthForm.ts
 import { useState } from "react";
 import { useAuth } from "../auth.context";
+import { useLoader } from "../../../shared/components/ui/GlobalLoader";
 
 // ── Login form hook ───────────────────────────────────────
 export function useLoginForm() {
-  const { login } = useAuth();
-  const [email, setEmail] = useState("arjun@lumina.app");
-  const [password, setPassword] = useState("password123");
+  const { login, setUser, user } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -18,7 +19,10 @@ export function useLoginForm() {
     setError("");
     setLoading(true);
     try {
-      await login({ email, password });
+      const res = await login({ email, password });
+      setUser(res.data.user);
+      console.log(res);
+      console.log(res.data.user);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Login failed.");
     } finally {
@@ -33,8 +37,8 @@ export function useLoginForm() {
 export function useSignupForm() {
   const { signup } = useAuth();
   const [step, setStep] = useState(1);
-  const [name, setName] = useState("Arjun Sharma");
-  const [email, setEmail] = useState("arjun@lumina.app");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);

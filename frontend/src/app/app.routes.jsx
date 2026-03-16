@@ -16,6 +16,7 @@ import SubscriptionPage from "../features/subscription/pages/SubscriptionPage";
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
+
   if (loading)
     return <div style={{ color: "#f1f5f9", padding: 40 }}>Loading...</div>;
   return user ? <>{children}</> : <Navigate to="/login" replace />;
@@ -23,7 +24,7 @@ function PrivateRoute({ children }) {
 
 function PublicRoute({ children }) {
   const { user, loading } = useAuth();
-  if (loading) return null;
+  if (loading) return "Loading";
   return !user ? <>{children}</> : <Navigate to="/dashboard" replace />;
 }
 
@@ -57,9 +58,9 @@ export default function AppRoutes() {
       <Route
         path="/"
         element={
-          <PrivateRoute>
+          <PublicRoute>
             <AppLayout />
-          </PrivateRoute>
+          </PublicRoute>
         }
       >
         <Route path="dashboard" element={<DashboardPage />} />

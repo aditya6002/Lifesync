@@ -1,28 +1,26 @@
 import { createContext, useContext, useState } from "react";
+import { authApi } from "./auth.api";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const login = async ({ email }) => {
-    // await new Promise((r) => setTimeout(r, 1800));
-    const u = {
-      id: "u1",
-      name: email.split("@")[0] || "User",
-      email,
-      createdAt: new Date().toISOString(),
-    };
-    setUser(u);
-    setToken("demo-token");
+  const login = async ({ email, password }) => {
+    return await authApi.login({ email, password });
   };
 
-  const signup = async ({ name, email }) => {
-    // await new Promise((r) => setTimeout(r, 1000));
-    const u = { id: "u1", name, email, createdAt: new Date().toISOString() };
-    setUser(u);
-    setToken("demo-token");
+  const signup = async ({ name, username, email, password, confirmPass }) => {
+    return await authApi.signup({
+      name,
+      username,
+      email,
+      password,
+      confirmPass,
+    });
   };
 
   const logout = () => {
@@ -33,7 +31,19 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, loading: false, login, signup, logout, updateUser }}
+      value={{
+        user,
+        setUser,
+        token,
+        loading,
+        setLoading,
+        login,
+        signup,
+        logout,
+        updateUser,
+        toast,
+        setToast,
+      }}
     >
       {children}
     </AuthContext.Provider>

@@ -6,9 +6,8 @@ import Topbar from "./Topbar";
 import { Toast } from "../ui/Atoms";
 
 export default function AppLayout() {
-  const { user, logout } = useAuth();
+  const { user, logout, toast, setToast } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [toast, setToast] = useState(null);
 
   return (
     <div
