@@ -1,13 +1,15 @@
-// src/App.jsx
 import AppProviders from "./app/app.providers";
-import AppRoutes from "./app/app.routes";
+import { router } from "./app/app.routes";
 import GlobalStyles from "./shared/styles/GlobalStyles";
+import { Provider } from "react-redux";
+import { store } from "./store/store";
+import { RouterProvider } from "react-router";
 
 export default function App() {
   return (
-    <AppProviders>
+    <Provider store={store}>
       <GlobalStyles />
-      <AppRoutes />
-    </AppProviders>
+      <RouterProvider router={router} />
+    </Provider>
   );
 }

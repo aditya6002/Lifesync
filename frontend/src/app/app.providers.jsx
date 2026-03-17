@@ -1,7 +1,7 @@
 // src/app/app.providers.jsx
 import { BrowserRouter } from "react-router-dom";
 import { LoaderProvider } from "../shared/components/ui/GlobalLoader";
-import { AuthProvider } from "../features/auth/auth.context";
+// import { AuthProvider } from "../features/auth/auth.context";
 import { SubscriptionProvider } from "../features/subscription/subscription.context";
 import { ActivityProvider } from "../features/activity/activity.context";
 import { ExpensesProvider } from "../features/expenses/expenses.context";
@@ -13,7 +13,7 @@ export default function AppProviders({ children }) {
   return (
     <BrowserRouter>
       <LoaderProvider>
-        <AuthProvider>
+        {/* <AuthProvider> */}
           <SubscriptionProvider>
             <ActivityProvider>
               <ExpensesProvider>
@@ -25,7 +25,7 @@ export default function AppProviders({ children }) {
               </ExpensesProvider>
             </ActivityProvider>
           </SubscriptionProvider>
-        </AuthProvider>
+        {/* </AuthProvider> */}
       </LoaderProvider>
     </BrowserRouter>
   );

@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
-import { useAuth } from "../../../features/auth/auth.context";
+// import { useAuth } from "../../../features/auth/auth.context";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import { Toast } from "../ui/Atoms";
 
 export default function AppLayout() {
-  const { user, logout, toast, setToast } = useAuth();
+  const { user, logout, toast, setToast } = {};
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (

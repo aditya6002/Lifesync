@@ -10,6 +10,7 @@ const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
 const { ApiError } = require("./middleware/errors.middleware.js");
 dotenv.config({ debug: true, override: true, quiet: true });
+const jwt = require("jsonwebtoken");
 
 const app = express();
 

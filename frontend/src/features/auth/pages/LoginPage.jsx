@@ -3,13 +3,55 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { C, FONTS } from "../../../shared/styles/tokens";
 import { Glass, FInput, Btn } from "../../../shared/components/ui/Atoms";
-import { useLoginForm } from "../hooks/useAuthForm";
+import { useLoginForm } from "../hooks/useLoginForm";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  setError,
+  setLoading as setAuthLoading,
+  setAccessToken,
+  setToast,
+  setUser,
+} from "../../../store/features/auth/authSlice";
+import { authApi } from "../auth.api";
 
 export default function LoginPage() {
   const nav = useNavigate();
-  const { email, setEmail, password, setPassword, loading, error, submit } =
-    useLoginForm();
+
+  const { error } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const submit = (e) => {
+    e.preventDefault();
+    dispatch(setError(null));
+    setLoading(true);
+
+    authApi
+      .login({ email, password })
+      .then((res) => {
+        dispatch(setAccessToken(res.data.accessToken));
+        dispatch(setUser(res.data.user));
+        dispatch(
+          setToast({ type: "success", message: "Logged in successfully!" }),
+        );
+        nav("/");
+      })
+      .catch((err) => {
+        console.error(err);
+        dispatch(
+          setError(
+            err.response?.data?.message ||
+              "An error occurred. Please try again.",
+          ),
+        );
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
 
   // if (loading) {
   //   return "Loading";
@@ -180,7 +222,7 @@ export default function LoginPage() {
                       fontSize: 14,
                     }}
                   >
-                    {showPass ? "🙈" : "👁"}
+                    <p style={{ color: "white" }}>{showPass ? "🙈" : "𓁺"}</p>
                   </button>
                 </div>
               </div>

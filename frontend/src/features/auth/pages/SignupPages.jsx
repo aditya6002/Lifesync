@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { C, FONTS } from "../../../shared/styles/tokens";
 import { Glass, FInput, Btn } from "../../../shared/components/ui/Atoms";
-import { useSignupForm } from "../hooks/useAuthForm";
+import { useSignupForm } from "../hooks/useSignupForm";
 
 const ALL_INTERESTS = [
   "📚 Student",
@@ -36,7 +36,7 @@ export default function SignupPage() {
     setError,
     nextStep,
     submit,
-  } = useSignupForm();
+  } = {};
   const [showPass, setShowPass] = useState(false);
 
   return (
