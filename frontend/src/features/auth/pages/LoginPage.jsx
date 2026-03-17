@@ -11,9 +11,9 @@ export default function LoginPage() {
     useLoginForm();
   const [showPass, setShowPass] = useState(false);
 
-  if (loading) {
-    return "Loading";
-  }
+  // if (loading) {
+  //   return "Loading";
+  // }
 
   return (
     <div

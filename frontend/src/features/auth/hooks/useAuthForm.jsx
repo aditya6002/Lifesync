@@ -10,6 +10,7 @@ export function useLoginForm() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { withLoader } = useLoader();
 
   const submit = async () => {
     if (!email || !password) {
@@ -19,7 +20,7 @@ export function useLoginForm() {
     setError("");
     setLoading(true);
     try {
-      const res = await login({ email, password });
+      const res = withLoader(await login({ email, password }), "Sign in...");
       setUser(res.data.user);
       console.log(res);
       console.log(res.data.user);
