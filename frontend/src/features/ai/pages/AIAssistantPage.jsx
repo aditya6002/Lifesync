@@ -31,7 +31,7 @@ const AI_REPLIES = [
 
 export default function AIAssistantPage() {
   const nav = useNavigate();
-  const { can, limit, plan } = useSubscription();
+  const { can, limit, plan } = { can: () => {}, limit: () => {} }; //useSubscription();
   const hasAI = can("aiAssistant");
   const maxmessages = limit("aiMessagesPerDay");
   const [usedToday, setUsedToday] = useState(0);
@@ -228,7 +228,8 @@ export default function AIAssistantPage() {
                 <span
                   style={{
                     fontSize: 11,
-                    color: usedToday >= maxmessages * 0.8 ? C.yellow : C.textDim,
+                    color:
+                      usedToday >= maxmessages * 0.8 ? C.yellow : C.textDim,
                   }}
                 >
                   {usedToday}/{maxmessages}
