@@ -66,7 +66,7 @@ export function useSignupForm() {
       });
       dispatch(setAccessToken(res.data.accessToken));
       dispatch(setUser(res.data.user));
-      nav("/");
+      nav("/dashboard");
     } catch (e) {
       setStep(1);
       const errMsg =

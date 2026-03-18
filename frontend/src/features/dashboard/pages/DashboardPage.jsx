@@ -2,12 +2,13 @@
 import { useNavigate } from "react-router-dom";
 import { C, FONTS } from "../../../shared/styles/tokens";
 import { Glass, Btn } from "../../../shared/components/ui/Atoms";
-import { useExpenses } from "../../expenses/expenses.context";
-import { useJournal } from "../../journal/journal.context";
-import { useTasks } from "../../tasks/tasks.context";
-import { useNotes } from "../../notes/notes.context";
-import { useActivity } from "../../activity/activity.context";
+// import { useExpenses } from "../../expenses/expenses.context";
+// import { useJournal } from "../../journal/journal.context";
+// import { useTasks } from "../../tasks/tasks.context";
+// import { useNotes } from "../../notes/notes.context";
+// import { useActivity } from "../../activity/activity.context";
 import { timeAgo } from "../../../shared/utils/helpers";
+import { useState } from "react";
 
 const MODULE_ICONS = {
   expenses: "🍜",
@@ -19,11 +20,14 @@ const MODULE_ICONS = {
 
 export default function DashboardPage() {
   const nav = useNavigate();
-  const { total } = useExpenses();
-  const { entries, streak } = useJournal();
-  const { tasks, pct } = useTasks();
-  const { notes } = useNotes();
-  const { recentLogs, dailyScore } = useActivity();
+  const { total } = { total: 10000 };
+  const { entries, streak } = { entries: [], streak: 4 };
+  const { tasks, pct } = { tasks: [], pct: 30 };
+  const { notes } = { notes: [] };
+  const { recentLogs, dailyScore } = { recentLogs: [], dailyScore: 20 };
+  const [quote, setQuote] = useState(
+    "Small steps every day compound into extraordinary results.",
+  );
 
   const pending = tasks.filter((t) => !t.done).length;
 
@@ -114,7 +118,7 @@ export default function DashboardPage() {
                 fontStyle: "italic",
               }}
             >
-              "Small steps every day compound into extraordinary results."
+              {quote}
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
@@ -161,7 +165,7 @@ export default function DashboardPage() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill,minmax(178px,1fr))",
+          gridTemplateColumns: "repeat(auto-fill,minmax(250px,1fr))", //178
           gap: 12,
         }}
       >
@@ -296,6 +300,14 @@ export default function DashboardPage() {
                   text: "3 high-priority tasks pending. Tackle before noon.",
                   color: C.red,
                 },
+                {
+                  text: "You spent more on food this month — 40% over last month.",
+                  color: C.orange,
+                },
+                {
+                  text: "Mood positive for 4 days straight Great streak.",
+                  color: C.green,
+                },
               ].map((ins, i) => (
                 <div
                   key={i}
@@ -356,9 +368,20 @@ export default function DashboardPage() {
                 color: C.textDim,
                 textAlign: "center",
                 padding: 20,
+                height: "92%",
               }}
             >
-              No activity yet. Start using the app
+              <p
+                style={{
+                  height: "100%",
+                  width: "100%",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                No activity yet. Start using the app
+              </p>
             </div>
           ) : (
             recentLogs.slice(0, 5).map((a, i) => (

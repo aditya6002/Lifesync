@@ -36,7 +36,7 @@ export default function Topbar({ user }) {
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <button
+        {/* <button
           style={{
             width: 32,
             height: 32,
@@ -67,7 +67,7 @@ export default function Topbar({ user }) {
           }}
         >
           🔔
-        </button>
+        </button> */}
 
         <div
           onClick={() => navigate("/profile")}
@@ -94,7 +94,11 @@ export default function Topbar({ user }) {
             (e.currentTarget.style.background = "rgba(124,58,237,.28)")
           }
         >
-          {initials(user?.name)}
+          {user.profilePictureUrl != null ? (
+            <img src={`${user.profilePictureUrl}`} />
+          ) : (
+            initials(user?.name)
+          )}
         </div>
       </div>
     </div>

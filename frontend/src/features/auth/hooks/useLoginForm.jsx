@@ -4,17 +4,20 @@ import { authApi } from "../auth.api";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setAccessToken,
+  setAuthLoading,
   setError,
   setLoading,
   setToast,
   setUser,
 } from "../../../store/features/auth/authSlice";
+import { useNavigate } from "react-router";
 
 // ── Login form hook ───────────────────────────────────────
 export function useLoginForm() {
   const { error, loading } = useSelector((state) => state.auth);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const nav = useNavigate();
 
   // const { withLoader } = useLoader();
   const dispatch = useDispatch();
@@ -26,6 +29,7 @@ export function useLoginForm() {
     }
     dispatch(setError(null));
     dispatch(setLoading(true));
+    dispatch(setAuthLoading(true));
     try {
       // const res = withLoader(
       const res = await authApi.login({ email, password });
@@ -33,11 +37,16 @@ export function useLoginForm() {
       // );
       dispatch(setUser(res.data.user));
       dispatch(setAccessToken(res.data.accessToken));
+
+      nav("/dashboard");
       dispatch(setToast("Welcome back"));
     } catch (e) {
-      dispatch(setError(e instanceof Error ? e.message : "Login failed."));
+      const errMsg =
+        e.response.data.message || e.response.data.msg || e.message;
+      dispatch(setError(e instanceof Error ? errMsg : "Login failed."));
     } finally {
       dispatch(setLoading(false));
+      dispatch(setAuthLoading(false));
     }
   };
 

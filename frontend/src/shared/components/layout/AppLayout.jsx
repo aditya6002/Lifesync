@@ -4,10 +4,18 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import { Toast } from "../ui/Atoms";
+import { useDispatch, useSelector } from "react-redux";
+import { setToast as setToastAction } from "../../../store/features/auth/authSlice";
+import { authApi } from "../../../features/auth/auth.api";
 
 export default function AppLayout() {
-  const { user, logout, toast, setToast } = {};
+  const { user, toast } = useSelector((state) => state.auth);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const dispatch = useDispatch();
+  const logout = () => authApi.logout();
+  const setToast = (msg) => {
+    dispatch(setToastAction(msg));
+  };
 
   return (
     <div
@@ -38,7 +46,7 @@ export default function AppLayout() {
         open={sidebarOpen}
         setOpen={setSidebarOpen}
         user={user}
-        onLogout={logout}
+        onLogout={() => logout()}
       />
 
       <div

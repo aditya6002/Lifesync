@@ -21,12 +21,7 @@ export default function LoginPage() {
   const submit = (e) => {
     e.preventDefault();
     handleLogin();
-    nav("/");
   };
-
-  // if (loading) {
-  //   return "Loading";
-  // }
 
   return (
     <div

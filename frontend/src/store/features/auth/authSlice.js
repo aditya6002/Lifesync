@@ -6,10 +6,7 @@ const initialState = {
   authLoading: true,
   error: null,
   accessToken: null,
-  toast: {
-    message: "",
-    type: "",
-  },
+  toast: null,
 };
 
 export const userSlice = createSlice({
