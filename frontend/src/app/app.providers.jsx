@@ -14,17 +14,17 @@ export default function AppProviders({ children }) {
     <BrowserRouter>
       <LoaderProvider>
         {/* <AuthProvider> */}
-          <SubscriptionProvider>
-            <ActivityProvider>
-              <ExpensesProvider>
-                <JournalProvider>
-                  <NotesProvider>
-                    <TasksProvider>{children}</TasksProvider>
-                  </NotesProvider>
-                </JournalProvider>
-              </ExpensesProvider>
-            </ActivityProvider>
-          </SubscriptionProvider>
+        <SubscriptionProvider>
+          <ActivityProvider>
+            <ExpensesProvider>
+              <JournalProvider>
+                <NotesProvider>
+                  <TasksProvider>{children}</TasksProvider>
+                </NotesProvider>
+              </JournalProvider>
+            </ExpensesProvider>
+          </ActivityProvider>
+        </SubscriptionProvider>
         {/* </AuthProvider> */}
       </LoaderProvider>
     </BrowserRouter>

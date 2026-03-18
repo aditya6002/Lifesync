@@ -1,7 +1,7 @@
 // src/features/auth/hooks/useAuthForm.ts
 import { useState } from "react";
 // import { useAuth } from "../auth.context";
-import { useLoader } from "../../../shared/components/ui/GlobalLoader";
+// import { useLoader } from "../../../shared/components/ui/GlobalLoader";
 
 // ── Signup form hook ──────────────────────────────────────
 export function useSignupForm() {

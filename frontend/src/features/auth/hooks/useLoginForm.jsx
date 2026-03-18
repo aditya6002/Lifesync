@@ -1,34 +1,53 @@
 import { useState } from "react";
-// import { useAuth } from "../auth.context";
-import { useLoader } from "../../../shared/components/ui/GlobalLoader";
+import { authApi } from "../auth.api";
+// import { useLoader } from "../../../shared/components/ui/GlobalLoader";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  setAccessToken,
+  setError,
+  setLoading,
+  setToast,
+  setUser,
+} from "../../../store/features/auth/authSlice";
 
 // ── Login form hook ───────────────────────────────────────
 export function useLoginForm() {
-  const { login, setUser, user } = {};
+  const { error, loading } = useSelector((state) => state.auth);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const { withLoader } = useLoader();
 
-  const submit = async () => {
+  // const { withLoader } = useLoader();
+  const dispatch = useDispatch();
+
+  const handleLogin = async () => {
     if (!email || !password) {
-      setError("Please fill all fields.");
+      dispatch(setError("Please fill all fields."));
       return;
     }
-    setError("");
-    setLoading(true);
+    dispatch(setError(null));
+    dispatch(setLoading(true));
     try {
-      const res = withLoader(await login({ email, password }), "Sign in...");
-      setUser(res.data.user);
-      console.log(res);
-      console.log(res.data.user);
+      // const res = withLoader(
+      const res = await authApi.login({ email, password });
+      // "Sign in...",
+      // );
+      dispatch(setUser(res.data.user));
+      dispatch(setAccessToken(res.data.accessToken));
+      dispatch(setToast("Welcome back"));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Login failed.");
+      dispatch(setError(e instanceof Error ? e.message : "Login failed."));
     } finally {
-      setLoading(false);
+      dispatch(setLoading(false));
     }
   };
 
-  return { email, setEmail, password, setPassword, loading, error, submit };
+  return {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    loading,
+    error,
+    handleLogin,
+  };
 }

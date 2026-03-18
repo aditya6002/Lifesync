@@ -1,64 +1,74 @@
-import React, { useEffect } from "react";
-import { useSelector } from "react-redux";
-
+import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { Navigate } from "react-router";
+
 import { authApi } from "../auth.api";
 import {
   setUser,
-  setLoading,
+  setAuthLoading as setLoading,
   setError,
   setAccessToken,
   setToast,
 } from "../../../store/features/auth/authSlice";
-import { useDispatch } from "react-redux";
 
 const Protected = ({ children }) => {
-  const { loading, user } = useSelector((state) => state.auth);
+  const { authLoading, user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+
   useEffect(() => {
-    async function getAndSetUser() {
+    if (user) return;
+
+    const getAndSetUser = async () => {
       dispatch(setLoading(true));
       dispatch(setError(null));
 
-      authApi
-        .getMe()
-        .then((res) => {
-          dispatch(setUser(res.data.user));
-          dispatch(setAccessToken(res.data.accessToken));
-        })
-        .catch((err) => {
-          console.error(err);
-          dispatch(
-            setError(
-              err.response?.data?.message ||
-                "An error occurred. Please try again.",
-            ),
-          );
-          dispatch(setAccessToken(null));
-          dispatch(setUser(null));
-          dispatch(
-            setToast({
-              type: "error",
-              message: "Session expired. Please log in again.",
-            }),
-          );
-        })
-        .finally(() => {
-          dispatch(setLoading(false));
-        });
-    }
+      try {
+        const res = await authApi.getMe();
+
+        dispatch(setUser(res.data.user));
+        dispatch(setAccessToken(res.data.accessToken));
+      } catch (err) {
+        console.error(err);
+
+        dispatch(
+          setError(
+            err.response?.data?.message ||
+              "An error occurred. Please try again.",
+          ),
+        );
+
+        dispatch(
+          setToast({
+            type: "warning",
+            msg: "Session expired, please login again",
+          }),
+        );
+      } finally {
+        dispatch(setLoading(false));
+      }
+    };
 
     getAndSetUser();
-  }, []);
+  }, [dispatch, user]);
 
-  if (loading)
+  if (authLoading) {
     return (
-      <main>
-        <h1>Loading...</h1>
+      <main
+        style={{
+          width: "100vw",
+          height: "100vh",
+          display: "flex",
+          justifyContent: "content",
+          alignItems: "center",
+        }}
+      >
+        <h1 style={{ width: "100%", textAlign: "center" }}>Loading...</h1>
       </main>
     );
-  if (!user) {
-    return <Navigate to={"/login"} />;
+  }
+
+  if (!user && !authLoading) {
+    return <Navigate to="/login" replace />;
   }
 
   return children;

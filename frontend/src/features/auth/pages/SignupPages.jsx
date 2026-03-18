@@ -18,6 +18,7 @@ const ALL_INTERESTS = [
 
 export default function SignupPage() {
   const nav = useNavigate();
+
   const {
     step,
     setStep,
@@ -36,7 +37,7 @@ export default function SignupPage() {
     setError,
     nextStep,
     submit,
-  } = {};
+  } = useSignupForm();
   const [showPass, setShowPass] = useState(false);
 
   return (

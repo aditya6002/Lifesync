@@ -2,7 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   user: null,
-  loading: true,
+  loading: false,
+  authLoading: true,
   error: null,
   accessToken: null,
   toast: {
@@ -30,11 +31,21 @@ export const userSlice = createSlice({
     setToast: (state, action) => {
       state.toast = action.payload;
     },
+    setAuthLoading: (state, action) => {
+      state.authLoading = action.payload;
+    },
   },
 });
 
 // Action creators are generated for each case reducer function
-export const { setUser, setAccessToken, setError, setLoading, setToast } =
-  userSlice.actions;
+export const {
+  setUser,
+  setAccessToken,
+  setError,
+  setLoading,
+  setToast,
+  authLoading,
+  setAuthLoading,
+} = userSlice.actions;
 
 export default userSlice.reducer;
