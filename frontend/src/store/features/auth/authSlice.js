@@ -7,7 +7,7 @@ const initialState = {
   error: null,
   accessToken: null,
   toast: {
-    msg: "",
+    message: "",
     type: "",
   },
 };

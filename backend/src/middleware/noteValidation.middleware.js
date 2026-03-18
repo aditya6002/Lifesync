@@ -5,8 +5,8 @@ const validateResult = (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    const msg = errors.errors[0].msg || "Server error";
-    throw new AppError(msg, 400);
+    const message = errors.errors[0].message || "Server error";
+    throw new AppError(message, 400);
   }
   next();
 };

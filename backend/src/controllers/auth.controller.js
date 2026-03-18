@@ -3,7 +3,7 @@ const User = require("../models/user.model");
 const UsernameReservation = require("../models/usernameReservation.model");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const { AppError } = require("../middleware/errors.middleware");
+const { AppError, ApiError } = require("../middleware/errors.middleware");
 const {
   sendEmail,
   sendOTP,
@@ -25,12 +25,17 @@ const generateOTP = () => {
 // REGISTER
 const newUserFunction = async (req, res) => {
   try {
-    const { name, username, email, password } = req.body;
+    const { name, username, interests, email, password } = req.body;
 
     const ipAddress = getUserIP(req);
 
-    if (!name || !username || !email || !password) {
-      throw new AppError("Please provide all required fields", 400);
+    if (!name || !username || !email || !password || interests.length < 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide all required fields",
+        code: "ALL_DETAILS",
+        details: "Required all details",
+      });
     }
 
     const signupCheck = await rateLimiter.checkSignupAttempt(ipAddress);
@@ -52,7 +57,10 @@ const newUserFunction = async (req, res) => {
     const existingEmail = await User.findOne({ email });
     if (existingEmail) {
       await rateLimiter.recordFailedSignupAttempt(ipAddress, email);
-      throw new AppError("Email already exists", 409);
+      return res.status(409).json({
+        message: "Email already exists",
+        code: "EMAIL_EXIST",
+      });
     }
 
     const otp = generateOTP();
@@ -64,6 +72,7 @@ const newUserFunction = async (req, res) => {
       email,
       password: await bcryptjs.hash(password, 10),
       emailVerificationCode: hashedOtp,
+      interests,
       emailVerificationCodeExpires: Date.now() + 10 * 60 * 1000, // 10 min
     });
 
@@ -75,9 +84,15 @@ const newUserFunction = async (req, res) => {
       await UsernameReservation.findByIdAndDelete(reserved._id);
     }
 
-    const token = generateToken(user._id);
+    const accessToken = getJWTToken.getAccessToken(user);
+    const refreshToken = getJWTToken.getRefreshToken(user);
 
-    res.cookie("token", token, {
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+    res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -86,7 +101,7 @@ const newUserFunction = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Signup successful",
-      token,
+      accessToken,
       user: {
         id: newUser._id,
         email: newUser.email,

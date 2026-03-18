@@ -4,8 +4,8 @@ const AppError = require("./errors.middleware");
 const validateResult = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const msg = errors.array()[0]?.msg || "Validation error";
-    throw new AppError(msg, 400);
+    const message = errors.array()[0]?.message || "Validation error";
+    throw new AppError(message, 400);
   }
   next();
 };

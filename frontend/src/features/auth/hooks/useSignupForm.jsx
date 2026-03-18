@@ -1,26 +1,38 @@
-// src/features/auth/hooks/useAuthForm.ts
 import { useState } from "react";
-// import { useAuth } from "../auth.context";
+
+import {
+  setUser,
+  setAccessToken,
+  setError,
+  setLoading,
+  setAuthLoading,
+} from "../../../store/features/auth/authSlice";
+import { authApi } from "../auth.api";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router";
 // import { useLoader } from "../../../shared/components/ui/GlobalLoader";
 
 // ── Signup form hook ──────────────────────────────────────
 export function useSignupForm() {
-  const { signup } = {};
   const [step, setStep] = useState(1);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [pass, setPass] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [name, setName] = useState("aadi");
+  const [username, setUsername] = useState("aadi993");
+  const [email, setEmail] = useState("aadi@gmail.com");
+  const [pass, setPass] = useState("aadi000");
+  const [confirm, setConfirm] = useState("aadi000");
+  const { loading, error } = useSelector((state) => state.auth);
+
   const [interests, setInterests] = useState([
     "📚 Student",
     "💰 Budget tracking",
   ]);
 
+  const nav = useNavigate();
+  const dispatch = useDispatch();
+
   const nextStep = () => {
     if (!name || !email || !pass) {
-      setError("Please fill all fields.");
+      dispatch(setError("Please fill all fields."));
       return;
     }
     if (pass !== confirm) {
@@ -40,14 +52,30 @@ export function useSignupForm() {
       prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item],
     );
 
-  const submit = async () => {
-    setLoading(true);
+  const handleSignUp = async () => {
+    dispatch(setLoading(true));
+    dispatch(setAuthLoading(true));
     try {
-      await signup({ name, email, password: pass });
+      const res = await authApi.signup({
+        name: name,
+        username: username,
+        email: email,
+        password: pass,
+        confirmPassword: confirm,
+        interests: interests,
+      });
+      dispatch(setAccessToken(res.data.accessToken));
+      dispatch(setUser(res.data.user));
+      nav("/");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Signup failed.");
+      setStep(1);
+      const errMsg =
+        e.response.data.message || e.response.data.msg || e.message;
+      dispatch(setError(e instanceof Error ? errMsg : "Signup failed."));
+      console.dir(e);
     } finally {
-      setLoading(false);
+      dispatch(setLoading(false));
+      dispatch(setAuthLoading(false));
     }
   };
 
@@ -56,6 +84,8 @@ export function useSignupForm() {
     setStep,
     name,
     setName,
+    username,
+    setUsername,
     email,
     setEmail,
     pass,
@@ -68,6 +98,6 @@ export function useSignupForm() {
     error,
     setError,
     nextStep,
-    submit,
+    handleSignUp,
   };
 }

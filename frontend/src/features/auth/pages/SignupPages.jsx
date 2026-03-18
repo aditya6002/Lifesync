@@ -24,6 +24,8 @@ export default function SignupPage() {
     setStep,
     name,
     setName,
+    username,
+    setUsername,
     email,
     setEmail,
     pass,
@@ -36,7 +38,7 @@ export default function SignupPage() {
     error,
     setError,
     nextStep,
-    submit,
+    handleSignUp,
   } = useSignupForm();
   const [showPass, setShowPass] = useState(false);
 
@@ -65,7 +67,7 @@ export default function SignupPage() {
 
       <div
         style={{
-          padding: "16px 32px",
+          padding: "8px 32px", // 8 -> 16
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -121,6 +123,7 @@ export default function SignupPage() {
           alignItems: "center",
           justifyContent: "center",
           padding: 24,
+          paddingTop: 0, // None
         }}
       >
         <div className="screen-in" style={{ width: "100%", maxWidth: 440 }}>
@@ -214,6 +217,16 @@ export default function SignupPage() {
                     required
                   />
                   <FInput
+                    label="Username"
+                    value={username}
+                    onChange={(v) => {
+                      setUsername(v);
+                      setError("");
+                    }}
+                    placeholder="arjun"
+                    required
+                  />
+                  <FInput
                     label="Email"
                     value={email}
                     onChange={(v) => {
@@ -270,7 +283,9 @@ export default function SignupPage() {
                           fontSize: 14,
                         }}
                       >
-                        {showPass ? "🙈" : "👁"}
+                        <p style={{ color: "white" }}>
+                          {showPass ? "🙈" : "𓁺"}
+                        </p>
                       </button>
                     </div>
                   </div>
@@ -428,14 +443,14 @@ export default function SignupPage() {
                   </div>
                 </Glass>
                 <Btn
-                  onClick={submit}
+                  onClick={handleSignUp}
                   disabled={loading}
                   style={{ width: "100%", padding: "12px", marginBottom: 8 }}
                 >
                   {loading ? "Setting up your account..." : "Launch Lumina ✦"}
                 </Btn>
                 <button
-                  onClick={submit}
+                  onClick={handleSignUp}
                   style={{
                     width: "100%",
                     padding: 8,

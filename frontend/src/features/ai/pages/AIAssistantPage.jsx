@@ -33,7 +33,7 @@ export default function AIAssistantPage() {
   const nav = useNavigate();
   const { can, limit, plan } = useSubscription();
   const hasAI = can("aiAssistant");
-  const maxMsgs = limit("aiMessagesPerDay");
+  const maxmessages = limit("aiMessagesPerDay");
   const [usedToday, setUsedToday] = useState(0);
 
   const [messages, setMessages] = useState([
@@ -46,12 +46,12 @@ export default function AIAssistantPage() {
   const [typing, setTyping] = useState(false);
   const bottomRef = useRef(null);
 
-  const canSend = hasAI && (maxMsgs === -1 || usedToday < maxMsgs);
+  const canSend = hasAI && (maxmessages === -1 || usedToday < maxmessages);
 
   const send = (text) => {
-    const msg = text || input;
-    if (!msg.trim() || !canSend) return;
-    setMessages((m) => [...m, { role: "user", text: msg }]);
+    const message = text || input;
+    if (!message.trim() || !canSend) return;
+    setMessages((m) => [...m, { role: "user", text: message }]);
     setInput("");
     setUsedToday((n) => n + 1);
     setTyping(true);
@@ -211,7 +211,7 @@ export default function AIAssistantPage() {
           >
             Today's Usage
           </div>
-          {maxMsgs === -1 ? (
+          {maxmessages === -1 ? (
             <div style={{ fontSize: 12, color: "#c4b5fd", fontWeight: 600 }}>
               ⚡ Unlimited messages
             </div>
@@ -228,10 +228,10 @@ export default function AIAssistantPage() {
                 <span
                   style={{
                     fontSize: 11,
-                    color: usedToday >= maxMsgs * 0.8 ? C.yellow : C.textDim,
+                    color: usedToday >= maxmessages * 0.8 ? C.yellow : C.textDim,
                   }}
                 >
-                  {usedToday}/{maxMsgs}
+                  {usedToday}/{maxmessages}
                 </span>
               </div>
               <div
@@ -245,10 +245,10 @@ export default function AIAssistantPage() {
               >
                 <div
                   style={{
-                    width: `${Math.min(100, (usedToday / maxMsgs) * 100)}%`,
+                    width: `${Math.min(100, (usedToday / maxmessages) * 100)}%`,
                     height: "100%",
                     background:
-                      usedToday >= maxMsgs
+                      usedToday >= maxmessages
                         ? "#ef4444"
                         : `linear-gradient(90deg,${C.violet},${C.violetLight})`,
                     borderRadius: 4,
@@ -256,7 +256,7 @@ export default function AIAssistantPage() {
                   }}
                 />
               </div>
-              {usedToday >= maxMsgs && (
+              {usedToday >= maxmessages && (
                 <div
                   onClick={() => nav("/subscription")}
                   style={{

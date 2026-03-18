@@ -40,7 +40,7 @@ const Protected = ({ children }) => {
         dispatch(
           setToast({
             type: "warning",
-            msg: "Session expired, please login again",
+            message: "Session expired, please login again",
           }),
         );
       } finally {

@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema(
 
     yearOrRole: {
       type: String,
-      default: "",
+      default: "Other",
       enum: [
         "1st Year",
         "2nd Year",
@@ -39,7 +39,7 @@ const userSchema = new mongoose.Schema(
 
     profession: {
       type: String,
-      default: "",
+      default: "other",
       enum: ["student", "professional", "other"],
     },
 
@@ -123,6 +123,7 @@ const userSchema = new mongoose.Schema(
     },
 
     preferredLanguage: { type: String, default: "en" },
+    interests: { type: Array, default: ["Student"] },
 
     isEmailVerified: { type: Boolean, default: false },
     emailVerificationCode: { type: String },

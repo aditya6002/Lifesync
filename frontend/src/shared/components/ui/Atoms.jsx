@@ -197,7 +197,7 @@ export function FSelect({ label, value, onChange, options }) {
   );
 }
 
-export function Toast({ msg, onDone }) {
+export function Toast({ message, onDone }) {
   useEffect(() => {
     const t = setTimeout(onDone, 2300);
     return () => clearTimeout(t);
@@ -219,7 +219,7 @@ export function Toast({ msg, onDone }) {
         animation: "fadeIn .3s ease",
       }}
     >
-      {msg}
+      {message}
     </div>
   );
 }

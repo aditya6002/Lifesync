@@ -60,7 +60,7 @@ export default function AppLayout() {
         </div>
       </div>
 
-      {toast && <Toast msg={toast} onDone={() => setToast(null)} />}
+      {toast && <Toast message={toast} onDone={() => setToast(null)} />}
     </div>
   );
 }
