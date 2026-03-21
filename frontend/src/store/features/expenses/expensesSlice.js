@@ -7,7 +7,7 @@ const initialState = {
   category: [],
   monthlySpend: [],
   spendList: [],
-  date: new Date(),
+  currDate: new Date(),
   spendMonthHis: [],
 };
 
@@ -23,7 +23,6 @@ export const expensesSlice = createSlice({
         (spend) => spend.id !== action.payload,
       );
     },
-    
   },
 });
 

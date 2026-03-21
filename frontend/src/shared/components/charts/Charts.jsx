@@ -13,7 +13,9 @@ const CAT_COLORS = {
 
 // ── Monthly Bar Chart ─────────────────────────────────────
 
-export function BarChart({ currentTotal = 2839 }) {
+export function BarChart({ currentTotal = 2839, date }) {
+  console.log(date);
+
   const data = [
     { m: "Apr", v: 2400 },
     { m: "May", v: 1398 },
@@ -29,7 +31,7 @@ export function BarChart({ currentTotal = 2839 }) {
     { m: "Mar", v: currentTotal },
   ];
   const max = Math.max(...data.map((d) => d.v), 1);
-
+  const currDate = new Date()
   return (
     <div
       style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 90 }}
@@ -50,18 +52,21 @@ export function BarChart({ currentTotal = 2839 }) {
               width: "100%",
               height: Math.max(4, (d.v / max) * 84),
               background:
-                i === 5
+                d.createdAt === currDate
                   ? `linear-gradient(180deg,${C.violet},${C.violetLight})`
                   : "rgba(124,58,237,.2)",
               borderRadius: "5px 5px 0 0",
               border:
-                i === 5
+                d.createdAt === date
                   ? `1px solid ${C.violetLight}`
                   : "1px solid rgba(124,58,237,.15)",
               transition: "height .5s ease",
             }}
           />
-          <span style={{ fontSize: 9, color: C.textDim }}>{d.m}</span>
+          <span style={{ fontSize: 9, color: C.textDim }}>
+            {d.m}
+            {d.v}
+          </span>
         </div>
       ))}
     </div>
@@ -90,7 +95,7 @@ export function CategoryBars({ expenses }) {
         return (
           <div
             key={cat}
-            style={{ display: "flex", alignItems: "center", gap: 8 }}
+            style={{ display: "flex", alignItems: "center", gap: 20 }} //gap - 12
           >
             <span style={{ width: 54, fontSize: 11, color: C.textMid }}>
               {cat}

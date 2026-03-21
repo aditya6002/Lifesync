@@ -139,7 +139,7 @@ const SEED = [
     note: "Paracetamol",
     icon: "🏋️",
     userId: "u1",
-    createdAt: "",
+    createdAt: new Date(),
   },
   {
     id: "e12",
@@ -296,7 +296,7 @@ const emptyForm = () => ({
   amount: 0,
   date: today(),
   note: "",
-  // type: "expense" as "expense"| "income",
+  type: "expense" | "income",
 });
 
 // ══════════════════════════════════════════════════════════
@@ -304,8 +304,8 @@ export default function ExpensesPage() {
   const [expenses, setExpenses] = useState(SEED);
   const [activeMonth, setActiveMonth] = useState(CURRENT_MONTH);
   const [catFilter, setCatFilter] = useState("All");
-  const type = ''
-  const [modal, setModal] = useState({ type });
+  const [type, _] = useState("expense");
+  const [modal, setModal] = useState({ type: "" });
   const [form, setForm] = useState(emptyForm());
   const [saving, setSaving] = useState(false);
 
@@ -602,7 +602,7 @@ export default function ExpensesPage() {
             <div style={{ fontSize: 12, color: C.textDim, marginBottom: 12 }}>
               Monthly Spending
             </div>
-            <BarChart currentTotal={total} />
+            <BarChart currentTotal={total} date={activeMonth} />
           </Glass>
           <Glass style={{ padding: 18 }}>
             <div style={{ fontSize: 12, color: C.textDim, marginBottom: 12 }}>
@@ -856,7 +856,7 @@ export default function ExpensesPage() {
                 label="Category"
                 value={form.cat}
                 onChange={(v) => sf("cat", v)}
-                options={Object.keys(CAT_CFG).filter((k) => k == "Income")}
+                options={Object.keys(CAT_CFG)}
               />
             </div>
 
