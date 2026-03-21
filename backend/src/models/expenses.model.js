@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const expesseSchema = new mongoose.Schema(
+const expenseSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -11,6 +11,19 @@ const expesseSchema = new mongoose.Schema(
     content: { type: String, required: true },
     amount: { type: Number, required: true },
     createdAt: { type: Date, default: Date.now, required: true },
+    category: {
+      type: String,
+      enum: [
+        "Income",
+        "Food",
+        "Shopping",
+        "Travel",
+        "Study",
+        "Health",
+        "Entertainment",
+        "Other",
+      ],
+    },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "user",
@@ -20,4 +33,4 @@ const expesseSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-module.exports = mongoose.model("Expense", expesseSchema);
+module.exports = mongoose.model("Expense", expenseSchema);

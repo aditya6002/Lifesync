@@ -5,7 +5,7 @@ const validateResult = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const message = errors.array()[0]?.message || "Validation error";
-    throw new AppError(message, 400);
+    // throw new AppError(message, 400);
   }
   next();
 };
@@ -50,16 +50,16 @@ const editTaskValidationRules = [
 ];
 
 const getAllTaskValidationRules = [
-  param("skip")
-    .notEmpty()
-    .withMessage("Skip is required")
-    .isInt({ min: 1 })
-    .withMessage("Limit must be a positive number"),
-  param("limit")
-    .notEmpty()
-    .withMessage("Limit is required")
-    .isInt({ min: 1 })
-    .withMessage("Limit must be a positive number"),
+  // param("skip")
+  //   .notEmpty()
+  //   .withMessage("Skip is required")
+  //   .isInt({ min: 1 })
+  //   .withMessage("Limit must be a positive number"),
+  // param("limit")
+  //   .notEmpty()
+  //   .withMessage("Limit is required")
+  //   .isInt({ min: 1 })
+  //   .withMessage("Limit must be a positive number"),
   param("year")
     .notEmpty()
     .withMessage("Year is required")

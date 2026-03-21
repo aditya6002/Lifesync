@@ -6,6 +6,9 @@ const expensesController = require("../controllers/expenses.controller.js");
 const expenseValidationRules = require("../middleware/expenseValidation.middleware.js");
 
 router
+  /**
+   * @method POST
+   */
   .route("/")
 
   .post(
@@ -27,7 +30,7 @@ router.delete(
 );
 
 router.get(
-  "/:year/:month/:skip/:limit",
+  "/:year/:month/",
   isUserLogin,
   expenseValidationRules.getAllRules,
   wrapAsync(expensesController.getDataByMonth),

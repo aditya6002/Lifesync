@@ -1,8 +1,8 @@
 // src/features/expenses/expenses.api.ts
-import { apiClient } from "../../shared/utils/apiClient";
+import apiClient from "../../shared/utils/apiClient";
 
 export const expensesApi = {
-  getAll: () => apiClient.get("/expenses"),
+  getAll: (year, month) => apiClient.get(`/expenses/${year}/${month}`),
 
   create: (data) => apiClient.post("/expenses", data),
 

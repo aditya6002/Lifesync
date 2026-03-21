@@ -1,5 +1,5 @@
 const Expenses = require("../models/expenses.model.js");
-const {AppError} = require("../middleware/errors.middleware.js");
+const { AppError } = require("../middleware/errors.middleware.js");
 
 // New Expense
 const createExpenses = async (req, res) => {
@@ -22,19 +22,12 @@ const createExpenses = async (req, res) => {
 
 // Get Expense
 const getDataByMonth = async (req, res) => {
-  const { month, year, skip, limit } = req.params;
+  const { month, year } = req.params;
 
   const monthNum = Number(month);
   const yearNum = Number(year);
-  if (
-    !monthNum ||
-    monthNum < 1 ||
-    monthNum > 12 ||
-    !yearNum ||
-    skip < 0 ||
-    limit < 0
-  ) {
-    throw new AppError("Invalid month or year", 400);
+  if (!monthNum || monthNum < 1 || monthNum > 12 || !yearNum) {
+    // throw new AppError("Invalid month or year", 400);
   }
 
   const start = new Date(yearNum, monthNum - 1, 1, 0, 0, 0, 0);
@@ -43,10 +36,7 @@ const getDataByMonth = async (req, res) => {
   const expenses = await Expenses.find({
     userId: req.user.id,
     createdAt: { $gte: start, $lte: end },
-  })
-    .sort({ _id: -1 })
-    .skip(Number(skip))
-    .limit(Number(limit));
+  }).sort({ _id: -1 });
 
   res.status(200).json({
     success: true,

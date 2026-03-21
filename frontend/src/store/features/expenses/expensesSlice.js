@@ -1,13 +1,239 @@
 import { createSlice } from "@reduxjs/toolkit";
-
+// ── demo seed ──────────────────────────────────────────────
+const SEED = [
+  // March 2026
+  {
+    id: "e1",
+    name: "Zomato Order",
+    cat: "Food",
+    amount: -340,
+    date: "2026-03-11",
+    note: "Late night dinner",
+    icon: "🍜",
+    userId: "u1",
+    createdAt: "",
+  },
+  {
+    id: "e2",
+    name: "Metro Card",
+    cat: "Travel",
+    amount: -200,
+    date: "2026-03-10",
+    note: "Monthly pass",
+    icon: "🚇",
+    userId: "u1",
+    createdAt: "",
+  },
+  {
+    id: "e3",
+    name: "Pocket Money",
+    cat: "Income",
+    amount: 3000,
+    date: "2026-03-10",
+    note: "From dad",
+    icon: "💰",
+    userId: "u1",
+    createdAt: "",
+  },
+  {
+    id: "e4",
+    name: "Notion Pro",
+    cat: "Study",
+    amount: -299,
+    date: "2026-03-09",
+    note: "Annual subscription",
+    icon: "📚",
+    userId: "u1",
+    createdAt: "",
+  },
+  {
+    id: "e5",
+    name: "Gym Membership",
+    cat: "Health",
+    amount: -800,
+    date: "2026-03-08",
+    note: "Monthly fee",
+    icon: "🏋️",
+    userId: "u1",
+    createdAt: "",
+  },
+  {
+    id: "e6",
+    name: "Movie Ticket",
+    cat: "Entertainment",
+    amount: -280,
+    date: "2026-03-07",
+    note: "With friends",
+    icon: "🎬",
+    userId: "u1",
+    createdAt: "",
+  },
+  // February 2026
+  {
+    id: "e7",
+    name: "Swiggy Order",
+    cat: "Food",
+    amount: -420,
+    date: "2026-02-28",
+    note: "Weekend dinner",
+    icon: "🍜",
+    userId: "u1",
+    createdAt: "",
+  },
+  {
+    id: "e8",
+    name: "Airtel Recharge",
+    cat: "Other",
+    amount: -299,
+    date: "2026-02-25",
+    note: "Monthly plan",
+    icon: "📦",
+    userId: "u1",
+    createdAt: "",
+  },
+  {
+    id: "e9",
+    name: "Part-time stipend",
+    cat: "Income",
+    amount: 5000,
+    date: "2026-02-20",
+    note: "Feb stipend",
+    icon: "💰",
+    userId: "u1",
+    createdAt: "",
+  },
+  {
+    id: "e10",
+    name: "Book: Clean Code",
+    cat: "Study",
+    amount: -499,
+    date: "2026-02-15",
+    note: "Programming book",
+    icon: "📚",
+    userId: "u1",
+    createdAt: "",
+  },
+  {
+    id: "e11",
+    name: "Medicine",
+    cat: "Health",
+    amount: -150,
+    date: "2026-02-10",
+    note: "Paracetamol",
+    icon: "🏋️",
+    userId: "u1",
+    createdAt: new Date(),
+  },
+  {
+    id: "e12",
+    name: "Train Ticket",
+    cat: "Travel",
+    amount: -380,
+    date: "2026-02-05",
+    note: "Home visit",
+    icon: "🚇",
+    userId: "u1",
+    createdAt: "",
+  },
+  // January 2026
+  {
+    id: "e13",
+    name: "New Year dinner",
+    cat: "Food",
+    amount: -650,
+    date: "2026-01-01",
+    note: "Restaurant",
+    icon: "🍜",
+    userId: "u1",
+    createdAt: "",
+  },
+  {
+    id: "e14",
+    name: "Monthly allowance",
+    cat: "Income",
+    amount: 3000,
+    date: "2026-01-05",
+    note: "From parents",
+    icon: "💰",
+    userId: "u1",
+    createdAt: "",
+  },
+  {
+    id: "e15",
+    name: "Coursera Course",
+    cat: "Study",
+    amount: -1299,
+    date: "2026-01-12",
+    note: "ML course",
+    icon: "📚",
+    userId: "u1",
+    createdAt: "",
+  },
+  {
+    id: "e16",
+    name: "Bus pass",
+    cat: "Travel",
+    amount: -200,
+    date: "2026-01-15",
+    note: "",
+    icon: "🚇",
+    userId: "u1",
+    createdAt: "",
+  },
+  {
+    id: "e17",
+    name: "T-shirt",
+    cat: "Shopping",
+    amount: -599,
+    date: "2026-01-20",
+    note: "Sale purchase",
+    icon: "🛍️",
+    userId: "u1",
+    createdAt: "",
+  },
+  // December 2025
+  {
+    id: "e18",
+    name: "Christmas gift",
+    cat: "Shopping",
+    amount: -1200,
+    date: "2025-12-24",
+    note: "For family",
+    icon: "🛍️",
+    userId: "u1",
+    createdAt: "",
+  },
+  {
+    id: "e19",
+    name: "Freelance project",
+    cat: "Income",
+    amount: 8000,
+    date: "2025-12-15",
+    note: "Web dev project",
+    icon: "💰",
+    userId: "u1",
+    createdAt: "",
+  },
+  {
+    id: "e20",
+    name: "Restaurant dinner",
+    cat: "Food",
+    amount: -780,
+    date: "2025-12-10",
+    note: "Birthday party",
+    icon: "🍜",
+    userId: "u1",
+    createdAt: "",
+  },
+];
 const initialState = {
+  expenses: [],
   total: 0,
   income: 0,
   totalSpend: 0,
   category: [],
   monthlySpend: [],
-  spendList: [],
-  currDate: new Date(),
+  currDate: null,
   spendMonthHis: [],
 };
 
@@ -16,16 +242,25 @@ export const expensesSlice = createSlice({
   initialState,
   reducers: {
     addExpenses: (state, action) => {
-      state.spendList.push(action.payload);
+      state.expenses = [...state.expenses, action.payload];
     },
     deleteExpense: (state, action) => {
-      state.spendList = state.spendList.filter(
+      state.expenses = state.expenses.filter(
         (spend) => spend.id !== action.payload,
       );
+    },
+
+    setExpenses: (state, action) => {
+      state.expenses = action.payload;
+    },
+
+    setCurrDate: (state, action) => {
+      state.currDate = action.payload;
     },
   },
 });
 
-export const { addExpenses } = expensesSlice.actions;
+export const { addExpenses, deleteExpense, setCurrDate, setExpenses } =
+  expensesSlice.actions;
 
 export default expensesSlice.reducer;

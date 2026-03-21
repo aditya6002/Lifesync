@@ -95,7 +95,7 @@ app.use("/", (req, res) => {
 });
 
 const errorHandler = (err, req, res, next) => {
-  console.log(err)
+  console.log(err);
   console.error("Error:", {
     name: err.name,
     code: err.code,

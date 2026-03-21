@@ -160,3 +160,4 @@ export function useExpenses() {
   if (!ctx) throw new Error("useExpenses must be inside ExpensesProvider");
   return ctx;
 }
+

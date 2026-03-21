@@ -1,6 +1,14 @@
 // src/features/expenses/hooks/useExpenseForm.ts
 import { useState } from "react";
 import { today } from "../../../shared/utils/helpers";
+import { expensesApi } from "../expenses.api";
+import { useDispatch, useSelector } from "react-redux";
+import { setExpenses } from "../../../store/features/expenses/expensesSlice";
+import {
+  setError,
+  setLoading,
+  setToast,
+} from "../../../store/features/auth/authSlice";
 
 const EMPTY_FORM = {
   name: "",
@@ -14,6 +22,7 @@ const EMPTY_FORM = {
 export function useExpenseForm() {
   const [modal, setModal] = useState({ type: "" });
   const [form, setForm] = useState({ ...EMPTY_FORM });
+  const dispatch = useDispatch();
 
   const openAdd = () => {
     setForm({ ...EMPTY_FORM, date: today() });
@@ -44,6 +53,18 @@ export function useExpenseForm() {
 
   const isValid = Boolean(form.name && form.amount);
 
+  async function getAllExpenses(year, month) {
+    try {
+      dispatch(setLoading(true));
+      const res = await expensesApi.getAll(year, month);
+      dispatch(setExpenses(res.data.expenses));
+    } catch (error) {
+      console.log(error);
+    } finally {
+      dispatch(setLoading(false));
+    }
+  }
+
   return {
     modal,
     form,
@@ -54,5 +75,6 @@ export function useExpenseForm() {
     closeModal,
     setField,
     buildAmount,
+    getAllExpenses,
   };
 }

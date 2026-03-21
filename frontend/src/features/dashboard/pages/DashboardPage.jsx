@@ -1,4 +1,3 @@
-// src/features/dashboard/pages/DashboardPage.tsx
 import { useNavigate } from "react-router-dom";
 import { C, FONTS } from "../../../shared/styles/tokens";
 import { Glass, Btn } from "../../../shared/components/ui/Atoms";
@@ -53,7 +52,7 @@ export default function DashboardPage() {
       value: String(pending),
       icon: "◎",
       color: C.red,
-      sub: "outstanding",
+      // sub: "outstanding",
       path: "/tasks",
     },
     {
@@ -165,7 +164,7 @@ export default function DashboardPage() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill,minmax(250px,1fr))", //178
+          gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", //178
           gap: 12,
         }}
       >
