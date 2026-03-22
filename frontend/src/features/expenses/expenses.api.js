@@ -9,4 +9,6 @@ export const expensesApi = {
   update: (id, data) => apiClient.put(`/expenses/${id}`, data),
 
   remove: (id) => apiClient.delete(`/expenses/${id}`),
+
+  
 };

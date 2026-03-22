@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { authApi } from "../auth.api";
-// import { useLoader } from "../../../shared/components/ui/GlobalLoader";
+import { useLoader } from "../../../shared/components/ui/GlobalLoader";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setAccessToken,
@@ -19,7 +19,7 @@ export function useLoginForm() {
   const [password, setPassword] = useState("");
   const nav = useNavigate();
 
-  // const { withLoader } = useLoader();
+  const { withLoader } = useLoader();
   const dispatch = useDispatch();
 
   const handleLogin = async () => {
@@ -31,19 +31,21 @@ export function useLoginForm() {
     dispatch(setLoading(true));
     dispatch(setAuthLoading(true));
     try {
-      // const res = withLoader(
-      const res = await authApi.login({ email, password });
-      // "Sign in...",
-      // );
+      const res = await withLoader(
+        authApi.login({ email, password }), //const res =
+        "Sign in...",
+      );
+      console.dir('res',res)
       dispatch(setUser(res.data.user));
       dispatch(setAccessToken(res.data.accessToken));
 
       nav("/dashboard");
       dispatch(setToast("Welcome back"));
-    } catch (e) {
+    } catch (error) {
+      console.dir('err',error);
       const errMsg =
-        e.response.data.message || e.response.data.msg || e.message;
-      dispatch(setError(e instanceof Error ? errMsg : "Login failed."));
+        error.response.data.message || error.response.data.msg || error.message;
+      dispatch(setError(error instanceof Error ? errMsg : "Login failed."));
     } finally {
       dispatch(setLoading(false));
       dispatch(setAuthLoading(false));
