@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { C } from "../../styles/tokens";
 
 const CAT_COLORS = {
@@ -13,30 +14,107 @@ const CAT_COLORS = {
 
 // ── Monthly Bar Chart ─────────────────────────────────────
 
-export function BarChart({ currentTotal = 2839, date }) {
-  console.log(date);
+// export function BarChart({ currentTotal = 2839, date }) {
+//   console.log(date);
 
-  const data = [
-    { m: "Apr", v: 2400 },
-    { m: "May", v: 1398 },
-    { m: "Jun", v: 3800 },
-    { m: "Jul", v: 4300 },
-    { m: "Aug", v: 3490 },
-    { m: "Sep", v: 2839 },
-    { m: "Oct", v: 3200 },
-    { m: "Nov", v: 4100 },
-    { m: "Dec", v: 5800 },
-    { m: "Jan", v: 3600 },
-    { m: "Feb", v: 4700 },
-    { m: "Mar", v: currentTotal },
-  ];
-  const max = Math.max(...data.map((d) => d.v), 1);
-  const currDate = new Date()
+//   const data = [
+//     { m: "Apr", v: 2400 },
+//     { m: "May", v: 1398 },
+//     { m: "Jun", v: 3800 },
+//     { m: "Jul", v: 4300 },
+//     { m: "Aug", v: 3490 },
+//     { m: "Sep", v: 2839 },
+//     { m: "Oct", v: 3200 },
+//     { m: "Nov", v: 4100 },
+//     { m: "Dec", v: 5800 },
+//     { m: "Jan", v: 3600 },
+//     { m: "Feb", v: 4700 },
+//     { m: "Mar", v: currentTotal },
+//   ];
+//   const max = Math.max(...data.map((d) => d.v), 1);
+//   const currDate = new Date()
+//   return (
+//     <div
+//       style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 90 }}
+//     >
+//       {data.map((d, i) => (
+//         <div
+//           key={i}
+//           style={{
+//             flex: 1,
+//             display: "flex",
+//             flexDirection: "column",
+//             alignItems: "center",
+//             gap: 4,
+//           }}
+//         >
+//           <div
+//             style={{
+//               width: "100%",
+//               height: Math.max(4, (d.v / max) * 84),
+//               background:
+//                 d.createdAt === currDate
+//                   ? `linear-gradient(180deg,${C.violet},${C.violetLight})`
+//                   : "rgba(124,58,237,.2)",
+//               borderRadius: "5px 5px 0 0",
+//               border:
+//                 d.createdAt === date
+//                   ? `1px solid ${C.violetLight}`
+//                   : "1px solid rgba(124,58,237,.15)",
+//               transition: "height .5s ease",
+//             }}
+//           />
+//           <span style={{ fontSize: 9, color: C.textDim }}>
+//             {d.m}
+//             {d.v}
+//           </span>
+//         </div>
+//       ))}
+//     </div>
+//   );
+// }
+
+export function BarChart({ currentTotal = 0, date, expenses = [] }) {
+  const monthTotals = useMemo(() => {
+    const map = {};
+    expenses.forEach((e) => {
+      if (e.amount >= 0) return;
+      const key = e.date.slice(0, 7);
+      map[key] = (map[key] ?? 0) + Math.abs(e.amount);
+    });
+    return map;
+  }, [expenses]);
+
+  const allKeys = useMemo(() => {
+    const keys = new Set(Object.keys(monthTotals));
+    keys.add(date);
+    return [...keys].sort();
+  }, [monthTotals, date]);
+
+  const windowKeys = useMemo(() => {
+    if (allKeys.length <= 10) return allKeys; // ✅ sab dikhao jab tak 10 se kam
+
+    const activeIdx = allKeys.indexOf(date);
+    const sliceStart = Math.max(
+      0,
+      Math.min(activeIdx - 5, allKeys.length - 10),
+    );
+    return allKeys.slice(sliceStart, sliceStart + 10);
+  }, [allKeys, date]);
+
+  const windowData = windowKeys.map((key) => ({
+    m: new Date(`${key}-01`).toLocaleDateString("en-IN", { month: "short" }),
+    v: key === date ? currentTotal : (monthTotals[key] ?? 0),
+    isActive: key === date,
+  }));
+
+  const max = Math.max(...windowData.map((d) => d.v), 1);
+
   return (
     <div
       style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 90 }}
     >
-      {data.map((d, i) => (
+      {windowData.map((d, i) => (
         <div
           key={i}
           style={{
@@ -51,28 +129,30 @@ export function BarChart({ currentTotal = 2839, date }) {
             style={{
               width: "100%",
               height: Math.max(4, (d.v / max) * 84),
-              background:
-                d.createdAt === currDate
-                  ? `linear-gradient(180deg,${C.violet},${C.violetLight})`
-                  : "rgba(124,58,237,.2)",
+              background: d.isActive
+                ? `linear-gradient(180deg,${C.violet},${C.violetLight})`
+                : "rgba(124,58,237,.2)",
               borderRadius: "5px 5px 0 0",
-              border:
-                d.createdAt === date
-                  ? `1px solid ${C.violetLight}`
-                  : "1px solid rgba(124,58,237,.15)",
+              border: d.isActive
+                ? `1px solid ${C.violetLight}`
+                : "1px solid rgba(124,58,237,.15)",
               transition: "height .5s ease",
             }}
           />
-          <span style={{ fontSize: 9, color: C.textDim }}>
+          <span
+            style={{
+              fontSize: 9,
+              color: d.isActive ? C.violet : C.textDim,
+              fontWeight: d.isActive ? 700 : 400,
+            }}
+          >
             {d.m}
-            {d.v}
           </span>
         </div>
       ))}
     </div>
   );
 }
-
 // ── Category Progress Bars ────────────────────────────────
 
 export function CategoryBars({ expenses }) {

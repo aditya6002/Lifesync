@@ -49,7 +49,7 @@ const Protected = ({ children }) => {
     };
 
     getAndSetUser();
-  }, [dispatch, user]);
+  }, [user]);
 
   if (authLoading) {
     return (

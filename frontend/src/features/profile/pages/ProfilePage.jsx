@@ -243,14 +243,15 @@ export default function ProfilePage() {
 
   // Profile form
   const [form, setForm] = useState({
-    name: "Arjun Sharma",
-    email: "arjun@lumina.app",
-    phone: "+91 98765 43210",
+    name: "Aditya Prakash",
+    email: "adityaofficial690@gmail.com",
+    phone: "9525321999",
     bio: "B.Tech CSE · IIT Delhi · Love building things and tracking habits.",
-    location: "New Delhi, India",
+    location: "Bihar, India",
     college: "IIT Delhi",
     year: "3rd Year",
     goal: "Crack Google SWE by June 2026",
+    profilePictureUrl: "./github.jpg",
   });
   const sf = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
@@ -369,9 +370,29 @@ export default function ProfilePage() {
                 fontWeight: 700,
                 fontFamily: FONTS.display,
                 boxShadow: "0 8px 28px rgba(124,58,237,.35)",
+                overflow: "hidden",
               }}
             >
-              {initials(form.name)}
+              {form.profilePictureUrl == null ? (
+                initials(form.name)
+              ) : (
+                <div
+                  style={{
+                    backgroundColor: "white",
+                    height: "100%",
+                    width: "100%",
+                  }}
+                >
+                  <img
+                    src={form.profilePictureUrl}
+                    style={{
+                      height: "100%",
+                      width: "100%",
+                      backgroundImage: "cover",
+                    }}
+                  />
+                </div>
+              )}
             </div>
             <div
               style={{

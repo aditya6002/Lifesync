@@ -31,18 +31,18 @@ export function useLoginForm() {
     dispatch(setLoading(true));
     dispatch(setAuthLoading(true));
     try {
-      const res = await withLoader(
-        authApi.login({ email, password }), //const res =
-        "Sign in...",
-      );
-      console.dir('res',res)
+      // const res = await withLoader(
+      const res = await authApi.login({ email, password });
+      // "Sign in...",
+      // );
+      console.dir("res", res);
       dispatch(setUser(res.data.user));
       dispatch(setAccessToken(res.data.accessToken));
 
       nav("/dashboard");
       dispatch(setToast("Welcome back"));
     } catch (error) {
-      console.dir('err',error);
+      console.dir("err", error);
       const errMsg =
         error.response.data.message || error.response.data.msg || error.message;
       dispatch(setError(error instanceof Error ? errMsg : "Login failed."));

@@ -15,6 +15,10 @@ const C = {
 export default function Topbar({ user }) {
   const navigate = useNavigate();
 
+  user = {
+    ...user,
+    profilePictureUrl: "file:///Users/adityaprakash/Downloads/github.jpg",
+  };
   return (
     <div
       style={{
@@ -86,6 +90,7 @@ export default function Topbar({ user }) {
             color: "#c4b5fd",
             fontWeight: 700,
             transition: "all .15s",
+            overflow: "hidden",
           }}
           onMouseEnter={(e) =>
             (e.currentTarget.style.background = "rgba(124,58,237,.5)")
@@ -95,7 +100,21 @@ export default function Topbar({ user }) {
           }
         >
           {user.profilePictureUrl != null ? (
-            <img src={`${user.profilePictureUrl}`} />
+            <div
+              style={{
+                backgroundColor: "white",
+                height: "100%",
+                width: "100%",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <img
+                src="./github.jpg" //{`${user.profilePictureUrl}`}
+                style={{ height: "100%", width: "100%" }}
+              />
+            </div>
           ) : (
             initials(user?.name)
           )}
