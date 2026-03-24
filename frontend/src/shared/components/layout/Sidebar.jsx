@@ -26,6 +26,7 @@ const NAV = [
 export default function Sidebar({ open, setOpen, user, onLogout }) {
   const navigate = useNavigate();
   const location = useLocation();
+  console.log(open);
 
   const isActive = (path) => location.pathname === path;
 
@@ -238,7 +239,10 @@ export default function Sidebar({ open, setOpen, user, onLogout }) {
 
       {/* Collapse toggle */}
       <button
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          localStorage.setItem("open", !open);
+          setOpen(!open);
+        }}
         style={{
           margin: open ? "0 12px" : "0 8px",
           padding: "8px",

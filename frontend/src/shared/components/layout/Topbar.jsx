@@ -17,8 +17,10 @@ export default function Topbar({ user }) {
 
   user = {
     ...user,
-    profilePictureUrl: "file:///Users/adityaprakash/Downloads/github.jpg",
+    profilePictureUrl: "./github.jpg",
   };
+
+  const userName = user?.name?.split(" ")[0];
   return (
     <div
       style={{
@@ -35,7 +37,7 @@ export default function Topbar({ user }) {
       <div style={{ fontSize: 13, color: "#64748b" }}>
         {greeting()},{" "}
         <span style={{ color: "#c4b5fd", fontWeight: 500 }}>
-          {user?.name?.split(" ")[0]} ✨
+          {userName.slice(0, 1).toUpperCase() + userName.slice(1)} ✨
         </span>
       </div>
 
@@ -111,7 +113,7 @@ export default function Topbar({ user }) {
               }}
             >
               <img
-                src="./github.jpg" //{`${user.profilePictureUrl}`}
+                src={`${user.profilePictureUrl}`}
                 style={{ height: "100%", width: "100%" }}
               />
             </div>

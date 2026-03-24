@@ -35,8 +35,10 @@ export function useLoginForm() {
       const res = await authApi.login({ email, password });
       // "Sign in...",
       // );
-      console.dir("res", res);
-      dispatch(setUser(res.data.user));
+
+      let user = res.data.user;
+      user = { ...user, profilePictureUrl: "./github.jpg" };
+      dispatch(setUser(user));
       dispatch(setAccessToken(res.data.accessToken));
 
       nav("/dashboard");

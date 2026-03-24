@@ -10,7 +10,8 @@ import { authApi } from "../../../features/auth/auth.api";
 
 export default function AppLayout() {
   const { user, toast } = useSelector((state) => state.auth);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const openSto = localStorage.getItem("open") | true;
+  const [sidebarOpen, setSidebarOpen] = useState(openSto);
   const dispatch = useDispatch();
   const logout = () => authApi.logout();
   const setToast = (msg) => {
