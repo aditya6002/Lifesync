@@ -10,7 +10,12 @@ const upload = require("../middleware/multer.middleware.js");
 // Check username available or not
 router.post("/username-available", wrapAsync(authControllers.checkUsername));
 
-// Login user
+/**
+ * POST /api/auth/login
+ * @public
+ * @description Login route
+ * @body {email,password}
+ */
 router.post(
   "/login",
   authRateLimiter,

@@ -146,7 +146,7 @@ function ValueCell({ v }) {
 }
 
 export default function SubscriptionPage() {
-  const { plan: currentPlan, planId, upgradeTo } = { plan: { badge: "Plan" } }; //useSubscription();
+  const { plan: currentPlan, planId, upgradeTo } = useSubscription();
   const [billing, setBilling] = useState("monthly");
   const [upgrading, setUpgrading] = useState(null);
 

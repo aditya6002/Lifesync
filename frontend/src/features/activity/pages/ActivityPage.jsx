@@ -3,7 +3,7 @@
 import { C } from "../../../shared/styles/tokens";
 import { Glass } from "../../../shared/components/ui/Atoms";
 import { useActivity } from "../activity.context";
-import { useHeatmap } from "../hooks/useHeatmap";
+import { useHeatmap } from "../hook/useHeatmap";
 import { timeAgo } from "../../../shared/utils/helpers";
 
 const HEATMAP_COLS = [

@@ -31,11 +31,7 @@ const AI_REPLIES = [
 
 export default function AIAssistantPage() {
   const nav = useNavigate();
-  const { can, limit, plan } = {
-    can: () => {},
-    limit: () => {},
-    plan: "student",
-  }; //useSubscription();
+  const { can, limit, plan } = useSubscription();
   const hasAI = can("aiAssistant");
   const maxmessages = limit("aiMessagesPerDay");
   const [usedToday, setUsedToday] = useState(0);
@@ -59,132 +55,132 @@ export default function AIAssistantPage() {
     setInput("");
     setUsedToday((n) => n + 1);
     setTyping(true);
-    // setTimeout(
-    //   () => {
-    //     setTyping(false);
-    //     setMessages((m) => [
-    //       ...m,
-    //       {
-    //         role: "ai",
-    //         text: AI_REPLIES[Math.floor(Math.random() * AI_REPLIES.length)],
-    //       },
-    //     ]);
-    //   },
-    //   1300 + Math.random() * 700,
-    // );
+    setTimeout(
+      () => {
+        setTyping(false);
+        setMessages((m) => [
+          ...m,
+          {
+            role: "ai",
+            text: AI_REPLIES[Math.floor(Math.random() * AI_REPLIES.length)],
+          },
+        ]);
+      },
+      1300 + Math.random() * 700,
+    );
   };
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, typing]);
 
-  // // ── LOCKED STATE (Free plan) ────────────────────────────
-  // if (!hasAI) {
-  //   return (
-  //     <div
-  //       className="screen-in"
-  //       style={{
-  //         display: "flex",
-  //         alignItems: "center",
-  //         justifyContent: "center",
-  //         height: "70vh",
-  //       }}
-  //     >
-  //       <Glass
-  //         style={{
-  //           padding: 44,
-  //           textAlign: "center",
-  //           maxWidth: 420,
-  //           border: "1px solid rgba(124,58,237,.35)",
-  //         }}
-  //       >
-  //         <div style={{ fontSize: 52, marginBottom: 16 }}>⟡</div>
-  //         <div
-  //           style={{
-  //             fontFamily: FONTS.display,
-  //             fontSize: 22,
-  //             color: C.text,
-  //             fontWeight: 700,
-  //             marginBottom: 10,
-  //           }}
-  //         >
-  //           AI Assistant
-  //         </div>
-  //         <div
-  //           style={{
-  //             fontSize: 13,
-  //             color: C.textMid,
-  //             lineHeight: 1.7,
-  //             marginBottom: 8,
-  //           }}
-  //         >
-  //           Get personalized insights, expense analysis, journal summaries,
-  //           study plans and more — powered by AI that knows your entire Lumina
-  //           data.
-  //         </div>
-  //         <div
-  //           style={{
-  //             fontSize: 13,
-  //             color: C.textMid,
-  //             lineHeight: 1.7,
-  //             marginBottom: 24,
-  //           }}
-  //         >
-  //           AI Assistant is available on{" "}
-  //           <strong style={{ color: "#c4b5fd" }}>Student</strong> and{" "}
-  //           <strong style={{ color: C.violetLight }}>Pro</strong> plans.
-  //         </div>
+  // ── LOCKED STATE (Free plan) ────────────────────────────
+  if (!hasAI) {
+    return (
+      <div
+        className="screen-in"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "70vh",
+        }}
+      >
+        <Glass
+          style={{
+            padding: 44,
+            textAlign: "center",
+            maxWidth: 420,
+            border: "1px solid rgba(124,58,237,.35)",
+          }}
+        >
+          <div style={{ fontSize: 52, marginBottom: 16 }}>⟡</div>
+          <div
+            style={{
+              fontFamily: FONTS.display,
+              fontSize: 22,
+              color: C.text,
+              fontWeight: 700,
+              marginBottom: 10,
+            }}
+          >
+            AI Assistant
+          </div>
+          <div
+            style={{
+              fontSize: 13,
+              color: C.textMid,
+              lineHeight: 1.7,
+              marginBottom: 8,
+            }}
+          >
+            Get personalized insights, expense analysis, journal summaries,
+            study plans and more — powered by AI that knows your entire Lumina
+            data.
+          </div>
+          <div
+            style={{
+              fontSize: 13,
+              color: C.textMid,
+              lineHeight: 1.7,
+              marginBottom: 24,
+            }}
+          >
+            AI Assistant is available on{" "}
+            <strong style={{ color: "#c4b5fd" }}>Student</strong> and{" "}
+            <strong style={{ color: C.violetLight }}>Pro</strong> plans.
+          </div>
 
-  //         {/* Feature previews */}
-  //         <div
-  //           style={{
-  //             display: "flex",
-  //             flexDirection: "column",
-  //             gap: 8,
-  //             marginBottom: 24,
-  //             textAlign: "left",
-  //           }}
-  //         >
-  //           {[
-  //             { icon: "📊", text: "Analyze your monthly expenses" },
-  //             { icon: "✦", text: "Summarize your journal entries" },
-  //             { icon: "✅", text: "Create personalized study plans" },
-  //             { icon: "📈", text: "Mood & productivity insights" },
-  //           ].map((f, i) => (
-  //             <div
-  //               key={i}
-  //               style={{
-  //                 display: "flex",
-  //                 alignItems: "center",
-  //                 gap: 10,
-  //                 padding: "8px 12px",
-  //                 borderRadius: 9,
-  //                 background: "rgba(124,58,237,.08)",
-  //                 border: "1px solid rgba(124,58,237,.15)",
-  //               }}
-  //             >
-  //               <span style={{ fontSize: 16 }}>{f.icon}</span>
-  //               <span style={{ fontSize: 12, color: C.textMid }}>{f.text}</span>
-  //             </div>
-  //           ))}
-  //         </div>
+          {/* Feature previews */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              marginBottom: 24,
+              textAlign: "left",
+            }}
+          >
+            {[
+              { icon: "📊", text: "Analyze your monthly expenses" },
+              { icon: "✦", text: "Summarize your journal entries" },
+              { icon: "✅", text: "Create personalized study plans" },
+              { icon: "📈", text: "Mood & productivity insights" },
+            ].map((f, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "8px 12px",
+                  borderRadius: 9,
+                  background: "rgba(124,58,237,.08)",
+                  border: "1px solid rgba(124,58,237,.15)",
+                }}
+              >
+                <span style={{ fontSize: 16 }}>{f.icon}</span>
+                <span style={{ fontSize: 12, color: C.textMid }}>{f.text}</span>
+              </div>
+            ))}
+          </div>
 
-  //         <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
-  //           <Btn onClick={() => nav("/subscription")}>
-  //             🔒 Unlock AI Assistant →
-  //           </Btn>
-  //           <Btn variant="ghost" onClick={() => nav("/subscription")}>
-  //             View Plans
-  //           </Btn>
-  //         </div>
+          <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+            <Btn onClick={() => nav("/subscription")}>
+              🔒 Unlock AI Assistant →
+            </Btn>
+            <Btn variant="ghost" onClick={() => nav("/subscription")}>
+              View Plans
+            </Btn>
+          </div>
 
-  //         <div style={{ marginTop: 16, fontSize: 11, color: C.textDim }}>
-  //           Student plan from ₹49/mo · Pro from ₹149/mo
-  //         </div>
-  //       </Glass>
-  //     </div>
-  //   );
-  // }
+          <div style={{ marginTop: 16, fontSize: 11, color: C.textDim }}>
+            Student plan from ₹49/mo · Pro from ₹149/mo
+          </div>
+        </Glass>
+      </div>
+    );
+  }
 
   // ── ACTIVE AI (Student / Pro) ───────────────────────────
   return (

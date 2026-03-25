@@ -97,15 +97,15 @@ export const PLANS = {
 const SubscriptionContext = createContext(null);
 
 export function SubscriptionProvider({ children }) {
-  const [planId, setPlanId] = useState("free");
+  const [planId, setPlanId] = useState("pro"); //free
   const plan = PLANS[planId];
 
   const upgradeTo = (id) => setPlanId(id);
 
   const can = (feature) => {
     const val = plan.features[feature];
-    // if (typeof val === "boolean") return val;
-    // if (typeof val === "number") return val !== 0;
+    if (typeof val === "boolean") return val;
+    if (typeof val === "number") return val !== 0;
     return false;
   };
 
