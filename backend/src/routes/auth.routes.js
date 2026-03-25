@@ -47,6 +47,13 @@ router.get(
   wrapAsync(authControllers.isUserLoggedIn),
 );
 
+router.post(
+  "/profile",
+  authRateLimiter,
+  isUserLogin,
+  wrapAsync(authControllers.getProfile),
+);
+
 // Refresh access token
 router.post(
   "/refresh-token",

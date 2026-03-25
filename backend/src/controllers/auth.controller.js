@@ -682,6 +682,8 @@ const addProfilePicture = async (req, res) => {
   }
 };
 
+const getProfile = (req, res) => {};
+
 module.exports = {
   newUser: newUserFunction,
   login: loginUserFunction,
@@ -701,4 +703,5 @@ module.exports = {
   adminRateLimitUnlockController,
   adminRateLimitIdentifierController,
   addProfilePicture,
+  getProfile,
 };
