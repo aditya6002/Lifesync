@@ -1,7 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  chats: [{}],
+  messages: [
+    {
+      role: "ai",
+      text: "Hello 👋 I'm Lumina AI — your personal productivity assistant. I have full context of your expenses, journal, notes and tasks. What would you like to explore today?",
+    },
+  ],
 
   error: null,
   loading: false,

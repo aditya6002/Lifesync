@@ -24,9 +24,77 @@ export default function DashboardPage() {
   const { tasks, pct } = { tasks: [], pct: 30 };
   const { notes } = { notes: [] };
   const { recentLogs, dailyScore } = { recentLogs: [], dailyScore: 20 };
-  const [quote, setQuote] = useState(
+
+  const [quote, setQuote] = useState([
     "Small steps every day compound into extraordinary results.",
-  );
+    "Consistency beats intensity when intensity doesn’t last.",
+    "Tiny improvements today create massive results tomorrow.",
+    "Progress is built one focused day at a time.",
+    "Big wins are just small wins repeated.",
+    "Discipline today becomes freedom tomorrow.",
+    "Show up daily, even when it’s boring—that’s where growth lives.",
+    "Success isn’t sudden; it’s stacked.",
+    "Do a little better than yesterday—that’s enough.",
+    "Momentum starts with one step, then another.",
+    "You don’t need perfect—just persistent.",
+    "Small habits shape big futures.",
+    "Every action is a vote for the person you’re becoming.",
+    "Stay consistent long enough and results become inevitable.",
+    "Effort compounds just like interest.",
+    "Win the day, and you’ll win the year.",
+    "The gap between goals and reality is filled with daily action.",
+    "Keep going—slow progress is still progress.",
+    "Focus on the system, and results will follow.",
+    "One percent better every day changes everything.",
+    "Little by little, a little becomes a lot.",
+    "Daily actions decide your destiny.",
+    "Success grows in the routine you repeat.",
+    "Start small, stay steady, finish strong.",
+    "Consistency turns effort into excellence.",
+    "The secret is showing up, again and again.",
+    "What feels small today builds strength for tomorrow.",
+    "Your future is created by what you do today.",
+    "Keep stacking days that matter.",
+    "The grind you avoid is the life you delay.",
+    "Small progress is still a big deal.",
+    "Habits are the blueprint of your life.",
+    "Action cures overthinking.",
+    "Don’t rush—build it right, brick by brick.",
+    "Stay patient, stay consistent, stay winning.",
+    "Each step forward counts, no matter how small.",
+    "Growth is quiet, but results are loud.",
+    "The magic is in the mundane.",
+    "Push a little more than yesterday.",
+    "You get better by doing, not waiting.",
+    "Repetition builds mastery.",
+    "Dream big, act daily.",
+    "Slow work beats no work.",
+    "Your habits decide your height.",
+    "Consistency creates confidence.",
+  ]);
+
+  const aiInsights = [
+    {
+      text: "You spent more on food this month — 40% over last month.",
+      color: C.orange,
+    },
+    {
+      text: "Mood positive for 4 days straight Great streak.",
+      color: C.green,
+    },
+    {
+      text: "3 high-priority tasks pending. Tackle before noon.",
+      color: C.red,
+    },
+    {
+      text: "You spent more on food this month — 40% over last month.",
+      color: C.orange,
+    },
+    {
+      text: "Mood positive for 4 days straight Great streak.",
+      color: C.green,
+    },
+  ];
 
   const pending = tasks.filter((t) => !t.done).length;
 
@@ -117,7 +185,7 @@ export default function DashboardPage() {
                 fontStyle: "italic",
               }}
             >
-              {quote}
+              {quote[Math.floor(Math.random() * quote.length)]}
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
@@ -286,28 +354,7 @@ export default function DashboardPage() {
                   </span>
                 </div>
               ))
-            : [
-                {
-                  text: "You spent more on food this month — 40% over last month.",
-                  color: C.orange,
-                },
-                {
-                  text: "Mood positive for 4 days straight Great streak.",
-                  color: C.green,
-                },
-                {
-                  text: "3 high-priority tasks pending. Tackle before noon.",
-                  color: C.red,
-                },
-                {
-                  text: "You spent more on food this month — 40% over last month.",
-                  color: C.orange,
-                },
-                {
-                  text: "Mood positive for 4 days straight Great streak.",
-                  color: C.green,
-                },
-              ].map((ins, i) => (
+            : aiInsights.map((ins, i) => (
                 <div
                   key={i}
                   style={{

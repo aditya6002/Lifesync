@@ -104,8 +104,8 @@ export function SubscriptionProvider({ children }) {
 
   const can = (feature) => {
     const val = plan.features[feature];
-    if (typeof val === "boolean") return val;
-    if (typeof val === "number") return val !== 0;
+    // if (typeof val === "boolean") return val;
+    // if (typeof val === "number") return val !== 0;
     return false;
   };
 

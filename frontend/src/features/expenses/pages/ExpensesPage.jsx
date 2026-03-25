@@ -934,9 +934,6 @@ export default function ExpensesPage() {
     return <div style={{ color: C.textMid, padding: 32 }}>Loading...</div>;
   if (error) return <div style={{ color: C.red, padding: 32 }}>{error}</div>;
 
-
-
-  
   return (
     <div
       className="screen-in"

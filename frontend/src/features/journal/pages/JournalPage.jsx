@@ -12,10 +12,51 @@ import { Modal, ViewModal, Confirm } from "../../../shared/components/ui/Modal";
 import { fmtDate, today, uid } from "../../../shared/utils/helpers";
 
 // ── constants ──────────────────────────────────────────────
-const MOODS = ["😴", "😟", "😐", "🙂", "😄", "🤩"];
-const MOOD_LBL = ["Exhausted", "Sad", "Neutral", "Good", "Happy", "Amazing"];
-const MOOD_CLR = [C.textDim, C.blue, C.textMid, C.yellow, C.green, "#c4b5fd"];
-
+// const MOODS = ["😴", "😟", "😐", "🙂", "😄", "🤩"];
+// const MOOD_LBL = ["Exhausted", "Sad", "Neutral", "Good", "Happy", "Amazing"];
+// const MOOD_CLR = [C.textDim, C.blue, C.textMid, C.yellow, C.green, "#c4b5fd"];
+const MOODS = [
+  "😴",
+  "🥱",
+  "😟",
+  "😞",
+  "😐",
+  "🙂",
+  "😊",
+  "😄",
+  "😁",
+  "🤩",
+  "🔥",
+  "💪",
+];
+const MOOD_LBL = [
+  "Exhausted",
+  "Sleepy",
+  "Worried",
+  "Low",
+  "Neutral",
+  "Good",
+  "Content",
+  "Happy",
+  "Confident",
+  "Amazing",
+  "On Fire",
+  "Unstoppable",
+];
+const MOOD_CLR = [
+  C.textDim, // Exhausted
+  "#94a3b8", // Sleepy (soft gray-blue)
+  C.blue, // Worried
+  "#60a5fa", // Low (lighter blue)
+  C.textMid, // Neutral
+  C.yellow, // Good
+  "#facc15", // Content (warm yellow)
+  C.green, // Happy
+  "#22c55e", // Confident (strong green)
+  "#c4b5fd", // Amazing (violet)
+  "#f97316", // On Fire (orange)
+  "#ef4444", // Unstoppable (red)
+];
 // ── demo seed ──────────────────────────────────────────────
 const SEED = [
   // March 2026
