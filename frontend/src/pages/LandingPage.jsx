@@ -1,7 +1,6 @@
-// src/features/auth/pages/LandingPage.tsx
 import { useNavigate } from "react-router-dom";
-import { C, FONTS } from "../../../shared/styles/tokens";
-import { Glass } from "../../../shared/components/ui/Atoms";
+import { C, FONTS } from "../shared/styles/tokens";
+import { Glass } from "../shared/components/ui/Atoms";
 
 export default function LandingPage() {
   const nav = useNavigate();

@@ -28,6 +28,9 @@ const getDataByMonth = async (req, res) => {
   const yearNum = Number(year);
   if (!monthNum || monthNum < 1 || monthNum > 12 || !yearNum) {
     // throw new AppError("Invalid month or year", 400);
+    res.status(400).json({
+      message: "Invalid month or year",
+    });
   }
 
   const start = new Date(yearNum, monthNum - 1, 1, 0, 0, 0, 0);
@@ -38,9 +41,13 @@ const getDataByMonth = async (req, res) => {
     createdAt: { $gte: start, $lte: end },
   }).sort({ _id: -1 });
 
+  const allExpenses = await Expenses.find({ userId: req.user.id }).select(
+    "-amount",
+  );
+
   res.status(200).json({
     success: true,
-    expenses,
+    allExpenses,
   });
 };
 
