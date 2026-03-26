@@ -12,6 +12,7 @@ import TasksPage from "../features/tasks/pages/TasksPage";
 import AIAssistantPage from "../features/ai/pages/AIAssistantPage";
 import ProfilePage from "../features/profile/pages/ProfilePage";
 import SubscriptionPage from "../features/subscription/pages/SubscriptionPage";
+import ActivityPage from "../features/activity/pages/ActivityPage";
 
 export const router = createBrowserRouter([
   { path: "/", element: <LandingPage /> },
@@ -101,6 +102,16 @@ export const router = createBrowserRouter([
       </Protected>
     ),
     children: [{ index: true, element: <SubscriptionPage /> }],
+  },
+
+  {
+    path: "activity",
+    element: (
+      <Protected>
+        <AppLayout />
+      </Protected>
+    ),
+    children: [{ index: true, element: <ActivityPage /> }],
   },
 
   {

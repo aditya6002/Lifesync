@@ -6,14 +6,17 @@ import { store } from "./store/store";
 import { RouterProvider } from "react-router";
 import { LoaderProvider } from "./shared/components/ui/GlobalLoader";
 import { SubscriptionProvider } from "./features/subscription/subscription.context";
+import { ActivityProvider } from "./features/activity/activity.context";
 
 export default function App() {
   return (
     <Provider store={store}>
       <LoaderProvider>
         <SubscriptionProvider>
-          <GlobalStyles />
-          <RouterProvider router={router} />
+          <ActivityProvider>
+            <GlobalStyles />
+            <RouterProvider router={router} />
+          </ActivityProvider>
         </SubscriptionProvider>
       </LoaderProvider>
     </Provider>
