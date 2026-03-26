@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const isUserLogin = async (req, res, next) => {
   try {
     const requestToken =
-      req.cookies?.refreshToken || req.headers?.authorization?.split(" ")[1];
+      req.cookies?.refreshToken || req.headers?.Authorization?.split(" ")[1];
     if (!requestToken) {
       return res.status(401).json({
         success: false,

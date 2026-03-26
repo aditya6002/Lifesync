@@ -26,7 +26,6 @@ const NAV = [
 export default function Sidebar({ open, setOpen, user, onLogout }) {
   const navigate = useNavigate();
   const location = useLocation();
-  console.log(open);
 
   const isActive = (path) => location.pathname === path;
 

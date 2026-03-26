@@ -1,13 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { C, FONTS } from "../../../shared/styles/tokens";
 import { Glass, Btn } from "../../../shared/components/ui/Atoms";
-// import { useExpenses } from "../../expenses/expenses.context";
-// import { useJournal } from "../../journal/journal.context";
-// import { useTasks } from "../../tasks/tasks.context";
-// import { useNotes } from "../../notes/notes.context";
-// import { useActivity } from "../../activity/activity.context";
 import { timeAgo } from "../../../shared/utils/helpers";
-import { useState } from "react";
+import { use, useEffect, useState } from "react";
+import dashboardApi from "../dashboard.route";
 
 const MODULE_ICONS = {
   expenses: "🍜",
@@ -19,13 +15,23 @@ const MODULE_ICONS = {
 
 export default function DashboardPage() {
   const nav = useNavigate();
-  const { total } = { total: 10000 };
-  const { entries, streak } = { entries: [], streak: 4 };
-  const { tasks, pct } = { tasks: [], pct: 30 };
-  const { notes } = { notes: [] };
-  const { recentLogs, dailyScore } = { recentLogs: [], dailyScore: 20 };
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [quote, setQuote] = useState([
+  const [streak, setStreak] = useState(0);
+
+  const [pending, setPending] = useState(0);
+  const [recentLogs, setRecentLogs] = useState([]);
+
+  const [pct, setPct] = useState(0);
+
+  const [notes, setNotes] = useState([]);
+  const [dailyScore, setDailyScore] = useState({ score: 0, breakdown: {} });
+  const [aiInsights, setAiInsights] = useState([]);
+  const [score, setScore] = useState(0);
+  // const score = dailyScore?.score ?? 82;
+  const quote = [
     "Small steps every day compound into extraordinary results.",
     "Consistency beats intensity when intensity doesn’t last.",
     "Tiny improvements today create massive results tomorrow.",
@@ -71,32 +77,7 @@ export default function DashboardPage() {
     "Slow work beats no work.",
     "Your habits decide your height.",
     "Consistency creates confidence.",
-  ]);
-
-  const aiInsights = [
-    {
-      text: "You spent more on food this month — 40% over last month.",
-      color: C.orange,
-    },
-    {
-      text: "Mood positive for 4 days straight Great streak.",
-      color: C.green,
-    },
-    {
-      text: "3 high-priority tasks pending. Tackle before noon.",
-      color: C.red,
-    },
-    {
-      text: "You spent more on food this month — 40% over last month.",
-      color: C.orange,
-    },
-    {
-      text: "Mood positive for 4 days straight Great streak.",
-      color: C.green,
-    },
   ];
-
-  const pending = tasks.filter((t) => !t.done).length;
 
   const stats = [
     {
@@ -120,12 +101,12 @@ export default function DashboardPage() {
       value: String(pending),
       icon: "◎",
       color: C.red,
-      // sub: "outstanding",
+      sub: "outstanding",
       path: "/tasks",
     },
     {
       label: "Total Notes",
-      value: String(notes.length),
+      value: String(notes),
       icon: "◇",
       color: C.blue,
       sub: "all time",
@@ -133,7 +114,52 @@ export default function DashboardPage() {
     },
   ];
 
-  const score = dailyScore?.score ?? 82;
+  useEffect(() => {
+    async function getAndSetDashboardData() {
+      try {
+        const data = await dashboardApi.getAllData();
+        const dt = data.data.data;
+
+        setAiInsights(dt.aiInsights);
+        setStreak(dt.journalStreak);
+        setTotal(dt.currentMonthExpTotal);
+        setRecentLogs(dt.recentActivity);
+        setPending(dt.todayPendingTasks);
+        setPct(dt.productivityScore);
+        setNotes(dt.totalNotes);
+        setScore(dt.todayTaskScore);
+        setDailyScore(dt.monthlyJournalCount);
+      } catch (error) {
+        console.log(error);
+        const errMsg = error?.message || "Failed to fetch dashboard data";
+        setError(errMsg);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    getAndSetDashboardData();
+  }, []);
+
+  if (loading) {
+    return (
+      <h1
+        style={{
+          height: "100%",
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        Loading...
+      </h1>
+    );
+  }
+
+  if (error) {
+    return <h1>Error: {error}</h1>;
+  }
 
   return (
     <div
