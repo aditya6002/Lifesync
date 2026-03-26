@@ -3,816 +3,130 @@ const Journal = require("../models/journal.model");
 const Note = require("../models/Note.model");
 const Task = require("../models/task.model");
 const jwt = require("jsonwebtoken");
-
-const SEED = [
-  // ── January 2025 ──────────────────────────────────────────
-  {
-    id: "e101",
-    name: "New Year Dinner",
-    cat: "Food",
-    amount: -850,
-    date: "2025-01-01",
-    note: "Restaurant with family",
-    icon: "🍜",
-    userId: "u1",
-    createdAt: new Date("2025-01-01"),
-  },
-  {
-    id: "e102",
-    name: "Monthly Allowance",
-    cat: "Income",
-    amount: 3000,
-    date: "2025-01-05",
-    note: "From parents",
-    icon: "💰",
-    userId: "u1",
-    createdAt: new Date("2025-01-05"),
-  },
-  {
-    id: "e103",
-    name: "Bus Pass",
-    cat: "Travel",
-    amount: -200,
-    date: "2025-01-06",
-    note: "Monthly pass",
-    icon: "🚇",
-    userId: "u1",
-    createdAt: new Date("2025-01-06"),
-  },
-  {
-    id: "e104",
-    name: "Coursera - ML",
-    cat: "Study",
-    amount: -1299,
-    date: "2025-01-12",
-    note: "Machine learning course",
-    icon: "📚",
-    userId: "u1",
-    createdAt: new Date("2025-01-12"),
-  },
-  {
-    id: "e105",
-    name: "T-Shirt",
-    cat: "Shopping",
-    amount: -599,
-    date: "2025-01-20",
-    note: "Sale purchase",
-    icon: "🛍️",
-    userId: "u1",
-    createdAt: new Date("2025-01-20"),
-  },
-  {
-    id: "e106",
-    name: "Zomato Order",
-    cat: "Food",
-    amount: -310,
-    date: "2025-01-25",
-    note: "Lunch delivery",
-    icon: "🍜",
-    userId: "u1",
-    createdAt: new Date("2025-01-25"),
-  },
-
-  // ── February 2025 ─────────────────────────────────────────
-  {
-    id: "e201",
-    name: "Part-time Stipend",
-    cat: "Income",
-    amount: 5000,
-    date: "2025-02-01",
-    note: "Feb stipend",
-    icon: "💰",
-    userId: "u1",
-    createdAt: new Date("2025-02-01"),
-  },
-  {
-    id: "e202",
-    name: "Swiggy Order",
-    cat: "Food",
-    amount: -420,
-    date: "2025-02-05",
-    note: "Weekend dinner",
-    icon: "🍜",
-    userId: "u1",
-    createdAt: new Date("2025-02-05"),
-  },
-  {
-    id: "e203",
-    name: "Train Ticket",
-    cat: "Travel",
-    amount: -380,
-    date: "2025-02-08",
-    note: "Home visit",
-    icon: "🚇",
-    userId: "u1",
-    createdAt: new Date("2025-02-08"),
-  },
-  {
-    id: "e204",
-    name: "Medicine",
-    cat: "Health",
-    amount: -220,
-    date: "2025-02-10",
-    note: "Fever medicines",
-    icon: "🏋️",
-    userId: "u1",
-    createdAt: new Date("2025-02-10"),
-  },
-  {
-    id: "e205",
-    name: "Book: Clean Code",
-    cat: "Study",
-    amount: -499,
-    date: "2025-02-14",
-    note: "Programming book",
-    icon: "📚",
-    userId: "u1",
-    createdAt: new Date("2025-02-14"),
-  },
-  {
-    id: "e206",
-    name: "Airtel Recharge",
-    cat: "Other",
-    amount: -299,
-    date: "2025-02-20",
-    note: "Monthly plan",
-    icon: "📦",
-    userId: "u1",
-    createdAt: new Date("2025-02-20"),
-  },
-
-  // ── March 2025 ────────────────────────────────────────────
-  {
-    id: "e301",
-    name: "Monthly Allowance",
-    cat: "Income",
-    amount: 3000,
-    date: "2025-03-01",
-    note: "From parents",
-    icon: "💰",
-    userId: "u1",
-    createdAt: new Date("2025-03-01"),
-  },
-  {
-    id: "e302",
-    name: "Gym Membership",
-    cat: "Health",
-    amount: -800,
-    date: "2025-03-03",
-    note: "Monthly fee",
-    icon: "🏋️",
-    userId: "u1",
-    createdAt: new Date("2025-03-03"),
-  },
-  {
-    id: "e303",
-    name: "Metro Card",
-    cat: "Travel",
-    amount: -200,
-    date: "2025-03-05",
-    note: "Monthly pass",
-    icon: "🚇",
-    userId: "u1",
-    createdAt: new Date("2025-03-05"),
-  },
-  {
-    id: "e304",
-    name: "Notion Pro",
-    cat: "Study",
-    amount: -299,
-    date: "2025-03-09",
-    note: "Annual subscription",
-    icon: "📚",
-    userId: "u1",
-    createdAt: new Date("2025-03-09"),
-  },
-  {
-    id: "e305",
-    name: "Movie Ticket",
-    cat: "Entertainment",
-    amount: -280,
-    date: "2025-03-15",
-    note: "With friends",
-    icon: "🎬",
-    userId: "u1",
-    createdAt: new Date("2025-03-15"),
-  },
-  {
-    id: "e306",
-    name: "Zomato Order",
-    cat: "Food",
-    amount: -340,
-    date: "2025-03-22",
-    note: "Late night dinner",
-    icon: "🍜",
-    userId: "u1",
-    createdAt: new Date("2025-03-22"),
-  },
-
-  // ── April 2025 ────────────────────────────────────────────
-  {
-    id: "e401",
-    name: "Freelance Project",
-    cat: "Income",
-    amount: 6000,
-    date: "2025-04-02",
-    note: "UI design work",
-    icon: "💰",
-    userId: "u1",
-    createdAt: new Date("2025-04-02"),
-  },
-  {
-    id: "e402",
-    name: "Grocery Shopping",
-    cat: "Food",
-    amount: -680,
-    date: "2025-04-05",
-    note: "Monthly groceries",
-    icon: "🍜",
-    userId: "u1",
-    createdAt: new Date("2025-04-05"),
-  },
-  {
-    id: "e403",
-    name: "Cab Rides",
-    cat: "Travel",
-    amount: -450,
-    date: "2025-04-10",
-    note: "Weekly commute",
-    icon: "🚇",
-    userId: "u1",
-    createdAt: new Date("2025-04-10"),
-  },
-  {
-    id: "e404",
-    name: "Udemy Course",
-    cat: "Study",
-    amount: -799,
-    date: "2025-04-14",
-    note: "React advanced course",
-    icon: "📚",
-    userId: "u1",
-    createdAt: new Date("2025-04-14"),
-  },
-  {
-    id: "e405",
-    name: "Jeans",
-    cat: "Shopping",
-    amount: -1199,
-    date: "2025-04-20",
-    note: "Summer sale",
-    icon: "🛍️",
-    userId: "u1",
-    createdAt: new Date("2025-04-20"),
-  },
-
-  // ── May 2025 ──────────────────────────────────────────────
-  {
-    id: "e501",
-    name: "Monthly Allowance",
-    cat: "Income",
-    amount: 3000,
-    date: "2025-05-01",
-    note: "From parents",
-    icon: "💰",
-    userId: "u1",
-    createdAt: new Date("2025-05-01"),
-  },
-  {
-    id: "e502",
-    name: "Swiggy Order",
-    cat: "Food",
-    amount: -390,
-    date: "2025-05-04",
-    note: "Dinner delivery",
-    icon: "🍜",
-    userId: "u1",
-    createdAt: new Date("2025-05-04"),
-  },
-  {
-    id: "e503",
-    name: "Metro Card",
-    cat: "Travel",
-    amount: -200,
-    date: "2025-05-05",
-    note: "Monthly pass",
-    icon: "🚇",
-    userId: "u1",
-    createdAt: new Date("2025-05-05"),
-  },
-  {
-    id: "e504",
-    name: "Gym Membership",
-    cat: "Health",
-    amount: -800,
-    date: "2025-05-06",
-    note: "Monthly fee",
-    icon: "🏋️",
-    userId: "u1",
-    createdAt: new Date("2025-05-06"),
-  },
-  {
-    id: "e505",
-    name: "Concert Ticket",
-    cat: "Entertainment",
-    amount: -999,
-    date: "2025-05-18",
-    note: "Arijit Singh live",
-    icon: "🎬",
-    userId: "u1",
-    createdAt: new Date("2025-05-18"),
-  },
-  {
-    id: "e506",
-    name: "Vitamins",
-    cat: "Health",
-    amount: -350,
-    date: "2025-05-25",
-    note: "Monthly supplements",
-    icon: "🏋️",
-    userId: "u1",
-    createdAt: new Date("2025-05-25"),
-  },
-
-  // ── June 2025 ─────────────────────────────────────────────
-  {
-    id: "e601",
-    name: "Part-time Stipend",
-    cat: "Income",
-    amount: 5000,
-    date: "2025-06-01",
-    note: "June stipend",
-    icon: "💰",
-    userId: "u1",
-    createdAt: new Date("2025-06-01"),
-  },
-  {
-    id: "e602",
-    name: "Restaurant Dinner",
-    cat: "Food",
-    amount: -760,
-    date: "2025-06-07",
-    note: "Birthday party",
-    icon: "🍜",
-    userId: "u1",
-    createdAt: new Date("2025-06-07"),
-  },
-  {
-    id: "e603",
-    name: "Flight Ticket",
-    cat: "Travel",
-    amount: -3200,
-    date: "2025-06-12",
-    note: "Mumbai trip",
-    icon: "🚇",
-    userId: "u1",
-    createdAt: new Date("2025-06-12"),
-  },
-  {
-    id: "e604",
-    name: "Hotel Stay",
-    cat: "Travel",
-    amount: -2400,
-    date: "2025-06-13",
-    note: "2 nights Mumbai",
-    icon: "🚇",
-    userId: "u1",
-    createdAt: new Date("2025-06-13"),
-  },
-  {
-    id: "e605",
-    name: "Sneakers",
-    cat: "Shopping",
-    amount: -2499,
-    date: "2025-06-22",
-    note: "Nike sale",
-    icon: "🛍️",
-    userId: "u1",
-    createdAt: new Date("2025-06-22"),
-  },
-
-  // ── July 2025 ─────────────────────────────────────────────
-  {
-    id: "e701",
-    name: "Monthly Allowance",
-    cat: "Income",
-    amount: 3000,
-    date: "2025-07-01",
-    note: "From parents",
-    icon: "💰",
-    userId: "u1",
-    createdAt: new Date("2025-07-01"),
-  },
-  {
-    id: "e702",
-    name: "Zomato Order",
-    cat: "Food",
-    amount: -520,
-    date: "2025-07-06",
-    note: "Rainy day order",
-    icon: "🍜",
-    userId: "u1",
-    createdAt: new Date("2025-07-06"),
-  },
-  {
-    id: "e703",
-    name: "Metro Card",
-    cat: "Travel",
-    amount: -200,
-    date: "2025-07-07",
-    note: "Monthly pass",
-    icon: "🚇",
-    userId: "u1",
-    createdAt: new Date("2025-07-07"),
-  },
-  {
-    id: "e704",
-    name: "Gym Membership",
-    cat: "Health",
-    amount: -800,
-    date: "2025-07-08",
-    note: "Monthly fee",
-    icon: "🏋️",
-    userId: "u1",
-    createdAt: new Date("2025-07-08"),
-  },
-  {
-    id: "e705",
-    name: "OTT Subscriptions",
-    cat: "Entertainment",
-    amount: -649,
-    date: "2025-07-10",
-    note: "Netflix + Spotify",
-    icon: "🎬",
-    userId: "u1",
-    createdAt: new Date("2025-07-10"),
-  },
-  {
-    id: "e706",
-    name: "Umbrella + Raincoat",
-    cat: "Shopping",
-    amount: -899,
-    date: "2025-07-18",
-    note: "Monsoon shopping",
-    icon: "🛍️",
-    userId: "u1",
-    createdAt: new Date("2025-07-18"),
-  },
-
-  // ── August 2025 ───────────────────────────────────────────
-  {
-    id: "e801",
-    name: "Freelance Project",
-    cat: "Income",
-    amount: 8000,
-    date: "2025-08-03",
-    note: "Web dev project",
-    icon: "💰",
-    userId: "u1",
-    createdAt: new Date("2025-08-03"),
-  },
-  {
-    id: "e802",
-    name: "Grocery Shopping",
-    cat: "Food",
-    amount: -720,
-    date: "2025-08-05",
-    note: "Monthly groceries",
-    icon: "🍜",
-    userId: "u1",
-    createdAt: new Date("2025-08-05"),
-  },
-  {
-    id: "e803",
-    name: "Bus Pass",
-    cat: "Travel",
-    amount: -200,
-    date: "2025-08-06",
-    note: "Monthly pass",
-    icon: "🚇",
-    userId: "u1",
-    createdAt: new Date("2025-08-06"),
-  },
-  {
-    id: "e804",
-    name: "Doctor Visit",
-    cat: "Health",
-    amount: -500,
-    date: "2025-08-14",
-    note: "General checkup",
-    icon: "🏋️",
-    userId: "u1",
-    createdAt: new Date("2025-08-14"),
-  },
-  {
-    id: "e805",
-    name: "Book: DDIA",
-    cat: "Study",
-    amount: -899,
-    date: "2025-08-20",
-    note: "Designing Data-Intensive",
-    icon: "📚",
-    userId: "u1",
-    createdAt: new Date("2025-08-20"),
-  },
-
-  // ── September 2025 ────────────────────────────────────────
-  {
-    id: "e901",
-    name: "Monthly Allowance",
-    cat: "Income",
-    amount: 3000,
-    date: "2025-09-01",
-    note: "From parents",
-    icon: "💰",
-    userId: "u1",
-    createdAt: new Date("2025-09-01"),
-  },
-  {
-    id: "e902",
-    name: "Swiggy Order",
-    cat: "Food",
-    amount: -460,
-    date: "2025-09-05",
-    note: "Weekend dinner",
-    icon: "🍜",
-    userId: "u1",
-    createdAt: new Date("2025-09-05"),
-  },
-  {
-    id: "e903",
-    name: "Metro Card",
-    cat: "Travel",
-    amount: -200,
-    date: "2025-09-06",
-    note: "Monthly pass",
-    icon: "🚇",
-    userId: "u1",
-    createdAt: new Date("2025-09-06"),
-  },
-  {
-    id: "e904",
-    name: "Gym Membership",
-    cat: "Health",
-    amount: -800,
-    date: "2025-09-08",
-    note: "Monthly fee",
-    icon: "🏋️",
-    userId: "u1",
-    createdAt: new Date("2025-09-08"),
-  },
-  {
-    id: "e905",
-    name: "Navratri Shopping",
-    cat: "Shopping",
-    amount: -1800,
-    date: "2025-09-20",
-    note: "Ethnic wear",
-    icon: "🛍️",
-    userId: "u1",
-    createdAt: new Date("2025-09-20"),
-  },
-  {
-    id: "e906",
-    name: "Movie + Dinner",
-    cat: "Entertainment",
-    amount: -650,
-    date: "2025-09-27",
-    note: "Date night",
-    icon: "🎬",
-    userId: "u1",
-    createdAt: new Date("2025-09-27"),
-  },
-
-  // ── October 2025 ──────────────────────────────────────────
-  {
-    id: "ea01",
-    name: "Part-time Stipend",
-    cat: "Income",
-    amount: 5000,
-    date: "2025-10-01",
-    note: "Oct stipend",
-    icon: "💰",
-    userId: "u1",
-    createdAt: new Date("2025-10-01"),
-  },
-  {
-    id: "ea02",
-    name: "Diwali Shopping",
-    cat: "Shopping",
-    amount: -3200,
-    date: "2025-10-10",
-    note: "Clothes + gifts",
-    icon: "🛍️",
-    userId: "u1",
-    createdAt: new Date("2025-10-10"),
-  },
-  {
-    id: "ea03",
-    name: "Restaurant Dinner",
-    cat: "Food",
-    amount: -980,
-    date: "2025-10-14",
-    note: "Diwali family dinner",
-    icon: "🍜",
-    userId: "u1",
-    createdAt: new Date("2025-10-14"),
-  },
-  {
-    id: "ea04",
-    name: "Train Ticket",
-    cat: "Travel",
-    amount: -650,
-    date: "2025-10-18",
-    note: "Home for Diwali",
-    icon: "🚇",
-    userId: "u1",
-    createdAt: new Date("2025-10-18"),
-  },
-  {
-    id: "ea05",
-    name: "Crackers",
-    cat: "Entertainment",
-    amount: -500,
-    date: "2025-10-20",
-    note: "Diwali celebration",
-    icon: "🎬",
-    userId: "u1",
-    createdAt: new Date("2025-10-20"),
-  },
-
-  // ── November 2025 ─────────────────────────────────────────
-  {
-    id: "eb01",
-    name: "Monthly Allowance",
-    cat: "Income",
-    amount: 3000,
-    date: "2025-11-01",
-    note: "From parents",
-    icon: "💰",
-    userId: "u1",
-    createdAt: new Date("2025-11-01"),
-  },
-  {
-    id: "eb02",
-    name: "Zomato Order",
-    cat: "Food",
-    amount: -390,
-    date: "2025-11-04",
-    note: "Lunch delivery",
-    icon: "🍜",
-    userId: "u1",
-    createdAt: new Date("2025-11-04"),
-  },
-  {
-    id: "eb03",
-    name: "Metro Card",
-    cat: "Travel",
-    amount: -200,
-    date: "2025-11-05",
-    note: "Monthly pass",
-    icon: "🚇",
-    userId: "u1",
-    createdAt: new Date("2025-11-05"),
-  },
-  {
-    id: "eb04",
-    name: "Gym Membership",
-    cat: "Health",
-    amount: -800,
-    date: "2025-11-06",
-    note: "Monthly fee",
-    icon: "🏋️",
-    userId: "u1",
-    createdAt: new Date("2025-11-06"),
-  },
-  {
-    id: "eb05",
-    name: "Winter Jacket",
-    cat: "Shopping",
-    amount: -2199,
-    date: "2025-11-15",
-    note: "Winter prep",
-    icon: "🛍️",
-    userId: "u1",
-    createdAt: new Date("2025-11-15"),
-  },
-  {
-    id: "eb06",
-    name: "System Design Book",
-    cat: "Study",
-    amount: -699,
-    date: "2025-11-22",
-    note: "Interview prep",
-    icon: "📚",
-    userId: "u1",
-    createdAt: new Date("2025-11-22"),
-  },
-
-  // ── December 2025 ─────────────────────────────────────────
-  {
-    id: "ec01",
-    name: "Freelance Project",
-    cat: "Income",
-    amount: 8000,
-    date: "2025-12-05",
-    note: "Web dev project",
-    icon: "💰",
-    userId: "u1",
-    createdAt: new Date("2025-12-05"),
-  },
-  {
-    id: "ec02",
-    name: "Christmas Gift",
-    cat: "Shopping",
-    amount: -1200,
-    date: "2025-12-10",
-    note: "For family",
-    icon: "🛍️",
-    userId: "u1",
-    createdAt: new Date("2025-12-10"),
-  },
-  {
-    id: "ec03",
-    name: "Restaurant Dinner",
-    cat: "Food",
-    amount: -780,
-    date: "2025-12-15",
-    note: "Birthday party",
-    icon: "🍜",
-    userId: "u1",
-    createdAt: new Date("2025-12-15"),
-  },
-  {
-    id: "ec04",
-    name: "Flight Ticket",
-    cat: "Travel",
-    amount: -4200,
-    date: "2025-12-20",
-    note: "Home for Christmas",
-    icon: "🚇",
-    userId: "u1",
-    createdAt: new Date("2025-12-20"),
-  },
-  {
-    id: "ec05",
-    name: "New Year Party",
-    cat: "Entertainment",
-    amount: -1500,
-    date: "2025-12-31",
-    note: "Hotel rooftop party",
-    icon: "🎬",
-    userId: "u1",
-    createdAt: new Date("2025-12-31"),
-  },
-];
+const activityLogModel = require("../models/activityLog.model");
 
 const getHomeData = async (req, res) => {
-  const userId = req.user.id;
+  try {
+    const userId = req.user.id;
 
-  const [journals, expenses, tasks, totalNotes] = await Promise.all([
-    Journal.find({ userId }).sort({ _id: -1 }),
-    Expense.find({ userId }).sort({ _id: -1 }).limit(10),
-    Task.find({ userId }).sort({ _id: -1 }).limit(15),
-    (await Note.find({ userId })).length,
-  ]);
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
 
-  const journalStreakCal = () => {
-    const dates = new Set(journals.map((e) => e.date));
-    let count = 0;
-    const d = new Date();
-    while (dates.has(d.toISOString().slice(0, 10))) {
-      count++;
-      d.setDate(d.getDate() - 1);
-    }
-    return count;
-  };
-  const journalStreak = journalStreakCal();
+    const startOfMonth = new Date(year, month, 1);
+    const startOfToday = new Date(year, month, now.getDate());
+    const endOfToday = new Date(year, month, now.getDate() + 1);
 
-  const today = new Date();
-  const todayMon = today.getMonth() + 1;
-  const todayYear = today.getFullYear();
+    const [
+      journals,
+      todayPendingTasks,
+      totalNotes,
+      monthlyJournalCount,
+      expAgg,
+      recentActivities,
+    ] = await Promise.all([
+      Journal.find({ userId }, { date: 1, createdAt: 1 }).lean(),
 
-  const startDate = new Date(todayYear, todayMon, 1, 0, 0, 0, 0).toISOString();
-  const endDate = new Date(todayYear, todayMon, today.getDate()).toISOString();
+      Task.countDocuments({
+        userId,
+        isDone: false,
+        createdAt: {
+          $gte: startOfToday,
+          $lt: endOfToday,
+        },
+      }),
 
-  const currentMonthExpTotal = SEED.filter((e) => e.createdAt > startDate);
+      Note.countDocuments({ userId }),
 
-  const todayPendTasks = [].filter((e) => e != e);
+      Journal.countDocuments({
+        userId,
+        createdAt: {
+          $gte: startOfMonth,
+          $lte: now,
+        },
+      }),
 
-  console.log("Hello", currentMonthExpTotal);
-  const accessToken = jwt.sign({ userId }, process.env.ACCESS_JWT_EXPIRE, {
-    expiresIn: "15m",
-  });
+      Expense.aggregate([
+        {
+          $match: {
+            userId,
+            createdAt: {
+              $gte: startOfMonth,
+              $lte: now,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: "$amount" },
+          },
+        },
+      ]),
 
-  res.cookie("accessToken", accessToken);
-  res.status(200).json({
-    success: true,
+      activityLogModel
+        .find({ userId })
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .lean(),
+    ]);
 
-    tasks: tasks.filter((t) => t.isDone == false).length,
-    journalStreak,
-    totalNotes,
-  });
+    const journalStreakCal = () => {
+      const dates = new Set(
+        journals
+          .map((e) => {
+            const d = new Date(e.date || e.createdAt);
+            if (isNaN(d.getTime())) return null;
+            return d.toISOString().slice(0, 10);
+          })
+          .filter(Boolean),
+      );
+
+      let count = 0;
+      let d = new Date();
+
+      while (true) {
+        const key = d.toISOString().slice(0, 10);
+        if (!dates.has(key)) break;
+        count++;
+        d.setDate(d.getDate() - 1);
+      }
+
+      return count;
+    };
+
+    const journalStreak = journalStreakCal();
+
+    const currentMonthExpTotal = expAgg[0]?.total || 0;
+
+    const accessToken = jwt.sign({ userId }, process.env.ACCESS_JWT_SECRET, {
+      expiresIn: process.env.ACCESS_JWT_EXPIRE || "15m",
+    });
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict",
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        todayPendingTasks,
+        journalStreak,
+        totalNotes,
+        monthlyJournalCount,
+        currentMonthExpTotal,
+        recentActivity: recentActivities,
+      },
+    });
+  } catch (error) {
+    console.error("getHomeData error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to load home data",
+    });
+  }
 };
-
 module.exports = { getHomeData };
