@@ -3,6 +3,7 @@ import LandingPage from "../pages/LandingPage";
 import LoginPage from "../pages/LoginPage";
 import SignupPages from "../pages/SignupPages";
 import AppLayout from "../shared/components/layout/AppLayout";
+import JournalPage from "../pages/JournalPage";
 
 export const router = createBrowserRouter([
   /**
@@ -72,7 +73,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: "Journal Page",
+        element: <JournalPage />,
       },
     ],
   },

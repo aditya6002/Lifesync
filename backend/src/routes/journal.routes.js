@@ -29,7 +29,7 @@ router.delete(
 
 // Get Journals
 router.get(
-  "/:skip/:limit",
+  "/:year/:month",
   isUserLogin,
   journalValidator.getRules,
   wrapAsync(journalController.getData),
