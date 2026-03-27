@@ -3,6 +3,7 @@ import LandingPage from "../pages/LandingPage";
 import LoginPage from "../pages/LoginPage";
 import SignupPages from "../pages/SignupPages";
 import AppLayout from "../shared/components/layout/AppLayout";
+import Protected from "../components/Protected";
 import JournalPage from "../pages/JournalPage";
 
 export const router = createBrowserRouter([
@@ -39,7 +40,11 @@ export const router = createBrowserRouter([
    */
   {
     path: "/",
-    element: <AppLayout />,
+    element: (
+      <Protected>
+        <AppLayout />
+      </Protected>
+    ),
     children: [
       {
         index: true,
@@ -54,7 +59,12 @@ export const router = createBrowserRouter([
    */
   {
     path: "/expenses",
-    element: <AppLayout />,
+    element: (
+      <Protected>
+        <AppLayout />
+      </Protected>
+    ),
+
     children: [
       {
         index: true,
@@ -69,7 +79,11 @@ export const router = createBrowserRouter([
    */
   {
     path: "/journal",
-    element: <AppLayout />,
+    element: (
+      <Protected>
+        <AppLayout />
+      </Protected>
+    ),
     children: [
       {
         index: true,
@@ -84,7 +98,11 @@ export const router = createBrowserRouter([
    */
   {
     path: "/notes",
-    element: <AppLayout />,
+    element: (
+      <Protected>
+        <AppLayout />
+      </Protected>
+    ),
     children: [
       {
         index: true,
@@ -99,7 +117,11 @@ export const router = createBrowserRouter([
    */
   {
     path: "/tasks",
-    element: <AppLayout />,
+    element: (
+      <Protected>
+        <AppLayout />
+      </Protected>
+    ),
     children: [
       {
         index: true,
@@ -114,7 +136,11 @@ export const router = createBrowserRouter([
    */
   {
     path: "/ai",
-    element: <AppLayout />,
+    element: (
+      <Protected>
+        <AppLayout />
+      </Protected>
+    ),
     children: [
       {
         index: true,
@@ -129,7 +155,11 @@ export const router = createBrowserRouter([
    */
   {
     path: "profile",
-    element: <AppLayout />,
+    element: (
+      <Protected>
+        <AppLayout />
+      </Protected>
+    ),
     children: [{ index: true, element: "User profile" }],
   },
 ]);
