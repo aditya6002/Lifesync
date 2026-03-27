@@ -1,4 +1,3 @@
-// src/shared/components/layout/Sidebar.tsx
 import { useNavigate, useLocation } from "react-router-dom";
 import { initials } from "../../utils/helpers";
 
@@ -15,7 +14,7 @@ const C = {
 };
 
 const NAV = [
-  { path: "/dashboard", icon: "⊞", label: "Dashboard" },
+  { path: "/", icon: "⊞", label: "Dashboard" }, // dashboard
   { path: "/expenses", icon: "◈", label: "Expenses" },
   { path: "/journal", icon: "✦", label: "Journal" },
   { path: "/notes", icon: "◇", label: "Notes" },

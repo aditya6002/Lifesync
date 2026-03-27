@@ -48,6 +48,81 @@ export const router = createBrowserRouter([
   },
 
   /**
+   * @description Expenses Page
+   * @access Protected
+   */
+  {
+    path: "/expenses",
+    element: <AppLayout />,
+    children: [
+      {
+        index: true,
+        element: "Expenses Page",
+      },
+    ],
+  },
+
+  /**
+   * @description Journal Page
+   * @access Protected
+   */
+  {
+    path: "/journal",
+    element: <AppLayout />,
+    children: [
+      {
+        index: true,
+        element: "Journal Page",
+      },
+    ],
+  },
+
+  /**
+   * @description Notes Page
+   * @access Protected
+   */
+  {
+    path: "/notes",
+    element: <AppLayout />,
+    children: [
+      {
+        index: true,
+        element: "Notes Page",
+      },
+    ],
+  },
+
+  /**
+   * @description Tasks Page
+   * @access Protected
+   */
+  {
+    path: "/tasks",
+    element: <AppLayout />,
+    children: [
+      {
+        index: true,
+        element: "Tasks Page",
+      },
+    ],
+  },
+
+  /**
+   * @description Ai Page
+   * @access Protected
+   */
+  {
+    path: "/ai",
+    element: <AppLayout />,
+    children: [
+      {
+        index: true,
+        element: "Ai Page",
+      },
+    ],
+  },
+
+  /**
    * @description User Profile Page
    * @access Protected
    */

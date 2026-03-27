@@ -1,4 +1,3 @@
-// import AppProviders from "./app/app.providers";
 import { router } from "./app/app.routes";
 import GlobalStyles from "./shared/styles/GlobalStyles";
 import { Provider } from "react-redux";
@@ -11,15 +10,16 @@ import { RouterProvider } from "react-router";
 export default function App() {
   return (
     <Provider store={store}>
-      // // {/* <LoaderProvider> */}
-      //// {/* <SubscriptionProvider> */}
-      // //
-      {/* <ActivityProvider> */}
       <GlobalStyles />
       <RouterProvider router={router} />
-      //// {/* </ActivityProvider> */}
-      //// {/* </SubscriptionProvider> */}
-      //// {/* </LoaderProvider> */}
     </Provider>
   );
 }
+
+// // {/* <LoaderProvider> */}
+//// {/* <SubscriptionProvider> */}
+// //{/* <ActivityProvider> */}
+
+//// {/* </ActivityProvider> */}
+//// {/* </SubscriptionProvider> */}
+//// {/* </LoaderProvider> */}
