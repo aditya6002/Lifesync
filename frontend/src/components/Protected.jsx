@@ -2,57 +2,54 @@ import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Navigate } from "react-router";
 
-// import { authApi } from "../auth.api";
-// import {
-//   setUser,
-//   setAuthLoading as setLoading,
-//   setError,
-//   setAccessToken,
-//   setToast,
-// } from "../../../store/features/auth/authSlice";
+import authApi from "../api/auth.routes";
+import {
+  setUser,
+  setAuthLoading as setLoading,
+  setError,
+  setAccessToken,
+  setToast,
+} from "../store/features/authSlice";
 
 const Protected = ({ children }) => {
-  // const { authLoading, user } = useSelector((state) => state.auth);
-  // const dispatch = useDispatch();
+  const { authLoading, user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
 
-  // useEffect(() => {
-  //   if (user) return;
+  useEffect(() => {
+    if (user) return;
 
-  //   const getAndSetUser = async () => {
-  //     dispatch(setLoading(true));
-  //     dispatch(setError(null));
+    const getAndSetUser = async () => {
+      dispatch(setLoading(true));
+      dispatch(setError(null));
 
-  //     try {
-  //       const res = await authApi.getMe();
+      try {
+        const res = await authApi.getMe();
 
-  //       dispatch(setUser(res.data.user));
-  //       dispatch(setAccessToken(res.data.accessToken));
-  //     } catch (err) {
-  //       console.error(err);
+        dispatch(setUser(res.data.user));
+        dispatch(setAccessToken(res.data.accessToken));
+      } catch (err) {
+        console.error(err);
 
-  //       dispatch(
-  //         setError(
-  //           err.response?.data?.message ||
-  //             "An error occurred. Please try again.",
-  //         ),
-  //       );
+        dispatch(
+          setError(
+            err.response?.data?.message ||
+              "An error occurred. Please try again.",
+          ),
+        );
 
-  //       dispatch(
-  //         setToast({
-  //           type: "warning",
-  //           message: "Session expired, please login again",
-  //         }),
-  //       );
-  //     } finally {
-  //       dispatch(setLoading(false));
-  //     }
-  //   };
+        dispatch(
+          setToast({
+            type: "warning",
+            message: "Session expired, please login again",
+          }),
+        );
+      } finally {
+        dispatch(setLoading(false));
+      }
+    };
 
-  //   getAndSetUser();
-  // }, [user]);
-
-  const authLoading = false;
-  const user = {};
+    getAndSetUser();
+  }, [user]);
 
   if (authLoading) {
     return (

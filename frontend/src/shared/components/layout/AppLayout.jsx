@@ -4,19 +4,22 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 import { Toast } from "../ui/Atoms";
-// import { useDispatch, useSelector } from "react-redux";
-// import { setToast as setToastAction } from "../../../store/features/auth/authSlice";
-// import { authApi } from "../../../features/auth/auth.api";
+import { useDispatch, useSelector } from "react-redux";
+import { setToast as setToastAction } from "../../../store/features/authSlice";
+import authApi from "../../../api/auth.routes";
 
 export default function AppLayout() {
-  // const { user, toast } = useSelector((state) => state.auth);
-  const { user, toast } = { user: { name: "Aadi" } };
+  const { user, toast } = useSelector((state) => state.auth);
   const openSto = localStorage.getItem("open") | true;
   const [sidebarOpen, setSidebarOpen] = useState(openSto);
-  // const dispatch = useDispatch();
-  const logout = () => {}; //authApi.logout();
+  const setSidebarOpenFun = (sta) => {
+    setSidebarOpen(sta);
+    localStorage.setItem("open", sta);
+  };
+  const dispatch = useDispatch();
+  const logout = () => authApi.logout();
   const setToast = (msg) => {
-    // dispatch(setToastAction(msg));
+    dispatch(setToastAction(msg));
   };
 
   return (
@@ -46,7 +49,7 @@ export default function AppLayout() {
 
       <Sidebar
         open={sidebarOpen}
-        setOpen={setSidebarOpen}
+        setOpen={setSidebarOpenFun}
         user={user}
         onLogout={() => logout()}
       />

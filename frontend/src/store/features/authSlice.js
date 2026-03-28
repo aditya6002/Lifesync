@@ -41,7 +41,6 @@ export const {
   setError,
   setLoading,
   setToast,
-  authLoading,
   setAuthLoading,
 } = userSlice.actions;
 

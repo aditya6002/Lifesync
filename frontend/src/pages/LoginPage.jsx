@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { C, FONTS } from "../shared/styles/tokens";
 import { Glass, FInput, Btn } from "../shared/components/ui/Atoms";
-// import { useLoginForm } from "../hooks/useLoginForm";
+import useLoginForm from "../hooks/useLoginForm";
 
 export default function LoginPage() {
   const nav = useNavigate();
@@ -14,13 +14,27 @@ export default function LoginPage() {
     loading,
     error,
     handleLogin,
-  } = {}; //useLoginForm();
+    withLoader,
+  } = useLoginForm();
   const [showPass, setShowPass] = useState(false);
 
   const submit = (e) => {
     e.preventDefault();
     handleLogin();
   };
+
+  useEffect(() => {
+    async function fn() {
+      await withLoader(() => {
+        function cgl() {
+          setTimeout(() => {
+            console.log("mi");
+          }, 7000);
+        }
+      }, "Hello");
+    }
+    fn();
+  }, []);
 
   return (
     <div

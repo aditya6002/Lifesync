@@ -88,10 +88,12 @@ export function LoaderProvider({ children }) {
   });
 
   const show = useCallback((message = "Loading...", type) => {
+    console.log("st");
     setState({ visible: true, message, type });
   }, []);
 
   const hide = useCallback(() => {
+    console.log("done");
     setState((s) => ({ ...s, visible: false }));
   }, []);
 
