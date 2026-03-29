@@ -10,6 +10,7 @@ import {
 import authApi from "../api/auth.routes";
 import { useState } from "react";
 import { useLoader } from "../shared/components/ui/GlobalLoader";
+import { useNavigate } from "react-router";
 
 const useLoginForm = () => {
   const { loading, error } = useSelector((state) => state.auth);
@@ -17,6 +18,7 @@ const useLoginForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { withLoader } = useLoader();
+  const navigator = useNavigate();
 
   const handleLogin = async () => {
     dispatch(setError(null));
@@ -45,6 +47,7 @@ const useLoginForm = () => {
 
       dispatch(setUser(res.data.user));
       dispatch(setAccessToken(res.data.accessToken));
+      navigator("/");
     } catch (error) {
       console.error(error);
       const errMsg = error.message;

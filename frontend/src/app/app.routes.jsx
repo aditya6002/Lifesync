@@ -5,6 +5,7 @@ import SignupPages from "../pages/SignupPages";
 import AppLayout from "../shared/components/layout/AppLayout";
 import Protected from "../components/Protected";
 import JournalPage from "../pages/JournalPage";
+import DashboardPage from "../pages/DashboardPage";
 
 export const router = createBrowserRouter([
   /**
@@ -48,7 +49,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: "Home page",
+        element: <DashboardPage />,
       },
     ],
   },
