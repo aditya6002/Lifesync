@@ -4,8 +4,9 @@ import LoginPage from "../pages/LoginPage";
 import SignupPages from "../pages/SignupPages";
 import AppLayout from "../shared/components/layout/AppLayout";
 import Protected from "../components/Protected";
-import JournalPage from "../pages/JournalPage";
 import DashboardPage from "../pages/DashboardPage";
+import ExpensesPage from "../pages/ExpensesPage";
+import JournalPage from "../pages/JournalPage";
 
 export const router = createBrowserRouter([
   /**
@@ -69,7 +70,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: "Expenses Page",
+        element: <ExpensesPage />,
       },
     ],
   },
