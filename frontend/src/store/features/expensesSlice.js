@@ -764,7 +764,7 @@ const SEED = [
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  expenses: [],
+  expenses: SEED,
   total: 0,
   income: 0,
   totalSpend: 0,
