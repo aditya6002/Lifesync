@@ -1,6 +1,5 @@
-// src/features/notes/pages/NotesPage.tsx
 import { useState, useMemo } from "react";
-import { C, FONTS } from "../../../shared/styles/tokens";
+import { C, FONTS } from "../shared/styles/tokens";
 import {
   Glass,
   Btn,
@@ -9,9 +8,9 @@ import {
   FTextarea,
   FSelect,
   InlineLoader,
-} from "../../../shared/components/ui/Atoms";
-import { Confirm } from "../../../shared/components/ui/Modal";
-import { uid } from "../../../shared/utils/helpers";
+} from "../shared/components/ui/Atoms";
+import { Confirm } from "../shared/components/ui/Modal";
+import { uid } from "../shared/utils/helpers";
 
 // ── Constants ──────────────────────────────────────────────
 const NOTE_TAGS = ["Study", "Personal", "Reading", "Career", "Ideas", "Health"];

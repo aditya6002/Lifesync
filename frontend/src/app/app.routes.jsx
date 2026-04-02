@@ -7,6 +7,7 @@ import Protected from "../components/Protected";
 import DashboardPage from "../pages/DashboardPage";
 import ExpensesPage from "../pages/ExpensesPage";
 import JournalPage from "../pages/JournalPage";
+import NotesPage from "../pages/NotesPage";
 
 export const router = createBrowserRouter([
   /**
@@ -108,7 +109,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: "Notes Page",
+        element: <NotesPage />,
       },
     ],
   },
