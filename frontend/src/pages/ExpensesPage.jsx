@@ -1,42 +1,15 @@
-import { useState, useMemo, useEffect } from "react";
-import { C, FONTS } from "../shared/styles/tokens";
-import {
-  Glass,
-  Btn,
-  FInput,
-  FSelect,
-  InlineLoader,
-} from "../shared/components/ui/Atoms";
-import { Modal, ViewModal, Confirm } from "../shared/components/ui/Modal";
-import { BarChart, CategoryBars } from "../shared/components/charts/Charts";
-import { fmtDate, today } from "../shared/utils/helpers";
-import { useSelector } from "react-redux";
-import { useExpenseForm } from "../hooks/useExpenseForm";
+import { useState, useMemo, useReducer } from "react";
+import { SEED } from "../store/features/expensesSlice";
 
-// ── Config ────────────────────────────────────────────────────
-const CAT_CFG = {
-  Food: { icon: "🍜", color: "#f97316" },
-  Travel: { icon: "🚇", color: "#3b82f6" },
-  Study: { icon: "📚", color: "#a855f7" },
-  Health: { icon: "🏋️", color: "#ec4899" },
-  Entertainment: { icon: "🎬", color: "#6366f1" },
-  Shopping: { icon: "🛍️", color: "#06b6d4" },
-  Income: { icon: "💰", color: "#22c55e" },
-  Other: { icon: "📦", color: "#475569" },
-};
-const CATS = [
-  "All",
-  "Food",
-  "Travel",
-  "Study",
-  "Health",
-  "Entertainment",
-  "Shopping",
-  "Income",
-  "Other",
-];
-
-// ── Month helpers ─────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────
+const today = () => new Date().toISOString().slice(0, 10);
+const fmtDate = (d) =>
+  new Date(d + "T00:00:00").toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+const uid = () => Math.random().toString(36).slice(2, 9);
 const monthKey = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 const monthLabel = (k) => {
@@ -56,51 +29,478 @@ const nextMonth = (k) => {
 };
 const CURRENT_MONTH = monthKey(new Date());
 
-// ══════════════════════════════════════════════════════════════
-export default function ExpensesPage() {
-  const { expenses } = useSelector((s) => s.expenses);
-  const { loading, error } = useSelector((s) => s.auth);
+// ── Config ────────────────────────────────────────────────────
+const CAT_CFG = {
+  Food: { icon: "🍜", color: "#f97316" },
+  Travel: { icon: "🚇", color: "#3b82f6" },
+  Study: { icon: "📚", color: "#a855f7" },
+  Health: { icon: "🏋️", color: "#ec4899" },
+  Entertainment: { icon: "🎬", color: "#6366f1" },
+  Shopping: { icon: "🛍️", color: "#06b6d4" },
+  Income: { icon: "💰", color: "#22c55e" },
+  Other: { icon: "📦", color: "#475569" },
+};
+const CATS = ["All", ...Object.keys(CAT_CFG)];
 
-  const {
-    modal,
-    form,
-    isValid,
-    saving,
-    openAdd,
-    openEdit,
-    openView,
-    openConfirm,
-    closeModal,
-    setField,
-    getAllExpenses,
-    saveExpense,
-    removeExpense,
-  } = useExpenseForm();
+// ── Reducer ───────────────────────────────────────────────────
+function reducer(state, action) {
+  switch (action.type) {
+    case "ADD":
+      return [action.payload, ...state];
+    case "UPDATE":
+      return state.map((e) =>
+        e.id === action.id ? { ...e, ...action.payload } : e,
+      );
+    case "DELETE":
+      return state.filter((e) => e.id !== action.id);
+    default:
+      return state;
+  }
+}
 
-  const [activeMonth, setActiveMonth] = useState(CURRENT_MONTH);
-  const [catFilter, setCatFilter] = useState("All");
+// ── Tokens ────────────────────────────────────────────────────
+const C = {
+  glass: "rgba(255,255,255,.06)",
+  glassBorder: "rgba(255,255,255,.1)",
+  text: "#f1f5f9",
+  textMid: "#94a3b8",
+  textDim: "#475569",
+  violet: "#7c3aed",
+  violetL: "#a78bfa",
+  green: "#22c55e",
+  red: "#ef4444",
+  yellow: "#f59e0b",
+};
 
-  const sf = (k, v) => setField(k, v);
+// ── UI Primitives ─────────────────────────────────────────────
+const Glass = ({ children, style }) => (
+  <div
+    style={{
+      background: C.glass,
+      border: `1px solid ${C.glassBorder}`,
+      borderRadius: 16,
+      ...style,
+    }}
+  >
+    {children}
+  </div>
+);
 
-  useEffect(() => {
+const Btn = ({ children, onClick, disabled, variant = "primary", small }) => {
+  const base = {
+    padding: small ? "5px 12px" : "9px 20px",
+    borderRadius: 10,
+    border: "none",
+    cursor: disabled ? "not-allowed" : "pointer",
+    fontWeight: 600,
+    fontSize: small ? 12 : 13,
+    transition: "all .15s",
+  };
+  const styles = {
+    primary: {
+      background: `linear-gradient(135deg,${C.violet},${C.violetL})`,
+      color: "#fff",
+      opacity: disabled ? 0.5 : 1,
+    },
+    ghost: {
+      background: "rgba(255,255,255,.05)",
+      border: `1px solid ${C.glassBorder}`,
+      color: C.textMid,
+    },
+    ai: {
+      background: "rgba(124,58,237,.15)",
+      border: "1px solid rgba(124,58,237,.3)",
+      color: C.violetL,
+    },
+    danger: {
+      background: "rgba(239,68,68,.12)",
+      border: "1px solid rgba(239,68,68,.3)",
+      color: C.red,
+    },
+  };
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{ ...base, ...styles[variant] }}
+    >
+      {children}
+    </button>
+  );
+};
+
+const FInput = ({
+  label,
+  value,
+  onChange,
+  type = "text",
+  placeholder,
+  required,
+}) => (
+  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+    <label
+      style={{
+        fontSize: 11,
+        color: C.textDim,
+        fontWeight: 600,
+        textTransform: "uppercase",
+        letterSpacing: ".05em",
+      }}
+    >
+      {label}
+      {required && <span style={{ color: C.red }}> *</span>}
+    </label>
+    <input
+      type={type}
+      value={value}
+      placeholder={placeholder}
+      onChange={(e) => onChange(e.target.value)}
+      style={{
+        background: "rgba(255,255,255,.06)",
+        border: `1px solid ${C.glassBorder}`,
+        borderRadius: 10,
+        padding: "10px 14px",
+        color: C.text,
+        fontSize: 14,
+        outline: "none",
+        width: "100%",
+        boxSizing: "border-box",
+        colorScheme: "dark",
+      }}
+    />
+  </div>
+);
+
+const FSelect = ({ label, value, onChange, options }) => (
+  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+    <label
+      style={{
+        fontSize: 11,
+        color: C.textDim,
+        fontWeight: 600,
+        textTransform: "uppercase",
+        letterSpacing: ".05em",
+      }}
+    >
+      {label}
+    </label>
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      style={{
+        background: "#1e1b2e",
+        border: `1px solid ${C.glassBorder}`,
+        borderRadius: 10,
+        padding: "10px 14px",
+        color: C.text,
+        fontSize: 14,
+        outline: "none",
+        width: "100%",
+        boxSizing: "border-box",
+        colorScheme: "dark",
+      }}
+    >
+      {options.map((o) => (
+        <option key={o} value={o}>
+          {CAT_CFG[o]?.icon} {o}
+        </option>
+      ))}
+    </select>
+  </div>
+);
+
+// ── Bar Chart ─────────────────────────────────────────────────
+// FIX: Window of 6 months ending at activeMonth (follows navigation)
+// activeMonth is always the rightmost/tallest highlighted bar
+const BarChart = ({ expenses, activeMonth }) => {
+  const months = useMemo(() => {
     const [y, m] = activeMonth.split("-").map(Number);
-    getAllExpenses(y, m);
+    const out = [];
+    for (let i = 5; i >= 0; i--) {
+      out.push(monthKey(new Date(y, m - 1 - i, 1)));
+    }
+    return out; // [oldest ... activeMonth]
   }, [activeMonth]);
 
-  const monthList = useMemo(() => {
-    console.log("expenses", expenses);
-    if (expenses.length == 0) {
-      return [];
-    }
+  const data = months.map((mk) => ({
+    label: new Date(`${mk}-01`).toLocaleDateString("en-IN", { month: "short" }),
+    total: (expenses || [])
+      .filter((e) => e.date.startsWith(mk) && e.amount < 0)
+      .reduce((s, e) => s + Math.abs(e.amount), 0),
+    active: mk === activeMonth,
+  }));
 
-    const keys = new Set(expenses.map((e) => e.date.slice(0, 7)));
-    keys.add(CURRENT_MONTH);
-    return [...keys].sort((a, b) => b.localeCompare(a));
+  const max = Math.max(...data.map((d) => d.total), 1);
+
+  return (
+    <div
+      style={{ display: "flex", alignItems: "flex-end", gap: 5, height: 110 }}
+    >
+      {data.map((d, i) => (
+        <div
+          key={i}
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 2,
+          }}
+        >
+          {/* Amount above bar */}
+          <div
+            style={{
+              fontSize: 9,
+              color: d.active ? C.violetL : C.textDim,
+              height: 14,
+              display: "flex",
+              alignItems: "center",
+              fontWeight: d.active ? 700 : 400,
+            }}
+          >
+            {d.total > 0
+              ? `₹${d.total >= 1000 ? (d.total / 1000).toFixed(1) + "k" : d.total}`
+              : ""}
+          </div>
+          {/* Bar */}
+          <div
+            title={`${monthLabel(months[i])}: ₹${d.total.toLocaleString()}`}
+            style={{
+              width: "100%",
+              borderRadius: "4px 4px 0 0",
+              height: Math.max((d.total / max) * 72, d.total > 0 ? 4 : 2),
+              background: d.active
+                ? C.violet
+                : d.total > 0
+                  ? "rgba(124,58,237,.4)"
+                  : "rgba(255,255,255,.07)",
+              transition: "height .35s ease, background .2s",
+            }}
+          />
+          {/* Month label */}
+          <div
+            style={{
+              fontSize: 9,
+              color: d.active ? C.violetL : C.textDim,
+              fontWeight: d.active ? 700 : 400,
+              marginTop: 2,
+            }}
+          >
+            {d.label}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ── Category bars ─────────────────────────────────────────────
+const CategoryBars = ({ expenses }) => {
+  const cats = useMemo(() => {
+    const map = {};
+    (expenses || [])
+      .filter((e) => e.amount < 0)
+      .forEach((e) => {
+        map[e.cat] = (map[e.cat] || 0) + Math.abs(e.amount);
+      });
+    return Object.entries(map)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
   }, [expenses]);
 
-  // ✅ Month filter — was commented out before
+  const max = Math.max(...cats.map((c) => c[1]), 1);
+  if (!cats.length)
+    return (
+      <div style={{ fontSize: 12, color: C.textDim, padding: "20px 0" }}>
+        No data
+      </div>
+    );
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+      {cats.map(([cat, val]) => (
+        <div key={cat}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: 11,
+              marginBottom: 4,
+            }}
+          >
+            <span style={{ color: C.textMid }}>
+              {CAT_CFG[cat]?.icon} {cat}
+            </span>
+            <span style={{ color: C.text, fontWeight: 600 }}>
+              ₹{val.toLocaleString()}
+            </span>
+          </div>
+          <div
+            style={{
+              height: 6,
+              borderRadius: 3,
+              background: "rgba(255,255,255,.06)",
+            }}
+          >
+            <div
+              style={{
+                height: "100%",
+                borderRadius: 3,
+                width: `${(val / max) * 100}%`,
+                background: CAT_CFG[cat]?.color ?? C.violet,
+                transition: "width .35s ease",
+              }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ── Modal Overlay ─────────────────────────────────────────────
+const Overlay = ({ children, onClose }) => (
+  <div
+    onClick={onClose}
+    style={{
+      position: "fixed",
+      inset: 0,
+      zIndex: 100,
+      background: "rgba(0,0,0,.75)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 16,
+    }}
+  >
+    <div
+      onClick={(e) => e.stopPropagation()}
+      style={{
+        background: "#1a1625",
+        border: `1px solid ${C.glassBorder}`,
+        borderRadius: 20,
+        padding: 24,
+        width: "100%",
+        maxWidth: 420,
+        maxHeight: "90vh",
+        overflowY: "auto",
+      }}
+    >
+      {children}
+    </div>
+  </div>
+);
+
+const Pill = ({ label, active, onClick }) => (
+  <button
+    onClick={onClick}
+    style={{
+      padding: "5px 13px",
+      borderRadius: 20,
+      fontSize: 12,
+      cursor: "pointer",
+      background: active ? C.violet : "rgba(255,255,255,.05)",
+      border: active ? "none" : `1px solid ${C.glassBorder}`,
+      color: active ? "#fff" : C.textMid,
+      transition: "all .15s",
+      flexShrink: 0,
+    }}
+  >
+    {label}
+  </button>
+);
+
+// ══════════════════════════════════════════════════════════════
+export default function ExpensesPage() {
+  const [expenses, dispatch] = useReducer(reducer, SEED);
+  const [activeMonth, setActiveMonth] = useState(CURRENT_MONTH);
+  const [catFilter, setCatFilter] = useState("All");
+  const [modal, setModal] = useState({ type: null, data: null });
+
+  const emptyForm = {
+    type: "expense",
+    name: "",
+    amount: "",
+    cat: "Food",
+    date: today(),
+    note: "",
+  };
+  const [form, setForm] = useState(emptyForm);
+
+  const sf = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const isValid = form.name.trim() && Number(form.amount) > 0;
+
+  const openAdd = () => {
+    setForm({
+      ...emptyForm,
+      date: activeMonth === CURRENT_MONTH ? today() : `${activeMonth}-01`,
+    });
+    setModal({ type: "add" });
+  };
+  const openEdit = (e) => {
+    setForm({
+      type: e.amount > 0 ? "income" : "expense",
+      name: e.name,
+      amount: Math.abs(e.amount),
+      cat: e.cat,
+      date: e.date,
+      note: e.note || "",
+    });
+    setModal({ type: "edit", data: e });
+  };
+  const openView = (e) => setModal({ type: "view", data: e });
+  const openConfirm = (e) => setModal({ type: "confirm", data: e });
+  const closeModal = () => setModal({ type: null, data: null });
+
+  const saveExpense = () => {
+    if (!isValid) return;
+    const amt =
+      form.type === "income"
+        ? Math.abs(Number(form.amount))
+        : -Math.abs(Number(form.amount));
+    if (modal.type === "add") {
+      dispatch({
+        type: "ADD",
+        payload: {
+          id: uid(),
+          name: form.name,
+          cat: form.cat,
+          amount: amt,
+          date: form.date,
+          note: form.note,
+        },
+      });
+    } else {
+      dispatch({
+        type: "UPDATE",
+        id: modal.data.id,
+        payload: {
+          name: form.name,
+          cat: form.cat,
+          amount: amt,
+          date: form.date,
+          note: form.note,
+        },
+      });
+    }
+    closeModal();
+  };
+
+  const removeExpense = (id) => {
+    dispatch({ type: "DELETE", id });
+    closeModal();
+  };
+
+  // ── FIX 1: Ascending sort → oldest left, newest right ────────
+  const monthList = useMemo(() => {
+    const keys = new Set((expenses || []).map((e) => e.date.slice(0, 7)));
+    keys.add(CURRENT_MONTH);
+    return [...keys].sort((a, b) => a.localeCompare(b)); // ascending ✅
+  }, [expenses]);
+
+  const oldestMonth = monthList[0]; // ◀ disabled here (first in ascending list)
+
   const monthExpenses = useMemo(
-    () => expenses.filter((e) => e.date.startsWith(activeMonth)),
+    () => (expenses || []).filter((e) => e.date.startsWith(activeMonth)),
     [expenses, activeMonth],
   );
 
@@ -118,20 +518,16 @@ export default function ExpensesPage() {
   const balance = income - total;
   const isCurrentMonth = activeMonth === CURRENT_MONTH;
 
-  // ✅ Pass default date to openAdd
-  const handleOpenAdd = () =>
-    openAdd(isCurrentMonth ? today() : `${activeMonth}-01`);
-
-  if (loading)
-    return <div style={{ color: C.textMid, padding: 32 }}>Loading...</div>;
-  if (error) return <div style={{ color: C.red, padding: 32 }}>{error}</div>;
-
   return (
     <div
-      className="screen-in"
-      style={{ display: "flex", flexDirection: "column", gap: 18 }}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 18,
+        padding: "4px 0",
+      }}
     >
-      {/* ── PAGE HEADER ───────────────────────────────────────── */}
+      {/* ── HEADER ─────────────────────────────────────────────── */}
       <div
         style={{
           display: "flex",
@@ -141,13 +537,13 @@ export default function ExpensesPage() {
           gap: 12,
         }}
       >
-        <h2 style={{ fontFamily: FONTS.display, fontSize: 22, color: C.text }}>
+        <h2 style={{ fontSize: 22, color: C.text, margin: 0, fontWeight: 700 }}>
           Expense Manager
         </h2>
-        <Btn onClick={handleOpenAdd}>+ Add Expense</Btn>
+        <Btn onClick={openAdd}>+ Add Expense</Btn>
       </div>
 
-      {/* ── MONTH NAVIGATOR ───────────────────────────────────── */}
+      {/* ── MONTH NAVIGATOR ────────────────────────────────────── */}
       <Glass style={{ padding: "12px 16px" }}>
         <div
           style={{
@@ -157,30 +553,24 @@ export default function ExpensesPage() {
             gap: 12,
           }}
         >
+          {/* ◀ — disabled at oldestMonth (index 0 of ascending list) */}
           <button
             onClick={() => setActiveMonth(prevMonth(activeMonth))}
-            disabled={activeMonth === monthList[monthList.length - 1]}
+            disabled={activeMonth === oldestMonth}
             style={{
               width: 34,
               height: 34,
               borderRadius: 9,
+              flexShrink: 0,
+              fontSize: 16,
               background: "rgba(255,255,255,.05)",
               border: `1px solid ${C.glassBorder}`,
-              color:
-                activeMonth === monthList[monthList.length - 1]
-                  ? C.textDim
-                  : C.textMid,
-              cursor:
-                activeMonth === monthList[monthList.length - 1]
-                  ? "not-allowed"
-                  : "pointer",
-              fontSize: 16,
+              color: activeMonth === oldestMonth ? C.textDim : C.textMid,
+              cursor: activeMonth === oldestMonth ? "not-allowed" : "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              flexShrink: 0,
-              opacity:
-                activeMonth === monthList[monthList.length - 1] ? 0.4 : 1,
+              opacity: activeMonth === oldestMonth ? 0.4 : 1,
             }}
           >
             ◀
@@ -195,14 +585,7 @@ export default function ExpensesPage() {
               gap: 8,
             }}
           >
-            <div
-              style={{
-                fontFamily: FONTS.display,
-                fontSize: 17,
-                color: C.text,
-                fontWeight: 700,
-              }}
-            >
+            <div style={{ fontSize: 16, color: C.text, fontWeight: 700 }}>
               {monthLabel(activeMonth)}
               {isCurrentMonth && (
                 <span
@@ -220,6 +603,8 @@ export default function ExpensesPage() {
                 </span>
               )}
             </div>
+
+            {/* Pills: ascending → oldest on left, newest on right */}
             <div
               style={{
                 display: "flex",
@@ -230,35 +615,20 @@ export default function ExpensesPage() {
               }}
             >
               {monthList.map((mk) => (
-                <button
+                <Pill
                   key={mk}
+                  active={activeMonth === mk}
                   onClick={() => setActiveMonth(mk)}
-                  style={{
-                    flexShrink: 0,
-                    padding: "4px 12px",
-                    borderRadius: 20,
-                    fontSize: 11,
-                    cursor: "pointer",
-                    background:
-                      activeMonth === mk ? C.violet : "rgba(255,255,255,.05)",
-                    border:
-                      activeMonth === mk
-                        ? "none"
-                        : `1px solid ${C.glassBorder}`,
-                    color: activeMonth === mk ? "#fff" : C.textMid,
-                    transition: "all .15s",
-                    fontWeight: activeMonth === mk ? 600 : 400,
-                  }}
-                >
-                  {new Date(`${mk}-01`).toLocaleDateString("en-IN", {
+                  label={new Date(`${mk}-01`).toLocaleDateString("en-IN", {
                     month: "short",
                     year: "2-digit",
                   })}
-                </button>
+                />
               ))}
             </div>
           </div>
 
+          {/* ▶ — disabled at CURRENT_MONTH */}
           <button
             onClick={() => setActiveMonth(nextMonth(activeMonth))}
             disabled={activeMonth === CURRENT_MONTH}
@@ -266,15 +636,15 @@ export default function ExpensesPage() {
               width: 34,
               height: 34,
               borderRadius: 9,
+              flexShrink: 0,
+              fontSize: 16,
               background: "rgba(255,255,255,.05)",
               border: `1px solid ${C.glassBorder}`,
               color: activeMonth === CURRENT_MONTH ? C.textDim : C.textMid,
               cursor: activeMonth === CURRENT_MONTH ? "not-allowed" : "pointer",
-              fontSize: 16,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              flexShrink: 0,
               opacity: activeMonth === CURRENT_MONTH ? 0.4 : 1,
             }}
           >
@@ -283,7 +653,7 @@ export default function ExpensesPage() {
         </div>
       </Glass>
 
-      {/* ── SUMMARY CARDS ─────────────────────────────────────── */}
+      {/* ── SUMMARY CARDS ──────────────────────────────────────── */}
       <div
         style={{
           display: "grid",
@@ -296,19 +666,18 @@ export default function ExpensesPage() {
           { l: "Income", v: `₹${income.toLocaleString()}`, c: C.green },
           {
             l: "Balance",
-            v: `₹${balance.toLocaleString()}`,
+            v: `${balance < 0 ? "-" : ""}₹${Math.abs(balance).toLocaleString()}`,
             c: balance >= 0 ? C.green : C.red,
           },
         ].map((s, i) => (
-          <Glass key={i} style={{ padding: 16 }}>
+          <Glass key={i} style={{ padding: "14px 16px" }}>
             <div style={{ fontSize: 11, color: C.textDim }}>{s.l}</div>
             <div
               style={{
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: 700,
                 color: s.c,
                 marginTop: 4,
-                fontFamily: FONTS.display,
               }}
             >
               {s.v}
@@ -317,25 +686,20 @@ export default function ExpensesPage() {
         ))}
       </div>
 
-      {/* ── CHARTS ────────────────────────────────────────────── */}
+      {/* ── CHARTS ─────────────────────────────────────────────── */}
       {monthExpenses.length > 0 && (
         <div
           style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}
         >
           <Glass style={{ padding: 18 }}>
-            <div style={{ fontSize: 12, color: C.textDim, marginBottom: 12 }}>
+            <div style={{ fontSize: 12, color: C.textDim, marginBottom: 10 }}>
               Monthly Spending
             </div>
-            {/* <BarChart currentTotal={total} date={activeMonth} />
-             */}
-            <BarChart
-              currentTotal={total}
-              date={activeMonth}
-              expenses={expenses}
-            />
+            {/* FIX 2: pass activeMonth so window follows navigation */}
+            <BarChart expenses={expenses} activeMonth={activeMonth} />
           </Glass>
           <Glass style={{ padding: 18 }}>
-            <div style={{ fontSize: 12, color: C.textDim, marginBottom: 12 }}>
+            <div style={{ fontSize: 12, color: C.textDim, marginBottom: 10 }}>
               By Category
             </div>
             <CategoryBars expenses={monthExpenses} />
@@ -343,7 +707,7 @@ export default function ExpensesPage() {
         </div>
       )}
 
-      {/* ── AI INSIGHT ────────────────────────────────────────── */}
+      {/* ── AI INSIGHT ─────────────────────────────────────────── */}
       <Glass
         style={{
           padding: 16,
@@ -359,7 +723,7 @@ export default function ExpensesPage() {
             </div>
             <div style={{ fontSize: 12, color: C.textMid, marginTop: 3 }}>
               {total > 0
-                ? `You spent ₹${total.toLocaleString()} this month. ${total > 3000 ? "That's above your usual budget — consider reviewing Food & Entertainment." : "You're within budget. Great work!"}`
+                ? `You spent ₹${total.toLocaleString()} this month. ${total > 5000 ? "That's above your usual budget — consider reviewing Food & Entertainment." : "You're within budget. Great work!"}${income > 0 ? ` Savings rate: ${Math.round(((income - total) / income) * 100)}%.` : ""}`
                 : "No expenses recorded for this month yet."}
             </div>
             <div
@@ -370,19 +734,17 @@ export default function ExpensesPage() {
                 flexWrap: "wrap",
               }}
             >
-              {["Get saving tips", "Compare months", "Set budget"].map(
-                (x, i) => (
-                  <Btn key={i} variant="ai" small>
-                    {x}
-                  </Btn>
-                ),
-              )}
+              {["Get saving tips", "Compare months", "Set budget"].map((x) => (
+                <Btn key={x} variant="ai" small>
+                  {x}
+                </Btn>
+              ))}
             </div>
           </div>
         </div>
       </Glass>
 
-      {/* ── CATEGORY FILTER + LIST ────────────────────────────── */}
+      {/* ── CATEGORY FILTER + LIST ─────────────────────────────── */}
       <Glass style={{ padding: 18 }}>
         <div
           style={{
@@ -393,58 +755,49 @@ export default function ExpensesPage() {
           }}
         >
           {CATS.map((c) => (
-            <button
+            <Pill
               key={c}
+              active={catFilter === c}
               onClick={() => setCatFilter(c)}
-              style={{
-                padding: "5px 13px",
-                borderRadius: 20,
-                fontSize: 12,
-                cursor: "pointer",
-                background:
-                  catFilter === c ? C.violet : "rgba(255,255,255,.05)",
-                border: catFilter === c ? "none" : `1px solid ${C.glassBorder}`,
-                color: catFilter === c ? "#fff" : C.textMid,
-                transition: "all .15s",
-              }}
-            >
-              {c}
-            </button>
+              label={c}
+            />
           ))}
         </div>
 
-        {/* Empty state */}
         {filtered.length === 0 && (
           <div style={{ textAlign: "center", padding: "32px 0" }}>
             <div style={{ fontSize: 32, marginBottom: 10 }}>◈</div>
-            {/* ✅ Fixed: was catFilter == "All" ? ` in ${catFilter}` which showed "in All" */}
             <div style={{ fontSize: 13, color: C.textDim }}>
               No expenses for {monthLabel(activeMonth)}
               {catFilter !== "All" ? ` in ${catFilter}` : ""}
             </div>
             <div style={{ marginTop: 14 }}>
-              <Btn onClick={handleOpenAdd}>+ Add Expense</Btn>
+              <Btn onClick={openAdd}>+ Add Expense</Btn>
             </div>
           </div>
         )}
 
-        {/* Expense rows */}
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {filtered.map((e) => (
             <div
               key={e.id}
-              className="hov-card"
               onClick={() => openView(e)}
+              onMouseEnter={(ev) =>
+                (ev.currentTarget.style.background = "rgba(255,255,255,.07)")
+              }
+              onMouseLeave={(ev) =>
+                (ev.currentTarget.style.background = "rgba(255,255,255,.03)")
+              }
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: 12,
                 padding: "12px 14px",
                 borderRadius: 12,
+                cursor: "pointer",
                 background: "rgba(255,255,255,.03)",
                 border: `1px solid ${C.glassBorder}`,
-                cursor: "pointer",
-                transition: "all .2s",
+                transition: "background .2s",
               }}
             >
               <div
@@ -461,10 +814,20 @@ export default function ExpensesPage() {
                   justifyContent: "center",
                 }}
               >
-                {e.icon ?? CAT_CFG[e.cat]?.icon ?? "📦"}
+                {CAT_CFG[e.cat]?.icon ?? "📦"}
               </div>
+
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, color: C.text, fontWeight: 500 }}>
+                <div
+                  style={{
+                    fontSize: 13,
+                    color: C.text,
+                    fontWeight: 500,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   {e.name}
                 </div>
                 <div style={{ fontSize: 11, color: C.textDim }}>
@@ -472,6 +835,7 @@ export default function ExpensesPage() {
                   {e.note ? ` · ${e.note}` : ""}
                 </div>
               </div>
+
               <div
                 style={{
                   fontSize: 15,
@@ -482,6 +846,7 @@ export default function ExpensesPage() {
               >
                 {e.amount > 0 ? "+" : ""}₹{Math.abs(e.amount).toLocaleString()}
               </div>
+
               <div style={{ display: "flex", gap: 4 }}>
                 <button
                   onClick={(ev) => {
@@ -523,14 +888,35 @@ export default function ExpensesPage() {
         </div>
       </Glass>
 
-      {/* ── ADD / EDIT MODAL ──────────────────────────────────── */}
+      {/* ── ADD / EDIT MODAL ───────────────────────────────────── */}
       {(modal.type === "add" || modal.type === "edit") && (
-        <Modal
-          title={modal.type === "add" ? "Add Expense" : "Edit Expense"}
-          onClose={closeModal}
-        >
+        <Overlay onClose={closeModal}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+            }}
+          >
+            <div style={{ fontSize: 17, fontWeight: 700, color: C.text }}>
+              {modal.type === "add" ? "Add Expense" : "Edit Expense"}
+            </div>
+            <button
+              onClick={closeModal}
+              style={{
+                background: "none",
+                border: "none",
+                color: C.textMid,
+                fontSize: 22,
+                cursor: "pointer",
+                lineHeight: 1,
+              }}
+            >
+              ×
+            </button>
+          </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            {/* Type toggle */}
             <div style={{ display: "flex", gap: 8 }}>
               {["expense", "income"].map((tp) => (
                 <button
@@ -538,7 +924,7 @@ export default function ExpensesPage() {
                   onClick={() => sf("type", tp)}
                   style={{
                     flex: 1,
-                    padding: "9px",
+                    padding: 9,
                     borderRadius: 10,
                     cursor: "pointer",
                     border:
@@ -559,7 +945,6 @@ export default function ExpensesPage() {
                 </button>
               ))}
             </div>
-
             <FInput
               label="Name"
               value={form.name}
@@ -577,8 +962,8 @@ export default function ExpensesPage() {
               <FInput
                 label="Amount (₹)"
                 type="number"
-                value={String(form.amount || "")}
-                onChange={(v) => sf("amount", Number(v))}
+                value={String(form.amount)}
+                onChange={(v) => sf("amount", v)}
                 placeholder="0"
                 required
               />
@@ -589,7 +974,6 @@ export default function ExpensesPage() {
                 options={Object.keys(CAT_CFG)}
               />
             </div>
-
             <div>
               <FInput
                 label="Date"
@@ -597,7 +981,6 @@ export default function ExpensesPage() {
                 value={form.date}
                 onChange={(v) => sf("date", v)}
               />
-              {/* ✅ Warn user if date is outside active month */}
               {form.date && !form.date.startsWith(activeMonth) && (
                 <div style={{ fontSize: 11, color: C.yellow, marginTop: 4 }}>
                   ⚠ This date is in {monthLabel(form.date.slice(0, 7))} — it
@@ -605,61 +988,52 @@ export default function ExpensesPage() {
                 </div>
               )}
             </div>
-
             <FInput
               label="Note (optional)"
               value={form.note}
               onChange={(v) => sf("note", v)}
               placeholder="Any note..."
             />
-
             <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-              <button
-                onClick={saveExpense}
-                disabled={!isValid || saving}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "10px 22px",
-                  borderRadius: 10,
-                  border: "none",
-                  background:
-                    !isValid || saving
-                      ? "rgba(124,58,237,.4)"
-                      : `linear-gradient(135deg,${C.violet},${C.violetLight})`,
-                  color: "#fff",
-                  cursor: !isValid || saving ? "not-allowed" : "pointer",
-                  fontWeight: 600,
-                  fontSize: 13,
-                }}
-              >
-                {saving ? (
-                  <>
-                    <InlineLoader size={14} color="#fff" /> Saving...
-                  </>
-                ) : modal.type === "add" ? (
-                  "Add Expense"
-                ) : (
-                  "Save Changes"
-                )}
-              </button>
+              <Btn onClick={saveExpense} disabled={!isValid}>
+                {modal.type === "add" ? "Add Expense" : "Save Changes"}
+              </Btn>
               <Btn variant="ghost" onClick={closeModal}>
                 Cancel
               </Btn>
             </div>
           </div>
-        </Modal>
+        </Overlay>
       )}
 
-      {/* ── VIEW MODAL ────────────────────────────────────────── */}
+      {/* ── VIEW MODAL ─────────────────────────────────────────── */}
       {modal.type === "view" && modal.data && (
-        <ViewModal
-          title={modal.data.name}
-          onClose={closeModal}
-          onEdit={() => openEdit(modal.data)}
-          onDelete={() => openConfirm(modal.data)}
-        >
+        <Overlay onClose={closeModal}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+            }}
+          >
+            <div style={{ fontSize: 17, fontWeight: 700, color: C.text }}>
+              {modal.data.name}
+            </div>
+            <button
+              onClick={closeModal}
+              style={{
+                background: "none",
+                border: "none",
+                color: C.textMid,
+                fontSize: 22,
+                cursor: "pointer",
+                lineHeight: 1,
+              }}
+            >
+              ×
+            </button>
+          </div>
           <div
             style={{
               display: "flex",
@@ -681,14 +1055,13 @@ export default function ExpensesPage() {
                 justifyContent: "center",
               }}
             >
-              {modal.data.icon ?? CAT_CFG[modal.data.cat]?.icon}
+              {CAT_CFG[modal.data.cat]?.icon}
             </div>
             <div>
               <div
                 style={{
                   fontSize: 26,
                   fontWeight: 700,
-                  fontFamily: FONTS.display,
                   color: modal.data.amount > 0 ? C.green : C.text,
                 }}
               >
@@ -708,21 +1081,57 @@ export default function ExpensesPage() {
                 borderRadius: 10,
                 fontSize: 13,
                 color: C.textMid,
+                marginBottom: 16,
               }}
             >
               {modal.data.note}
             </div>
           )}
-        </ViewModal>
+          <div style={{ display: "flex", gap: 8 }}>
+            <Btn onClick={() => openEdit(modal.data)}>✏️ Edit</Btn>
+            <Btn variant="danger" onClick={() => openConfirm(modal.data)}>
+              🗑 Delete
+            </Btn>
+            <Btn variant="ghost" onClick={closeModal}>
+              Close
+            </Btn>
+          </div>
+        </Overlay>
       )}
 
-      {/* ── DELETE CONFIRM ────────────────────────────────────── */}
+      {/* ── DELETE CONFIRM ─────────────────────────────────────── */}
       {modal.type === "confirm" && modal.data && (
-        <Confirm
-          message={`Delete "${modal.data.name}" (₹${Math.abs(modal.data.amount).toLocaleString()})? This cannot be undone.`}
-          onConfirm={() => removeExpense(modal.data.id)}
-          onCancel={closeModal}
-        />
+        <Overlay onClose={closeModal}>
+          <div style={{ textAlign: "center", padding: "8px 0" }}>
+            <div style={{ fontSize: 36, marginBottom: 12 }}>🗑</div>
+            <div
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: C.text,
+                marginBottom: 8,
+              }}
+            >
+              Delete Expense?
+            </div>
+            <div style={{ fontSize: 13, color: C.textMid, marginBottom: 24 }}>
+              "{modal.data.name}" (₹
+              {Math.abs(modal.data.amount).toLocaleString()}) will be
+              permanently removed.
+            </div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+              <Btn
+                variant="danger"
+                onClick={() => removeExpense(modal.data.id)}
+              >
+                Yes, Delete
+              </Btn>
+              <Btn variant="ghost" onClick={closeModal}>
+                Cancel
+              </Btn>
+            </div>
+          </div>
+        </Overlay>
       )}
     </div>
   );
