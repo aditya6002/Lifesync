@@ -8,6 +8,8 @@ import DashboardPage from "../pages/DashboardPage";
 import ExpensesPage from "../pages/ExpensesPage";
 import JournalPage from "../pages/JournalPage";
 import NotesPage from "../pages/NotesPage";
+import TasksPage from "../pages/TasksPage";
+import ProfilePage from "../pages/ProfilePage";
 
 export const router = createBrowserRouter([
   /**
@@ -128,7 +130,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: "Tasks Page",
+        element: <TasksPage />,
       },
     ],
   },
@@ -163,6 +165,11 @@ export const router = createBrowserRouter([
         <AppLayout />
       </Protected>
     ),
-    children: [{ index: true, element: "User profile" }],
+    children: [
+      {
+        index: true,
+        element: <ProfilePage />,
+      },
+    ],
   },
 ]);
