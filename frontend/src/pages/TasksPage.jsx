@@ -209,6 +209,7 @@ export default function TasksPage() {
   const [anchor, setAnchor] = useState(today());
   const [blocks, setBlocks] = useState(SEED_BLOCKS);
   const [activeDay, setActiveDay] = useState(todayStr);
+  let type = "";
   const [modal, setModal] = useState({ type: "none" });
   const [form, setForm] = useState(emptyForm());
   const [saving, setSaving] = useState(false);
