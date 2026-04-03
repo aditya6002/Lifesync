@@ -1,20 +1,24 @@
-import { useState, useMemo } from "react";
-import { C, FONTS } from "../shared/styles/tokens";
-import {
-  Glass,
-  Btn,
-  FInput,
-  FTextarea,
-  InlineLoader,
-} from "../shared/components/ui/Atoms";
-import { Modal, ViewModal, Confirm } from "../shared/components/ui/Modal";
-import { fmtDate, today, uid } from "../shared/utils/helpers";
-import { useJournalForm } from "../hooks/useJournalForm";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 
-// ── constants ──────────────────────────────────────────────
-// const MOODS = ["😴", "😟", "😐", "🙂", "😄", "🤩"];
-// const MOOD_LBL = ["Exhausted", "Sad", "Neutral", "Good", "Happy", "Amazing"];
-// const MOOD_CLR = [C.textDim, C.blue, C.textMid, C.yellow, C.green, "#c4b5fd"];
+// ── Design tokens (inline since this is a standalone artifact) ──
+const C = {
+  bg: "#0f0e17",
+  surface: "#1a1827",
+  glass: "rgba(255,255,255,.05)",
+  glassBorder: "rgba(255,255,255,.10)",
+  text: "#f0eeff",
+  textMid: "#a89ec9",
+  textDim: "#5e5878",
+  violet: "#7c3aed",
+  violetLight: "#a78bfa",
+  yellow: "#f59e0b",
+  green: "#10b981",
+  blue: "#3b82f6",
+  red: "#ef4444",
+};
+const FONTS = { display: "'Inter',sans-serif", body: "'Inter',sans-serif" };
+
+// ── Mood data ──
 const MOODS = [
   "😴",
   "🥱",
@@ -44,29 +48,67 @@ const MOOD_LBL = [
   "Unstoppable",
 ];
 const MOOD_CLR = [
-  C.textDim, // Exhausted
-  "#94a3b8", // Sleepy (soft gray-blue)
-  C.blue, // Worried
-  "#60a5fa", // Low (lighter blue)
-  C.textMid, // Neutral
-  C.yellow, // Good
-  "#facc15", // Content (warm yellow)
-  C.green, // Happy
-  "#22c55e", // Confident (strong green)
-  "#c4b5fd", // Amazing (violet)
-  "#f97316", // On Fire (orange)
-  "#ef4444", // Unstoppable (red)
+  C.textDim,
+  "#94a3b8",
+  C.blue,
+  "#60a5fa",
+  C.textMid,
+  C.yellow,
+  "#facc15",
+  C.green,
+  "#22c55e",
+  "#c4b5fd",
+  "#f97316",
+  "#ef4444",
 ];
-// ── demo seed ──────────────────────────────────────────────
+
+// ── Helpers ──
+const uid = () => Math.random().toString(36).slice(2);
+const today = () => new Date().toISOString().slice(0, 10);
+const fmtDate = (d) =>
+  new Date(d + "T12:00:00").toLocaleDateString("en-IN", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+const monthKey = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+const monthLabel = (key) => {
+  const [y, m] = key.split("-");
+  return new Date(+y, +m - 1, 1).toLocaleDateString("en-IN", {
+    month: "long",
+    year: "numeric",
+  });
+};
+const prevMonth = (key) => {
+  const [y, m] = key.split("-").map(Number);
+  return monthKey(new Date(y, m - 2, 1));
+};
+const nextMonth = (key) => {
+  const [y, m] = key.split("-").map(Number);
+  return monthKey(new Date(y, m, 1));
+};
+const daysInMonth = (key) => {
+  const [y, m] = key.split("-").map(Number);
+  return new Date(y, m, 0).getDate();
+};
+const dayOfWeek = (key, day) => {
+  const [y, m] = key.split("-").map(Number);
+  return new Date(y, m - 1, day).getDay();
+};
+const CURRENT_MONTH = monthKey(new Date());
+const CURRENT_DAY = new Date().getDate();
+
+// ── SEED ──
 const SEED = [
-  // March 2026
   {
     id: "j1",
     date: "2026-03-11",
     mood: 4,
     title: "Productive Wednesday",
     content:
-      "Had a really productive day today. Finished two assignments and finally understood AVL trees. Went for a 30-min walk in the evening. Feeling optimistic about the upcoming exam.",
+      "<p>Had a really productive day today. Finished two assignments and finally understood <strong>AVL trees</strong>. Went for a 30-min walk in the evening.</p><p>Feeling <em>optimistic</em> about the upcoming exam.</p>",
     userId: "u1",
     createdAt: "",
   },
@@ -76,7 +118,7 @@ const SEED = [
     mood: 2,
     title: "Distracted day",
     content:
-      "Couldn't focus much. Scrolled social media for 3 hours straight. Need to fix my sleep schedule. Will try sleeping by 11 PM tonight.",
+      "<p>Couldn't focus much. Scrolled social media for <strong>3 hours</strong> straight.</p><ul><li>Need to fix sleep schedule</li><li>Will try sleeping by 11 PM tonight</li></ul>",
     userId: "u1",
     createdAt: "",
   },
@@ -86,7 +128,7 @@ const SEED = [
     mood: 3,
     title: "Steady progress",
     content:
-      "Good gym session today. Started reading Atomic Habits again from Chapter 3. Had a decent study session in the evening.",
+      "<p>Good gym session today. Started reading <em>Atomic Habits</em> again from Chapter 3.</p><blockquote>Small habits compound into remarkable results.</blockquote>",
     userId: "u1",
     createdAt: "",
   },
@@ -96,7 +138,7 @@ const SEED = [
     mood: 1,
     title: "Rough Sunday",
     content:
-      "Failed the weekly quiz. Score was 4/10. Feeling low but trying to stay motivated. Going to make a proper study plan this week.",
+      "<p>Failed the weekly quiz. Score was <strong>4/10</strong>. Feeling low but trying to stay motivated.</p><p>Going to make a proper study plan this week.</p>",
     userId: "u1",
     createdAt: "",
   },
@@ -106,198 +148,520 @@ const SEED = [
     mood: 4,
     title: "Friday win",
     content:
-      "Submitted the project before the deadline Feeling really proud. Celebrated with friends at the cafeteria.",
+      "<p>Submitted the project <strong>before the deadline</strong> 🎉 Feeling really proud.</p><p>Celebrated with friends at the cafeteria.</p>",
     userId: "u1",
     createdAt: "",
   },
   {
     id: "j6",
-    date: "2026-03-04",
-    mood: 3,
-    title: "New week energy",
-    content:
-      "Started the week with a clear plan. Completed 3 tasks before noon. Small wins matter.",
-    userId: "u1",
-    createdAt: "",
-  },
-  // February 2026
-  {
-    id: "j7",
     date: "2026-02-28",
     mood: 5,
     title: "February wrap-up",
     content:
-      "What a month Completed the DSA challenge, read 2 books and maintained budget. Feeling amazing heading into March.",
+      "<p>What a month! Completed the DSA challenge, read 2 books and maintained budget.</p><ul><li>DSA challenge ✓</li><li>Read 2 books ✓</li><li>Budget maintained ✓</li></ul>",
     userId: "u1",
     createdAt: "",
   },
   {
-    id: "j8",
-    date: "2026-02-20",
-    mood: 3,
-    title: "Mid-month check-in",
-    content:
-      "Halfway through Feb. Progress is steady. Need to push harder on the DSA practice. Exercise routine is consistent though.",
-    userId: "u1",
-    createdAt: "",
-  },
-  {
-    id: "j9",
-    date: "2026-02-14",
-    mood: 4,
-    title: "Valentine's day",
-    content:
-      "Spent the day studying but treated myself to a nice dinner. Sometimes self-care is the best care.",
-    userId: "u1",
-    createdAt: "",
-  },
-  {
-    id: "j10",
-    date: "2026-02-07",
-    mood: 2,
-    title: "Tough week",
-    content:
-      "Two assignment deadlines clashed. Didn't sleep well. Need to plan better next time.",
-    userId: "u1",
-    createdAt: "",
-  },
-  {
-    id: "j11",
-    date: "2026-02-01",
-    mood: 3,
-    title: "February begins",
-    content:
-      "New month, new goals. Set 4 targets: read 2 books, maintain workout, save ₹1500, practice DSA daily.",
-    userId: "u1",
-    createdAt: "",
-  },
-  // January 2026
-  {
-    id: "j12",
-    date: "2026-01-31",
-    mood: 4,
-    title: "January review",
-    content:
-      "Completed 80% of my January goals. Missed the reading target but crushed DSA practice. Overall solid month.",
-    userId: "u1",
-    createdAt: "",
-  },
-  {
-    id: "j13",
-    date: "2026-01-15",
-    mood: 3,
-    title: "Midway January",
-    content:
-      "Semester starting soon. Have mixed feelings — excited but anxious. Spending more time organizing my notes.",
-    userId: "u1",
-    createdAt: "",
-  },
-  {
-    id: "j14",
+    id: "j7",
     date: "2026-01-01",
     mood: 5,
     title: "Happy New Year 🎉",
     content:
-      "2026 starts today Goals this year: get a great internship, build something meaningful, stay healthy and read more.",
-    userId: "u1",
-    createdAt: "",
-  },
-  // December 2025
-  {
-    id: "j15",
-    date: "2025-12-25",
-    mood: 5,
-    title: "Merry Christmas 🎄",
-    content:
-      "Wonderful day with family. Received some nice books as gifts. Feeling grateful and recharged.",
-    userId: "u1",
-    createdAt: "",
-  },
-  {
-    id: "j16",
-    date: "2025-12-20",
-    mood: 2,
-    title: "Exam stress",
-    content:
-      "Semester exams next week. Feeling overwhelmed. Trying to stay calm and stick to the study plan.",
-    userId: "u1",
-    createdAt: "",
-  },
-  {
-    id: "j17",
-    date: "2025-12-10",
-    mood: 3,
-    title: "December vibes",
-    content:
-      "December always feels slower and warmer somehow. Had a long chai break and journaled old memories.",
+      "<h2>2026 Goals</h2><ul><li>Get a great internship</li><li>Build something meaningful</li><li>Stay healthy</li><li>Read more books</li></ul>",
     userId: "u1",
     createdAt: "",
   },
 ];
 
-// ── month helpers ──────────────────────────────────────────
-function monthKey(d) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
-function monthLabel(key) {
-  const [y, m] = key.split("-");
-  return new Date(+y, +m - 1, 1).toLocaleDateString("en-IN", {
-    month: "long",
-    year: "numeric",
+// ══════════════════════════════════════════════════════════════
+// Rich Text Editor Component
+// ══════════════════════════════════════════════════════════════
+function RichTextEditor({ value, onChange, placeholder }) {
+  const editorRef = useRef(null);
+  const [activeFormats, setActiveFormats] = useState({});
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (editorRef.current && editorRef.current.innerHTML !== value) {
+      editorRef.current.innerHTML = value || "";
+    }
+  }, []);
+
+  const updateActiveFormats = useCallback(() => {
+    setActiveFormats({
+      bold: document.queryCommandState("bold"),
+      italic: document.queryCommandState("italic"),
+      underline: document.queryCommandState("underline"),
+      strikeThrough: document.queryCommandState("strikeThrough"),
+      insertOrderedList: document.queryCommandState("insertOrderedList"),
+      insertUnorderedList: document.queryCommandState("insertUnorderedList"),
+    });
+  }, []);
+
+  const exec = (cmd, value = null) => {
+    editorRef.current.focus();
+    document.execCommand(cmd, false, value);
+    onChange(editorRef.current.innerHTML);
+    updateActiveFormats();
+  };
+
+  const insertHeading = (tag) => {
+    editorRef.current.focus();
+    document.execCommand("formatBlock", false, tag);
+    onChange(editorRef.current.innerHTML);
+  };
+
+  const insertBlockquote = () => {
+    editorRef.current.focus();
+    document.execCommand("formatBlock", false, "blockquote");
+    onChange(editorRef.current.innerHTML);
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      editorRef.current.focus();
+      document.execCommand(
+        "insertHTML",
+        false,
+        `<img src="${ev.target.result}" style="max-width:100%;border-radius:10px;margin:8px 0;display:block;" />`,
+      );
+      onChange(editorRef.current.innerHTML);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const insertLink = () => {
+    const url = window.prompt("Enter URL:");
+    if (url) exec("createLink", url);
+  };
+
+  const toolbarGroups = [
+    [
+      { cmd: "bold", icon: "B", label: "Bold", style: { fontWeight: 700 } },
+      {
+        cmd: "italic",
+        icon: "I",
+        label: "Italic",
+        style: { fontStyle: "italic" },
+      },
+      {
+        cmd: "underline",
+        icon: "U",
+        label: "Underline",
+        style: { textDecoration: "underline" },
+      },
+      {
+        cmd: "strikeThrough",
+        icon: "S",
+        label: "Strikethrough",
+        style: { textDecoration: "line-through" },
+      },
+    ],
+    [
+      { action: () => insertHeading("h1"), icon: "H1", label: "Heading 1" },
+      { action: () => insertHeading("h2"), icon: "H2", label: "Heading 2" },
+      { action: () => insertHeading("p"), icon: "P", label: "Paragraph" },
+    ],
+    [
+      { cmd: "insertUnorderedList", icon: "•≡", label: "Bullet list" },
+      { cmd: "insertOrderedList", icon: "1≡", label: "Numbered list" },
+      { action: insertBlockquote, icon: "❝", label: "Blockquote" },
+    ],
+    [
+      { cmd: "justifyLeft", icon: "⬛◻◻", label: "Align left" },
+      { cmd: "justifyCenter", icon: "◻⬛◻", label: "Center" },
+      { cmd: "justifyRight", icon: "◻◻⬛", label: "Align right" },
+    ],
+    [
+      { action: insertLink, icon: "🔗", label: "Insert link", emoji: true },
+      {
+        action: () => fileInputRef.current.click(),
+        icon: "🖼",
+        label: "Insert image",
+        emoji: true,
+      },
+      { cmd: "removeFormat", icon: "✕f", label: "Clear format" },
+    ],
+  ];
+
+  const btnStyle = (active) => ({
+    padding: "5px 8px",
+    minWidth: 32,
+    height: 30,
+    borderRadius: 7,
+    background: active ? "rgba(124,58,237,.35)" : "rgba(255,255,255,.05)",
+    border: active
+      ? "1px solid rgba(124,58,237,.6)"
+      : `1px solid ${C.glassBorder}`,
+    color: active ? C.violetLight : C.textMid,
+    cursor: "pointer",
+    fontSize: 11,
+    fontWeight: 600,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: "all .12s",
+    lineHeight: 1,
   });
-}
-function prevMonth(key) {
-  const [y, m] = key.split("-").map(Number);
-  return monthKey(new Date(y, m - 2, 1));
-}
-function nextMonth(key) {
-  const [y, m] = key.split("-").map(Number);
-  return monthKey(new Date(y, m, 1));
-}
-function daysInMonth(key) {
-  const [y, m] = key.split("-").map(Number);
-  return new Date(y, m, 0).getDate();
-}
-function dayOfWeek(key, day) {
-  const [y, m] = key.split("-").map(Number);
-  return new Date(y, m - 1, day).getDay(); // 0=Sun
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 0,
+        borderRadius: 12,
+        overflow: "hidden",
+        border: `1px solid ${C.glassBorder}`,
+      }}
+    >
+      {/* Toolbar */}
+      <div
+        style={{
+          background: "rgba(255,255,255,.04)",
+          borderBottom: `1px solid ${C.glassBorder}`,
+          padding: "8px 10px",
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 4,
+          alignItems: "center",
+        }}
+      >
+        {toolbarGroups.map((group, gi) => (
+          <div
+            key={gi}
+            style={{ display: "flex", gap: 3, alignItems: "center" }}
+          >
+            {gi > 0 && (
+              <div
+                style={{
+                  width: 1,
+                  height: 20,
+                  background: C.glassBorder,
+                  margin: "0 3px",
+                }}
+              />
+            )}
+            {group.map((btn, bi) => {
+              const isActive = btn.cmd ? activeFormats[btn.cmd] : false;
+              return (
+                <button
+                  key={bi}
+                  title={btn.label}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    btn.cmd ? exec(btn.cmd) : btn.action();
+                  }}
+                  style={btnStyle(isActive)}
+                >
+                  <span
+                    style={{
+                      ...(btn.style || {}),
+                      fontSize: btn.emoji ? 14 : 11,
+                    }}
+                  >
+                    {btn.icon}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+
+      {/* Editor area */}
+      <div style={{ position: "relative" }}>
+        <div
+          ref={editorRef}
+          contentEditable
+          suppressContentEditableWarning
+          onInput={(e) => {
+            onChange(e.currentTarget.innerHTML);
+            updateActiveFormats();
+          }}
+          onKeyUp={updateActiveFormats}
+          onMouseUp={updateActiveFormats}
+          style={{
+            minHeight: 220,
+            padding: "14px 16px",
+            background: "rgba(255,255,255,.03)",
+            color: C.text,
+            fontSize: 14,
+            lineHeight: 1.85,
+            outline: "none",
+            wordBreak: "break-word",
+            fontFamily: FONTS.body,
+          }}
+        />
+        {/* Placeholder */}
+        {(!value || value === "<br>" || value === "") && (
+          <div
+            style={{
+              position: "absolute",
+              top: 14,
+              left: 16,
+              pointerEvents: "none",
+              color: C.textDim,
+              fontSize: 14,
+              lineHeight: 1.85,
+            }}
+          >
+            {placeholder}
+          </div>
+        )}
+      </div>
+
+      {/* Rich text CSS */}
+      <style>{`
+        [contenteditable] h1 { font-size: 20px; font-weight: 700; color: ${C.text}; margin: 8px 0 4px; }
+        [contenteditable] h2 { font-size: 16px; font-weight: 700; color: ${C.text}; margin: 6px 0 4px; }
+        [contenteditable] p { margin: 4px 0; }
+        [contenteditable] ul { padding-left: 20px; margin: 6px 0; list-style: disc; }
+        [contenteditable] ol { padding-left: 20px; margin: 6px 0; list-style: decimal; }
+        [contenteditable] li { margin: 3px 0; color: ${C.textMid}; }
+        [contenteditable] blockquote {
+          border-left: 3px solid ${C.violet}; margin: 10px 0;
+          padding: 6px 14px; background: rgba(124,58,237,.08);
+          border-radius: 0 8px 8px 0; color: ${C.textMid}; font-style: italic;
+        }
+        [contenteditable] a { color: ${C.violetLight}; text-decoration: underline; }
+        [contenteditable] img { max-width: 100%; border-radius: 10px; margin: 8px 0; display: block; }
+        [contenteditable] strong { color: ${C.text}; }
+        [contenteditable]:focus { outline: none; }
+      `}</style>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: "none" }}
+        onChange={handleImageUpload}
+      />
+    </div>
+  );
 }
 
-const CURRENT_MONTH = monthKey(new Date());
-const CURRENT_DAY = new Date().getDate();
+// ── strip HTML for preview ──
+function stripHtml(html) {
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return div.textContent || div.innerText || "";
+}
 
-const emptyForm = (date) => ({
-  title: "",
-  content: "",
-  mood: 3,
-  date,
-});
+// ── Glass card ──
+const Glass = ({ children, style, ...rest }) => (
+  <div
+    style={{
+      background: C.glass,
+      border: `1px solid ${C.glassBorder}`,
+      borderRadius: 16,
+      ...style,
+    }}
+    {...rest}
+  >
+    {children}
+  </div>
+);
 
-// ══════════════════════════════════════════════════════════
+// ── Button ──
+const Btn = ({ children, onClick, variant = "primary", small, disabled }) => {
+  const styles = {
+    primary: {
+      background: `linear-gradient(135deg,${C.violet},${C.violetLight})`,
+      color: "#fff",
+      border: "none",
+    },
+    ghost: {
+      background: "rgba(255,255,255,.06)",
+      color: C.textMid,
+      border: `1px solid ${C.glassBorder}`,
+    },
+    ai: {
+      background: "rgba(124,58,237,.15)",
+      color: C.violetLight,
+      border: "1px solid rgba(124,58,237,.3)",
+    },
+  };
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        ...styles[variant],
+        padding: small ? "5px 12px" : "9px 18px",
+        borderRadius: 10,
+        fontSize: small ? 12 : 13,
+        fontWeight: 600,
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.5 : 1,
+        transition: "all .15s",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+      }}
+    >
+      {children}
+    </button>
+  );
+};
+
+// ── Modal ──
+function Modal({ title, onClose, children }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 100,
+        background: "rgba(0,0,0,.65)",
+        backdropFilter: "blur(6px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 16,
+      }}
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%",
+          maxWidth: 700,
+          maxHeight: "90vh",
+          overflowY: "auto",
+          background: "#1a1827",
+          borderRadius: 20,
+          border: `1px solid ${C.glassBorder}`,
+          padding: 24,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 20,
+          }}
+        >
+          <h3
+            style={{
+              color: C.text,
+              fontFamily: FONTS.display,
+              fontSize: 17,
+              fontWeight: 700,
+              margin: 0,
+            }}
+          >
+            {title}
+          </h3>
+          <button
+            onClick={onClose}
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: 8,
+              background: "rgba(255,255,255,.08)",
+              border: "none",
+              color: C.textMid,
+              cursor: "pointer",
+              fontSize: 16,
+            }}
+          >
+            ✕
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ── View Modal ──
+function ViewModal({ title, onClose, onEdit, onDelete, children }) {
+  return (
+    <Modal title={title} onClose={onClose}>
+      {children}
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+          marginTop: 16,
+          paddingTop: 16,
+          borderTop: `1px solid ${C.glassBorder}`,
+        }}
+      >
+        <Btn onClick={onEdit}>✏️ Edit</Btn>
+        <Btn variant="ghost" onClick={onDelete}>
+          🗑 Delete
+        </Btn>
+        <div style={{ flex: 1 }} />
+        <Btn variant="ghost" onClick={onClose}>
+          Close
+        </Btn>
+      </div>
+    </Modal>
+  );
+}
+
+// ── Confirm Modal ──
+function Confirm({ message, onConfirm, onCancel }) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 200,
+        background: "rgba(0,0,0,.7)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 16,
+      }}
+    >
+      <Glass style={{ padding: 28, maxWidth: 400, width: "100%" }}>
+        <div style={{ fontSize: 14, color: C.textMid, marginBottom: 20 }}>
+          {message}
+        </div>
+        <div style={{ display: "flex", gap: 10 }}>
+          <Btn onClick={onConfirm}>Delete</Btn>
+          <Btn variant="ghost" onClick={onCancel}>
+            Cancel
+          </Btn>
+        </div>
+      </Glass>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════
 export default function JournalPage() {
   const [entries, setEntries] = useState(SEED);
   const [activeMonth, setActiveMonth] = useState(CURRENT_MONTH);
   const [modal, setModal] = useState({ type: "" });
-  const [form, setForm] = useState(emptyForm(today()));
+  const [form, setForm] = useState({
+    title: "",
+    content: "",
+    mood: 3,
+    date: today(),
+  });
   const [saving, setSaving] = useState(false);
   const sf = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
-  const { loading } = useJournalForm();
-
-  // ── Month list ─────────────────────────────────────────
   const monthList = useMemo(() => {
     const keys = new Set(entries.map((e) => e.date.slice(0, 7)));
     keys.add(CURRENT_MONTH);
     return [...keys].sort((a, b) => b.localeCompare(a));
   }, [entries]);
 
-  // ── Entries for active month ───────────────────────────
   const monthEntries = useMemo(
     () => entries.filter((e) => e.date.startsWith(activeMonth)),
     [entries, activeMonth],
   );
-
-  // ── Entry lookup by date ───────────────────────────────
   const entryByDate = useMemo(() => {
     const m = {};
     monthEntries.forEach((e) => {
@@ -307,10 +671,9 @@ export default function JournalPage() {
   }, [monthEntries]);
 
   const days = daysInMonth(activeMonth);
-  const startDow = dayOfWeek(activeMonth, 1); // 0=Sun
+  const startDow = dayOfWeek(activeMonth, 1);
   const isCurrentMonth = activeMonth === CURRENT_MONTH;
 
-  // ── Streak calc ────────────────────────────────────────
   const streak = useMemo(() => {
     const dates = new Set(entries.map((e) => e.date));
     let count = 0;
@@ -322,20 +685,17 @@ export default function JournalPage() {
     return count;
   }, [entries]);
 
-  // ── Mood stats for the month ───────────────────────────
   const avgMood = monthEntries.length
     ? (
         monthEntries.reduce((s, e) => s + e.mood, 0) / monthEntries.length
       ).toFixed(1)
     : "—";
 
-  // ── CRUD ──────────────────────────────────────────────
   const openAdd = (date) => {
     const d = date ?? (isCurrentMonth ? today() : `${activeMonth}-01`);
-    setForm(emptyForm(d));
+    setForm({ title: "", content: "", mood: 3, date: d });
     setModal({ type: "add", date: d });
   };
-
   const openEdit = (e) => {
     setForm({
       title: e.title ?? "",
@@ -345,13 +705,12 @@ export default function JournalPage() {
     });
     setModal({ type: "edit", data: e });
   };
-
   const openView = (e) => setModal({ type: "view", data: e });
 
   const handleSave = async () => {
-    if (!form.content) return;
+    if (!form.content || form.content === "<br>") return;
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 600));
+    await new Promise((r) => setTimeout(r, 400));
     if (modal.type === "add") {
       const entry = {
         ...form,
@@ -372,7 +731,7 @@ export default function JournalPage() {
 
   const handleDelete = async (id) => {
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 400));
+    await new Promise((r) => setTimeout(r, 300));
     setEntries((p) => p.filter((e) => e.id !== id));
     setSaving(false);
     setModal({ type: "" });
@@ -380,10 +739,17 @@ export default function JournalPage() {
 
   return (
     <div
-      className="screen-in"
-      style={{ display: "flex", flexDirection: "column", gap: 18 }}
+      style={{
+        minHeight: "100vh",
+        background: C.bg,
+        padding: 20,
+        fontFamily: FONTS.body,
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
+      }}
     >
-      {/* ── HEADER ── */}
+      {/* Header */}
       <div
         style={{
           display: "flex",
@@ -393,7 +759,14 @@ export default function JournalPage() {
           gap: 12,
         }}
       >
-        <h2 style={{ fontFamily: FONTS.display, fontSize: 22, color: C.text }}>
+        <h2
+          style={{
+            fontFamily: FONTS.display,
+            fontSize: 22,
+            color: C.text,
+            margin: 0,
+          }}
+        >
           Daily Journal
         </h2>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
@@ -401,7 +774,7 @@ export default function JournalPage() {
             <div
               style={{
                 fontSize: 13,
-                color: C.violet,
+                color: "#c4b5fd",
                 background: "rgba(124,58,237,.15)",
                 padding: "6px 14px",
                 borderRadius: 20,
@@ -415,7 +788,7 @@ export default function JournalPage() {
         </div>
       </div>
 
-      {/* ── MONTH NAVIGATOR ── */}
+      {/* Month navigator */}
       <Glass style={{ padding: "12px 16px" }}>
         <div
           style={{
@@ -435,15 +808,11 @@ export default function JournalPage() {
               background: "rgba(255,255,255,.05)",
               border: `1px solid ${C.glassBorder}`,
               color: C.textMid,
-              cursor:
-                activeMonth === monthList[monthList.length - 1]
-                  ? "not-allowed"
-                  : "pointer",
+              cursor: "pointer",
               fontSize: 16,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              flexShrink: 0,
               opacity:
                 activeMonth === monthList[monthList.length - 1] ? 0.4 : 1,
             }}
@@ -534,12 +903,11 @@ export default function JournalPage() {
               background: "rgba(255,255,255,.05)",
               border: `1px solid ${C.glassBorder}`,
               color: C.textMid,
-              cursor: activeMonth === CURRENT_MONTH ? "not-allowed" : "pointer",
+              cursor: "pointer",
               fontSize: 16,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              flexShrink: 0,
               opacity: activeMonth === CURRENT_MONTH ? 0.4 : 1,
             }}
           >
@@ -548,7 +916,7 @@ export default function JournalPage() {
         </div>
       </Glass>
 
-      {/* ── MONTH STATS ── */}
+      {/* Stats */}
       <div
         style={{
           display: "grid",
@@ -587,7 +955,7 @@ export default function JournalPage() {
         ))}
       </div>
 
-      {/* ── CALENDAR GRID ── */}
+      {/* Calendar */}
       <Glass style={{ padding: 18 }}>
         <div
           style={{
@@ -600,8 +968,6 @@ export default function JournalPage() {
         >
           {monthLabel(activeMonth)}
         </div>
-
-        {/* Day headers */}
         <div
           style={{
             display: "grid",
@@ -624,8 +990,6 @@ export default function JournalPage() {
             </div>
           ))}
         </div>
-
-        {/* Calendar cells */}
         <div
           style={{
             display: "grid",
@@ -633,31 +997,20 @@ export default function JournalPage() {
             gap: 4,
           }}
         >
-          {/* Empty cells for offset */}
           {Array.from({ length: startDow }).map((_, i) => (
             <div key={`e${i}`} />
           ))}
-
-          {/* Day cells */}
           {Array.from({ length: days }, (_, i) => {
             const day = i + 1;
             const dateStr = `${activeMonth}-${String(day).padStart(2, "0")}`;
             const entry = entryByDate[dateStr];
             const isToday = isCurrentMonth && day === CURRENT_DAY;
             const isFuture = isCurrentMonth && day > CURRENT_DAY;
-
             return (
               <div
                 key={day}
                 onClick={() =>
                   !isFuture && (entry ? openView(entry) : openAdd(dateStr))
-                }
-                title={
-                  entry
-                    ? `${MOOD_LBL[entry.mood]}: ${entry.title || "View entry"}`
-                    : isFuture
-                      ? "Future date"
-                      : "Click to write"
                 }
                 style={{
                   height: 44,
@@ -667,6 +1020,7 @@ export default function JournalPage() {
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 2,
+                  cursor: isFuture ? "default" : "pointer",
                   background: isToday
                     ? `linear-gradient(135deg,${C.violet},${C.violetLight})`
                     : entry
@@ -677,7 +1031,6 @@ export default function JournalPage() {
                     : entry
                       ? `1px solid ${MOOD_CLR[entry.mood]}40`
                       : `1px solid ${C.glassBorder}`,
-                  cursor: isFuture ? "default" : "pointer",
                   opacity: isFuture ? 0.3 : 1,
                   transition: "all .15s",
                 }}
@@ -701,26 +1054,9 @@ export default function JournalPage() {
             );
           })}
         </div>
-
-        {/* Legend */}
-        <div
-          style={{ display: "flex", gap: 12, marginTop: 14, flexWrap: "wrap" }}
-        >
-          {MOODS.map((m, i) => (
-            <div
-              key={i}
-              style={{ display: "flex", alignItems: "center", gap: 5 }}
-            >
-              <span style={{ fontSize: 12 }}>{m}</span>
-              <span style={{ fontSize: 10, color: C.textDim }}>
-                {MOOD_LBL[i]}
-              </span>
-            </div>
-          ))}
-        </div>
       </Glass>
 
-      {/* ── AI HELPERS ── */}
+      {/* AI helpers */}
       <Glass
         style={{
           padding: 14,
@@ -732,7 +1068,7 @@ export default function JournalPage() {
           <span style={{ fontSize: 18 }}>⟡</span>
           <div style={{ flex: 1, display: "flex", gap: 8, flexWrap: "wrap" }}>
             {[
-              `Summarize ${isCurrentMonth ? "this week" : monthLabel(activeMonth)}`,
+              "Summarize this week",
               "Find mood patterns",
               "What made me happy?",
               "Suggest reflection prompt",
@@ -745,7 +1081,7 @@ export default function JournalPage() {
         </div>
       </Glass>
 
-      {/* ── ENTRY LIST ── */}
+      {/* Entry list */}
       {monthEntries.length === 0 ? (
         <Glass style={{ padding: 40, textAlign: "center" }}>
           <div style={{ fontSize: 32, marginBottom: 10 }}>✦</div>
@@ -769,7 +1105,6 @@ export default function JournalPage() {
             .map((e) => (
               <Glass
                 key={e.id}
-                className="hov-card"
                 onClick={() => openView(e)}
                 style={{
                   padding: 16,
@@ -818,7 +1153,7 @@ export default function JournalPage() {
                         {MOOD_LBL[e.mood]}
                       </span>
                       {" · "}
-                      {e.content.slice(0, 70)}...
+                      {stripHtml(e.content).slice(0, 70)}...
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
@@ -863,22 +1198,44 @@ export default function JournalPage() {
         </div>
       )}
 
-      {/* ── ADD / EDIT MODAL ── */}
+      {/* Add / Edit Modal */}
       {(modal.type === "add" || modal.type === "edit") && (
         <Modal
           title={modal.type === "add" ? "New Journal Entry" : "Edit Entry"}
-          onClose={() => setModal({ type })}
-          wide
+          onClose={() => setModal({ type: "" })}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <FInput
-              label="Date"
-              type="date"
-              value={form.date}
-              onChange={(v) => sf("date", v)}
-            />
+            {/* Date */}
+            <div>
+              <label
+                style={{
+                  fontSize: 12,
+                  color: C.textMid,
+                  fontWeight: 500,
+                  display: "block",
+                  marginBottom: 6,
+                }}
+              >
+                Date
+              </label>
+              <input
+                type="date"
+                value={form.date}
+                onChange={(e) => sf("date", e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "9px 12px",
+                  borderRadius: 10,
+                  background: "rgba(255,255,255,.06)",
+                  border: `1px solid ${C.glassBorder}`,
+                  color: C.text,
+                  fontSize: 13,
+                  outline: "none",
+                }}
+              />
+            </div>
 
-            {/* Mood selector */}
+            {/* Mood */}
             <div>
               <label
                 style={{
@@ -891,16 +1248,16 @@ export default function JournalPage() {
               >
                 How are you feeling?
               </label>
-              <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 {MOODS.map((m, i) => (
                   <button
                     key={i}
                     onClick={() => sf("mood", i)}
                     style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 11,
-                      fontSize: 24,
+                      width: 40,
+                      height: 40,
+                      borderRadius: 10,
+                      fontSize: 22,
                       border:
                         form.mood === i
                           ? `2px solid ${C.violet}`
@@ -930,21 +1287,67 @@ export default function JournalPage() {
               </div>
             </div>
 
-            <FInput
-              label="Title (optional)"
-              value={form.title ?? ""}
-              onChange={(v) => sf("title", v)}
-              placeholder="Give this entry a title..."
-            />
-            <FTextarea
-              label="What's on your mind?"
-              value={form.content}
-              onChange={(v) => sf("content", v)}
-              placeholder="Write freely — thoughts, feelings, what happened today..."
-              rows={8}
-            />
+            {/* Title */}
+            <div>
+              <label
+                style={{
+                  fontSize: 12,
+                  color: C.textMid,
+                  fontWeight: 500,
+                  display: "block",
+                  marginBottom: 6,
+                }}
+              >
+                Title (optional)
+              </label>
+              <input
+                value={form.title ?? ""}
+                onChange={(e) => sf("title", e.target.value)}
+                placeholder="Give this entry a title..."
+                style={{
+                  width: "100%",
+                  padding: "9px 12px",
+                  borderRadius: 10,
+                  background: "rgba(255,255,255,.06)",
+                  border: `1px solid ${C.glassBorder}`,
+                  color: C.text,
+                  fontSize: 13,
+                  outline: "none",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
 
-            {/* Warn if date is in different month */}
+            {/* Rich Text Editor */}
+            <div>
+              <label
+                style={{
+                  fontSize: 12,
+                  color: C.textMid,
+                  fontWeight: 500,
+                  display: "block",
+                  marginBottom: 6,
+                }}
+              >
+                What's on your mind?
+                <span
+                  style={{
+                    fontSize: 10,
+                    color: C.textDim,
+                    marginLeft: 8,
+                    fontWeight: 400,
+                  }}
+                >
+                  Bold · Italic · Headings · Lists · Images supported
+                </span>
+              </label>
+              <RichTextEditor
+                value={form.content}
+                onChange={(v) => sf("content", v)}
+                placeholder="Write freely — thoughts, feelings, what happened today..."
+              />
+            </div>
+
             {form.date && !form.date.startsWith(activeMonth) && (
               <div
                 style={{
@@ -963,7 +1366,7 @@ export default function JournalPage() {
             <div style={{ display: "flex", gap: 10 }}>
               <button
                 onClick={handleSave}
-                disabled={!form.content || saving}
+                disabled={!form.content || form.content === "<br>" || saving}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -972,7 +1375,7 @@ export default function JournalPage() {
                   borderRadius: 10,
                   background:
                     saving || !form.content
-                      ? "rgba(124,58,237,.4)"
+                      ? `rgba(124,58,237,.4)`
                       : `linear-gradient(135deg,${C.violet},${C.violetLight})`,
                   border: "none",
                   color: "#fff",
@@ -981,17 +1384,13 @@ export default function JournalPage() {
                   fontSize: 13,
                 }}
               >
-                {saving ? (
-                  <>
-                    <InlineLoader size={14} color="#fff" /> Saving...
-                  </>
-                ) : modal.type === "add" ? (
-                  "Save Entry"
-                ) : (
-                  "Update Entry"
-                )}
+                {saving
+                  ? "Saving…"
+                  : modal.type === "add"
+                    ? "Save Entry"
+                    : "Update Entry"}
               </button>
-              <Btn variant="ghost" onClick={() => setModal({ type })}>
+              <Btn variant="ghost" onClick={() => setModal({ type: "" })}>
                 Cancel
               </Btn>
             </div>
@@ -999,11 +1398,11 @@ export default function JournalPage() {
         </Modal>
       )}
 
-      {/* ── VIEW MODAL ── */}
+      {/* View Modal */}
       {modal.type === "view" && modal.data && (
         <ViewModal
           title={modal.data.title || fmtDate(modal.data.date)}
-          onClose={() => setModal({ type })}
+          onClose={() => setModal({ type: "" })}
           onEdit={() => openEdit(modal.data)}
           onDelete={() => setModal({ type: "confirm", data: modal.data })}
         >
@@ -1040,26 +1439,32 @@ export default function JournalPage() {
             </div>
           </div>
           <div
-            style={{
-              fontSize: 14,
-              color: C.textMid,
-              lineHeight: 1.9,
-              whiteSpace: "pre-wrap",
-              marginBottom: 16,
-            }}
-          >
-            {modal.data.content}
+            style={{ fontSize: 14, color: C.textMid, lineHeight: 1.9 }}
+            dangerouslySetInnerHTML={{ __html: modal.data.content }}
+          />
+          <style>{`
+            .view-content h1 { font-size:20px;font-weight:700;color:${C.text};margin:8px 0 4px; }
+            .view-content h2 { font-size:16px;font-weight:700;color:${C.text};margin:6px 0 4px; }
+            .view-content ul { padding-left:20px;list-style:disc;margin:6px 0; }
+            .view-content ol { padding-left:20px;list-style:decimal;margin:6px 0; }
+            .view-content li { margin:3px 0;color:${C.textMid}; }
+            .view-content blockquote { border-left:3px solid ${C.violet};margin:10px 0;padding:6px 14px;background:rgba(124,58,237,.08);border-radius:0 8px 8px 0;color:${C.textMid};font-style:italic; }
+            .view-content a { color:${C.violetLight};text-decoration:underline; }
+            .view-content img { max-width:100%;border-radius:10px;margin:8px 0;display:block; }
+            .view-content strong { color:${C.text}; }
+          `}</style>
+          <div style={{ marginTop: 16 }}>
+            <Btn variant="ai">⟡ AI Insights on this entry</Btn>
           </div>
-          <Btn variant="ai">⟡ AI Insights on this entry</Btn>
         </ViewModal>
       )}
 
-      {/* ── DELETE CONFIRM ── */}
+      {/* Delete confirm */}
       {modal.type === "confirm" && modal.data && (
         <Confirm
           message={`Delete "${modal.data.title || fmtDate(modal.data.date)}"? This cannot be undone.`}
           onConfirm={() => handleDelete(modal.data.id)}
-          onCancel={() => setModal({ type })}
+          onCancel={() => setModal({ type: "" })}
         />
       )}
     </div>
