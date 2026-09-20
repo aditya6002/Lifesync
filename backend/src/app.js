@@ -12,6 +12,7 @@ const { ApiError } = require("./middleware/errors.middleware.js");
 dotenv.config({ debug: true, override: true, quiet: true });
 const jwt = require("jsonwebtoken");
 
+
 const app = express();
 
 const globalRateLimiter = rateLimit({
@@ -64,9 +65,26 @@ app.get("/health", (req, res) => {
 });
 
 app.use(helmet());
+
+// app.use(express.static(path.join(__dirname, "public")));
 app.use(globalRateLimiter);
 
 // API Routes
+if (process.env.NODE_ENV === "development") {
+  app.get("/req", (req, res) => {
+    res.json({
+      req: {
+        headers: req.headers,
+        ip: req.ip,
+        completeIpAddress: req.socket ? req.socket.remoteAddress : "unknown",
+        method: req.method,
+        url: req.url,
+        path: req.path,
+      },
+    });
+  });
+}
+
 app.use("/api/auth", require("./routes/auth.routes.js"));
 app.use("/api/tasks", require("./routes/tasks.routes.js"));
 app.use("/api/expenses", require("./routes/expenses.routes.js"));

@@ -23,7 +23,12 @@ router.post(
   wrapAsync(authControllers.login),
 );
 
-// Register a new user
+/**
+ * POST /api/auth/register
+ * @public
+ * @description Register route
+ * @body {username,email,password}
+ */
 router.post(
   "/register",
   authMiddleware.registerValidationRules,
@@ -31,7 +36,12 @@ router.post(
   wrapAsync(authControllers.newUser),
 );
 
-// Logout route
+/**
+ * POST /api/auth/logout
+ * @private
+ * @description Logout route
+ * @body {refreshToken}
+ */
 router.post(
   "/logout",
   authRateLimiter,
@@ -39,14 +49,23 @@ router.post(
   wrapAsync(authControllers.logout),
 );
 
-// Is User logged in or not
-router.get(
+/**
+ * GET /api/auth/me
+ * @private
+ * @description Check if user is logged in
+ */
+router.post(
   "/me",
   // authRateLimiter,
   isUserLogin,
   wrapAsync(authControllers.isUserLoggedIn),
 );
 
+/**
+ * POST /api/auth/profile
+ * @private
+ * @description Get user profile
+ */
 router.post(
   "/profile",
   authRateLimiter,
@@ -54,7 +73,11 @@ router.post(
   wrapAsync(authControllers.getProfile),
 );
 
-// Refresh access token
+/**
+ * POST /api/auth/refresh-token
+ * @private
+ * @description Refresh access token
+ */
 router.post(
   "/refresh-token",
   authRateLimiter,
@@ -62,7 +85,12 @@ router.post(
   wrapAsync(authControllers.refreshToken),
 );
 
-// Add profile picture
+/**
+ * POST /api/auth/profile-picture
+ * @private
+ * @description Add profile picture
+ * @body {profilePicture, type: file,refreshToken}
+ */
 router.post(
   "/profile-picture",
   authRateLimiter,
@@ -71,7 +99,12 @@ router.post(
   wrapAsync(authControllers.addProfilePicture),
 );
 
-// Change Password
+/**
+ * POST /api/auth/change-password
+ * @private
+ * @description Change password
+ * @body {oldPassword,newPassword,refreshToken}
+ */
 router.put(
   "/change-password",
   authRateLimiter,
@@ -80,7 +113,12 @@ router.put(
   wrapAsync(authControllers.changePassword),
 );
 
-// Send Email verification token
+/**
+ * POST /api/auth/send-email-verification-token
+ * @private
+ * @description Send email verification token
+ * @body {refreshToken,}
+ */
 router.post(
   "/send-email-verification-token",
   authRateLimiter,
@@ -88,7 +126,12 @@ router.post(
   wrapAsync(authControllers.reSendEmailVerification),
 );
 
-// Verify email token
+/**
+ * POST /api/auth/verify-email
+ * @private
+ * @description Verify email token
+ * @body {refreshToken, }
+ */
 router.post(
   "/verify-email",
   isUserLogin,
@@ -96,14 +139,24 @@ router.post(
   wrapAsync(authControllers.verifyEmail),
 );
 
-//Send Reset Password Link
+/**
+ * POST /api/auth/reset-password
+ * @private
+ * @description Send reset password link
+ * @body {refreshToken}
+ */
 router.post(
   "/reset-password",
   authRateLimiter,
   wrapAsync(authControllers.sendResetPassLink),
 );
 
-// Verify reset password link
+/**
+ * POST /api/auth/reset-password/:resetToken
+ * @private
+ * @description Verify reset password link
+ * @body {refreshToken}
+ */
 router.post(
   "/reset-password/:resetToken",
   authRateLimiter,

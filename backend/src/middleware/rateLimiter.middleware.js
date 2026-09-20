@@ -26,7 +26,6 @@ const authRateLimiter = rateLimit({
   standardHeaders: false,
   legacyHeaders: false,
   keyGenerator: (req) => {
-    // Rate limit by email instead of IP for auth endpoints
     return `${req.body?.email}-${req.ip}`;
   },
 });
