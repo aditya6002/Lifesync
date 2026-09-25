@@ -1,0 +1,13 @@
+
+
+{
+    "watch": ["src"],
+    "ext": "js,json",
+    "ignore": ["src/**/*.test.js", "src/**/*.spec.js"],
+    "exec": "node ./server.js",
+    "env": {
+        "NODE_ENV": "development",
+        "PORT": 8080
+    },
+    "restartable": true
+}

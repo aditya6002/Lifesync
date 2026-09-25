@@ -1,10 +1,13 @@
 function getUserIP(req) {
-  return (
-    req.headers['x-forwarded-for']?.split(',')[0] ||
+  const ip =
+    req.headers["x-forwarded-for"] ||
+    req.connection.remoteAddress ||
     req.socket.remoteAddress ||
-    'unknown'
-  );
-}
+    (req.connection.socket ? req.connection.socket.remoteAddress : null);
 
+  console.dir(ip);
+
+  return ip;
+}
 
 module.exports = getUserIP;
