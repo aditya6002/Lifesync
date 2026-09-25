@@ -22,14 +22,20 @@ const generateOTP = () => {
   return crypto.randomInt(100000, 1000000).toString();
 };
 
-// REGISTER
-const newUserFunction = async (req, res) => {
+/**
+ * POST /api/auth/register
+ * @public
+ * @description Register a new user
+ * @body {name,username,email,password}
+*/
+const newUserRegister = async (req, res) => {
   try {
-    const { name, username, interests, email, password } = req.body;
+    const { name, username, email, password } = req.body; //interests
 
     const ipAddress = getUserIP(req);
 
-    if (!name || !username || !email || !password || interests.length < 0) {
+    if (!name || !username || !email || !password) {
+      //|| interests.length < 0
       return res.status(400).json({
         success: false,
         message: "Please provide all required fields",
@@ -39,6 +45,7 @@ const newUserFunction = async (req, res) => {
     }
 
     const signupCheck = await rateLimiter.checkSignupAttempt(ipAddress);
+
     if (!signupCheck.allowed) {
       return res.status(429).json({
         success: false,
@@ -50,7 +57,11 @@ const newUserFunction = async (req, res) => {
     // Check username
     const existingUsername = await User.findOne({ username });
     if (existingUsername) {
-      return res.status(400).json({ message: "Username already exists" });
+      return res.status(400).json({
+        message: "Username already exists",
+        success: false,
+        code: "USERNAME_EXIST",
+      });
     }
 
     // Check email
@@ -59,6 +70,7 @@ const newUserFunction = async (req, res) => {
       await rateLimiter.recordFailedSignupAttempt(ipAddress, email);
       return res.status(409).json({
         message: "Email already exists",
+        success: false,
         code: "EMAIL_EXIST",
       });
     }
@@ -72,7 +84,7 @@ const newUserFunction = async (req, res) => {
       email,
       password: await bcryptjs.hash(password, 10),
       emailVerificationCode: hashedOtp,
-      interests,
+      // interests,
       emailVerificationCodeExpires: Date.now() + 10 * 60 * 1000, // 10 min
     });
 
@@ -119,7 +131,7 @@ const newUserFunction = async (req, res) => {
 };
 
 // LOGIN
-const loginUserFunction = async (req, res) => {
+const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
     console.log("Login attempt:", { email, ip: getUserIP(req) });
@@ -129,8 +141,9 @@ const loginUserFunction = async (req, res) => {
       return res.status(400).json({ message: "Email and password required" });
     }
 
+    console.log(ipAddress);
     const loginCheck = await rateLimiter.checkLoginAttempt(email, ipAddress);
-
+    console.log("Login check result:", loginCheck);
     if (!loginCheck.allowed) {
       return res.status(429).json({
         success: false,
@@ -685,8 +698,8 @@ const addProfilePicture = async (req, res) => {
 const getProfile = (req, res) => {};
 
 module.exports = {
-  newUser: newUserFunction,
-  login: loginUserFunction,
+  newUser: newUserRegister,
+  login: loginUser,
   logout: logoutFunction,
   verifyEmail: verifyEmailFunction,
   reSendEmailVerification: reSendEmailVerificationFunction,

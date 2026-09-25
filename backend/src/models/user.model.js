@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
+const countries = require("../utils/countries.js");
 
 const achievementSchema = new mongoose.Schema({
   title: { type: String, required: true },
@@ -13,129 +14,150 @@ const userSchema = new mongoose.Schema(
   {
     // Basic user information
     name: { type: String, required: true },
-    username: { type: String, required: true, unique: true },
-    email: { type: String, required: true, unique: true },
-
+    username: { type: String, required: true, unique: true, index: true },
+    email: { type: String, required: true, unique: true, index: true },
     phoneNumber: { type: String, unique: true, sparse: true, default: "" },
-    location: { type: String, default: "" },
+    country: { type: String, default: "India", enum: countries },
 
-    workPlace: { type: String, default: "" },
+    // workPlace: { type: String, default: "" },
 
-    yearOrRole: {
-      type: String,
-      default: "Other",
-      enum: [
-        "1st Year",
-        "2nd Year",
-        "3rd Year",
-        "4th Year",
-        "Graduate",
-        "Postgraduate",
-        "Professional",
-        "Freelancer",
-        "Other",
-      ],
-    },
+    // yearOrRole: {
+    //   type: String,
+    //   default: "Other",
+    //   enum: [
+    //     "1st Year",
+    //     "2nd Year",
+    //     "3rd Year",
+    //     "4th Year",
+    //     "Graduate",
+    //     "Postgraduate",
+    //     "Professional",
+    //     "Freelancer",
+    //     "Other",
+    //   ],
+    // },
 
     profession: {
       type: String,
       default: "other",
-      enum: ["student", "professional", "other"],
+      enum: [
+        "student",
+        "professional",
+        "freelancer",
+        "entrepreneur",
+        "retired",
+        "unemployed",
+        "artist",
+        "content_creator",
+        "researcher",
+        "educator",
+        "healthcare_worker",
+        "engineer",
+        "scientist",
+        "developer",
+        "designer",
+        "writer",
+        "musician",
+        "athlete",
+        "other",
+      ],
     },
 
     goal: { type: String, default: "" },
     bio: { type: String, default: "" },
 
-    achievements: {
-      type: [achievementSchema],
-      default: [
-        {
-          title: "7-Day Streak",
-          icon: "🔥",
-          description: "Journaled 7 days in a row",
-          isAchievement: false,
-          date: null,
-        },
-        {
-          title: "30-Day Streak",
-          icon: "🌟",
-          description: "Journal 30 days consecutively",
-          isAchievement: false,
-          date: null,
-        },
-        {
-          title: "Goal Achiever",
-          icon: "🎯",
-          description: "Complete all tasks in a week",
-          isAchievement: false,
-          date: null,
-        },
-        {
-          title: "Budget Master",
-          icon: "💰",
-          description: "Stayed under budget for a month",
-          isAchievement: false,
-          date: null,
-        },
-        {
-          title: "Power User",
-          icon: "💎",
-          description: "Used the app for 100 days",
-          isAchievement: false,
-          date: null,
-        },
-        {
-          title: "Zen Master",
-          icon: "🧘",
-          description: "Log positive mood for 14 days",
-          isAchievement: false,
-          date: null,
-        },
-        {
-          title: "Task Crusher",
-          icon: "🚀",
-          description: "Completed 100+ tasks in a month",
-          isAchievement: false,
-          date: null,
-        },
-        {
-          title: "Knowledge Keeper",
-          icon: "📚",
-          description: "Created 200+ notes",
-          isAchievement: false,
-          date: null,
-        },
-        {
-          title: "Consistency King/Queen",
-          icon: "🏆",
-          description: "Journaled 1000 entries",
-          isAchievement: false,
-          date: null,
-        },
-        {
-          title: "Year-Round Journaler",
-          icon: "📅",
-          description: "Journaled every day for a year",
-          isAchievement: false,
-          date: null,
-        },
-      ],
-    },
+    // achievements: {
+    //   type: [achievementSchema],
+    //   default: [
+    //     {
+    //       title: "7-Day Streak",
+    //       icon: "🔥",
+    //       description: "Journaled 7 days in a row",
+    //       isAchievement: false,
+    //       date: null,
+    //     },
+    //     {
+    //       title: "30-Day Streak",
+    //       icon: "🌟",
+    //       description: "Journal 30 days consecutively",
+    //       isAchievement: false,
+    //       date: null,
+    //     },
+    //     {
+    //       title: "Goal Achiever",
+    //       icon: "🎯",
+    //       description: "Complete all tasks in a week",
+    //       isAchievement: false,
+    //       date: null,
+    //     },
+    //     {
+    //       title: "Budget Master",
+    //       icon: "💰",
+    //       description: "Stayed under budget for a month",
+    //       isAchievement: false,
+    //       date: null,
+    //     },
+    //     {
+    //       title: "Power User",
+    //       icon: "💎",
+    //       description: "Used the app for 100 days",
+    //       isAchievement: false,
+    //       date: null,
+    //     },
+    //     {
+    //       title: "Zen Master",
+    //       icon: "🧘",
+    //       description: "Log positive mood for 14 days",
+    //       isAchievement: false,
+    //       date: null,
+    //     },
+    //     {
+    //       title: "Task Crusher",
+    //       icon: "🚀",
+    //       description: "Completed 100+ tasks in a month",
+    //       isAchievement: false,
+    //       date: null,
+    //     },
+    //     {
+    //       title: "Knowledge Keeper",
+    //       icon: "📚",
+    //       description: "Created 200+ notes",
+    //       isAchievement: false,
+    //       date: null,
+    //     },
+    //     {
+    //       title: "Consistency King/Queen",
+    //       icon: "🏆",
+    //       description: "Journaled 1000 entries",
+    //       isAchievement: false,
+    //       date: null,
+    //     },
+    //     {
+    //       title: "Year-Round Journaler",
+    //       icon: "📅",
+    //       description: "Journaled every day for a year",
+    //       isAchievement: false,
+    //       date: null,
+    //     },
+    //   ],
+    // },
 
-    preferredLanguage: { type: String, default: "en" },
-    interests: { type: Array, default: ["Student"] },
+    appLanguage: { type: String, default: "en" },
+    // interests: { type: Array, default: ["Student"] },
 
     isEmailVerified: { type: Boolean, default: false },
+
     emailVerificationCode: { type: String },
     emailVerificationCodeExpires: { type: Date },
 
     /* ===============================
-       Password Reset
+      Password Reset
     ================================*/
     resetPasswordToken: { type: String },
     resetPasswordTokenExpires: { type: Date },
 
     isApproved: { type: Boolean, default: true },
+    appLockTimeout: { type: Number, default: 5, enum: [2, 5, 10, 15] }, // in minutes
 
     password: { type: String, required: true },
     appPassword: { type: String },
@@ -195,6 +217,7 @@ userSchema.pre("save", async function (next) {
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
+
 
 userSchema.methods.verifyPassword = function (password) {
   return bcrypt.compareSync(password, this.password);
