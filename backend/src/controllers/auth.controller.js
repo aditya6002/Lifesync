@@ -27,7 +27,7 @@ const generateOTP = () => {
  * @public
  * @description Register a new user
  * @body {name,username,email,password}
-*/
+ */
 const newUserRegister = async (req, res) => {
   try {
     const { name, username, email, password } = req.body; //interests
@@ -82,7 +82,7 @@ const newUserRegister = async (req, res) => {
       name,
       username,
       email,
-      password: await bcryptjs.hash(password, 10),
+      password,
       emailVerificationCode: hashedOtp,
       // interests,
       emailVerificationCodeExpires: Date.now() + 10 * 60 * 1000, // 10 min
@@ -115,9 +115,9 @@ const newUserRegister = async (req, res) => {
       message: "Signup successful",
       accessToken,
       user: {
-        id: newUser._id,
-        email: newUser.email,
-        name: newUser.name,
+        id: user._id,
+        email: user.email,
+        name: user.name,
       },
     });
   } catch (error) {
@@ -141,9 +141,8 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ message: "Email and password required" });
     }
 
-    console.log(ipAddress);
     const loginCheck = await rateLimiter.checkLoginAttempt(email, ipAddress);
-    console.log("Login check result:", loginCheck);
+
     if (!loginCheck.allowed) {
       return res.status(429).json({
         success: false,
@@ -154,6 +153,7 @@ const loginUser = async (req, res) => {
     }
 
     const user = await User.findOne({ email });
+
     if (!user) {
       await rateLimiter.recordFailedLoginAttempt(email, ipAddress);
       return res.status(401).json({ message: "Invalid credentials" });
@@ -218,7 +218,10 @@ const verifyEmailFunction = async (req, res) => {
     throw new AppError("OTP is required", 400);
   }
 
-  const decoded = jwt.verify(req.cookies.token, process.env.JWT_SECRET);
+  const decoded = jwt.verify(
+    req.cookies.accessToken,
+    process.env.ACCESS_JWT_SECRET,
+  );
   const user = await User.findById(decoded.id);
 
   if (!user) throw new AppError("User not found", 404);
@@ -232,7 +235,7 @@ const verifyEmailFunction = async (req, res) => {
     throw new AppError("OTP expired. Please request new one.", 400);
   }
 
-  const isValid = await bcryptjs.compare(otp, user.emailVerificationCode);
+  const isValid = bcryptjs.compare(otp, user.emailVerificationCode);
   if (!isValid) {
     throw new AppError("Invalid OTP", 400);
   }
@@ -307,8 +310,9 @@ const isUserLoggedIn = async (req, res) => {
     user: {
       name: user.name,
       username: user.username,
-      email: user.email,
-      isEmailVerified: user.isEmailVerified,
+      // email: user.email,
+      // isEmailVerified: user.isEmailVerified,
+      isAccountLocked: user.isAccountLocked,
     },
   });
 };
