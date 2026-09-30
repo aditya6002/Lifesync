@@ -62,6 +62,13 @@ const userSchema = new mongoose.Schema(
         "Username can only contain letters, numbers, underscores, and hyphens",
       ],
     },
+    gender: {
+      type: String,
+      required: true,
+      enum: ["male", "female", "others"],
+      lowercase: true,
+      trim: true,
+    },
     email: {
       type: String,
       required: true,
@@ -83,6 +90,10 @@ const userSchema = new mongoose.Schema(
     emailVerifyToken: {
       type: String,
       required: true,
+      default: null,
+    },
+    emailVerifyTokenExpires: {
+      type: Date,
       default: null,
     },
     password: {
@@ -112,6 +123,7 @@ const userSchema = new mongoose.Schema(
       default: "other",
       enum: profession,
       trim: true,
+      lowercase: true,
     },
     bio: {
       type: String,

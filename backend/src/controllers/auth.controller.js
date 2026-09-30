@@ -15,18 +15,21 @@ import emailService from "../services/email.services.js";
 const register = async (req, res) => {
   try {
     // Check if all required fields are present and not empty
-    const { name, username, email, password, profession } = req?.body || {};
+    const { name, username, email, password, profession, gender } =
+      req?.body || {};
     if (
       !name ||
       !username ||
       !email ||
       !password ||
       !profession ||
+      !gender ||
       !name.trim() ||
       !username.trim() ||
       !email.trim() ||
       !password.trim() ||
-      !profession.trim()
+      !profession.trim() ||
+      !gender.trim()
     ) {
       return res.status(400).json({
         message: "All fields are required",
@@ -88,6 +91,14 @@ const register = async (req, res) => {
       });
     }
 
+    // Validate gender
+    const genderValidation = ["male", "female", "others"];
+    if (!genderValidation.includes(gender.toLowerCase())) {
+      return res.status(400).json({
+        message: `Gender must be one of the following: ${genderValidation.join(", ")}`,
+      });
+    }
+
     // Check if the username or email already exists
     const existingUser = await User.findOne({ username });
     if (existingUser) {
@@ -112,6 +123,7 @@ const register = async (req, res) => {
     const newUser = new User({
       name,
       username,
+      gender,
       email,
       password,
       profession,
