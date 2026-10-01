@@ -127,15 +127,15 @@ const userSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-userSchema.methods.comparePassword = async (password) => {
+userSchema.methods.comparePassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
-userSchema.methods.verifyEmailToken = async (token) => {
+userSchema.methods.verifyEmailToken = async function (token) {
   return await bcrypt.compare(token, this.emailVerifyToken);
 };
 
-userSchema.methods.verifyResetPasswordToken = async (token) => {
+userSchema.methods.verifyResetPasswordToken = async function (token) {
   return await bcrypt.compare(token, this.resetPasswordToken);
 };
 

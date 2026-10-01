@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 import getOtp from "../helper/getOTP.js";
 import emailService from "../services/email.services.js";
+import AppError from "../middleware/AppError.middleware.js";
 
 /**
  * @desc Register a new user
@@ -171,7 +172,61 @@ const register = async (req, res) => {
   }
 };
 
-const login = async (req, res) => {};
+// Login
+const login = async (req, res) => {
+  const { loginId, password } = req.body;
+
+  const isUserExist = await User.findOne({
+    $or: [{ email: loginId }, { username: loginId }],
+  });
+
+  if (!isUserExist) {
+    throw new AppError(404, "User not found", true);
+  }
+
+  const isPasswordValid = await isUserExist.comparePassword(password);
+
+  if (!isPasswordValid) {
+    throw new AppError(401, "Invalid password", true);
+  }
+
+  const accessToken = jwt.sign(
+    { id: isUserExist._id },
+    process.env.JWT_SECRET,
+    { expiresIn: "20m" },
+  );
+
+  const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+  };
+
+  const refreshToken = jwt.sign(
+    { id: isUserExist._id },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: "7d" },
+  );
+
+  res.cookie("accessToken", cookieOptions, {
+    accessToken,
+    maxAge: 20 * 60 * 1000,
+  });
+  res.cookie("refreshToken", cookieOptions, {
+    refreshToken,
+    maxAge: 7 * 24 * 60 * 1000,
+  });
+
+  res.status(200).json({
+    message: "User logged in successfully",
+    user: {
+      id: isUserExist._id,
+      profilePic: isUserExist.profilePic,
+      username: isUserExist.username,
+    },
+    token: accessToken,
+  });
+};
 
 export default {
   register,

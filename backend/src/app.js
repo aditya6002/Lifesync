@@ -2,12 +2,14 @@
 import express from "express";
 import morgan from "morgan";
 import dotenv from "dotenv";
+import helmet from "helmet";
 
 // Importing Routes
 import authRoute from "../src/routes/auth.routes.js";
 
 // Importing Middleware
 import AppError from "./middleware/AppError.middleware.js";
+import globalLimiter from "./middleware/globalRateLimit.middleware.js";
 
 // Initializing Express App and dotenv
 const app = express();
@@ -16,17 +18,20 @@ dotenv.config();
 // Middleware Setup
 app.use(
   express.json({
-    limits: "10mb",
+    limits: "5mb",
     credentials: true,
   }),
 );
 app.use(
   express.urlencoded({
-    limits: "10mb",
+    limits: "5mb",
     extended: true,
   }),
 );
+app.set("trust proxy", 1);
 app.use(morgan("dev"));
+app.use(helmet());
+app.use(globalLimiter);
 
 // Health Check Endpoint
 app.get("/health", (_req, res) => {

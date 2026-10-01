@@ -12,7 +12,8 @@
     ],
     "auth":{
         "models":{
-            "user":[
+            "user":{
+                "property":[
                 "name",
                 "username - unique",
                 "gender",
@@ -30,37 +31,65 @@
                 "goals",
                 "appLanguage"
             ],
+            
             "methods":[
                 "comparePassword",
                 "verifyEmailToken",
                 "verifyResetPasswordToken"
             ],
-            "middleware/hooks":[
+            "dbMiddleware/hooks":[
                 "passwordHash"
             ]
+        }
         },
         "routes":{
-            "register":"POST - /api/v1/register"
+            "register":"POST - /api/v1/register",
+            "login":"POST - /api/v1/login"
         },
         "controllers":[
-            "registerController"
+            "registerController",
+            "loginController"
+        ],
+        "middleware":[
+            "authRateLimiter",
+            "authValidator"
+        ],
+        "utils":[
+            "loginValidator",
+            "registerValidator ?"
         ]
     },
 
 
+    "models":[
+        "user"
+    ],
 
+    "routes":[
+        "auth",
+        ""
+    ],
+    "controller":[
+        "auth"
+    ],
+
+    "config":[
+        "db.js db connector"
+    ],
 
     "helper":[
         "getOtp"
     ],
 
-    "globalMiddleware":[
+    "middleware":[
         "AppError",
-        "wrapAsync"
+        "auth/",
+        "globalRateLimit",
+        "validator"
     ],
 
     "utils":[
-        ""
+        "wrapAsync"
     ],
 
     "services":[
