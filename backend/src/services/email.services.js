@@ -1,4 +1,4 @@
-const nodemailer = require("nodemailer");
+import nodemailer from "nodemailer";
 
 // Helper function to send email verification
 async function sendEmail(email, emailVerificationToken) {
@@ -12,7 +12,7 @@ async function sendEmail(email, emailVerificationToken) {
     },
   });
 
-  const verificationLink = `http://localhost:8080/auth/verify-email?token=${emailVerificationToken}`;
+  const verificationLink = `${process.env.BACKEND_URL}/auth/verify-email?token=${emailVerificationToken}`;
 
   (async () => {
     const info = await transporter.sendMail({
@@ -155,8 +155,4 @@ async function sendOTP(email, otp) {
   })().catch(console.error);
 }
 
-module.exports = {
-  sendEmail,
-  sendOTP,
-  sendResetPasswordEmail,
-};
+export default { sendEmail, sendResetPasswordEmail, sendOTP };

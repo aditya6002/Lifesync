@@ -1,223 +1,150 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
-const countries = require("../utils/countries.js");
+import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
-const achievementSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  icon: { type: String, default: "" },
-  description: { type: String, default: "" },
-  isAchievement: { type: Boolean, default: false },
-  date: { type: Date, default: null },
-});
+const profession = [
+  "student",
+  "professional",
+  "freelancer",
+  "entrepreneur",
+  "retired",
+  "unemployed",
+  "artist",
+  "content_creator",
+  "researcher",
+  "educator",
+  "healthcare_worker",
+  "engineer",
+  "scientist",
+  "developer",
+  "designer",
+  "writer",
+  "musician",
+  "athlete",
+  "other",
+];
 
+/**
+
+ */
 const userSchema = new mongoose.Schema(
   {
-    // Basic user information
-    name: { type: String, required: true },
-    username: { type: String, required: true, unique: true, index: true },
-    email: { type: String, required: true, unique: true, index: true },
-    phoneNumber: { type: String, unique: true, sparse: true, default: "" },
-    country: { type: String, default: "India", enum: countries },
-
-    // workPlace: { type: String, default: "" },
-
-    // yearOrRole: {
-    //   type: String,
-    //   default: "Other",
-    //   enum: [
-    //     "1st Year",
-    //     "2nd Year",
-    //     "3rd Year",
-    //     "4th Year",
-    //     "Graduate",
-    //     "Postgraduate",
-    //     "Professional",
-    //     "Freelancer",
-    //     "Other",
-    //   ],
-    // },
-
+    name: {
+      type: String,
+      required: true,
+      lowercase: true,
+      trim: true,
+    },
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+      lowercase: true,
+      trim: true,
+      match: [
+        /^[a-zA-Z0-9_-]{3,20}$/,
+        "Username can only contain letters, numbers, underscores, and hyphens",
+      ],
+    },
+    gender: {
+      type: String,
+      required: true,
+      enum: ["male", "female", "others"],
+      lowercase: true,
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      immutable: true,
+      unique: true,
+      index: true,
+      lowercase: true,
+      trim: true,
+      match: [
+        /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+        "Please fill a valid email address",
+      ],
+    },
+    isEmailVerified: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    emailVerifyToken: {
+      type: String,
+      required: true,
+      default: null,
+    },
+    emailVerifyTokenExpires: {
+      type: Date,
+      default: null,
+    },
+    password: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    resetPasswordToken: {
+      type: String,
+      default: null,
+    },
+    resetPasswordTokenExpires: {
+      type: Date,
+      default: null,
+    },
+    passwordResetToken: {
+      type: String,
+      default: null,
+    },
+    profilePic: {
+      type: String,
+      default:
+        "https://images.unsplash.com/vector-1745610393569-9373c9c64117?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8YXZhdGFyc3xlbnwwfHwwfHx8MA%3D%3D",
+    },
     profession: {
       type: String,
       default: "other",
-      enum: [
-        "student",
-        "professional",
-        "freelancer",
-        "entrepreneur",
-        "retired",
-        "unemployed",
-        "artist",
-        "content_creator",
-        "researcher",
-        "educator",
-        "healthcare_worker",
-        "engineer",
-        "scientist",
-        "developer",
-        "designer",
-        "writer",
-        "musician",
-        "athlete",
-        "other",
-      ],
+      enum: profession,
+      trim: true,
+      lowercase: true,
     },
-
-    goal: { type: String, default: "" },
-    bio: { type: String, default: "" },
-
-    // achievements: {
-    //   type: [achievementSchema],
-    //   default: [
-    //     {
-    //       title: "7-Day Streak",
-    //       icon: "🔥",
-    //       description: "Journaled 7 days in a row",
-    //       isAchievement: false,
-    //       date: null,
-    //     },
-    //     {
-    //       title: "30-Day Streak",
-    //       icon: "🌟",
-    //       description: "Journal 30 days consecutively",
-    //       isAchievement: false,
-    //       date: null,
-    //     },
-    //     {
-    //       title: "Goal Achiever",
-    //       icon: "🎯",
-    //       description: "Complete all tasks in a week",
-    //       isAchievement: false,
-    //       date: null,
-    //     },
-    //     {
-    //       title: "Budget Master",
-    //       icon: "💰",
-    //       description: "Stayed under budget for a month",
-    //       isAchievement: false,
-    //       date: null,
-    //     },
-    //     {
-    //       title: "Power User",
-    //       icon: "💎",
-    //       description: "Used the app for 100 days",
-    //       isAchievement: false,
-    //       date: null,
-    //     },
-    //     {
-    //       title: "Zen Master",
-    //       icon: "🧘",
-    //       description: "Log positive mood for 14 days",
-    //       isAchievement: false,
-    //       date: null,
-    //     },
-    //     {
-    //       title: "Task Crusher",
-    //       icon: "🚀",
-    //       description: "Completed 100+ tasks in a month",
-    //       isAchievement: false,
-    //       date: null,
-    //     },
-    //     {
-    //       title: "Knowledge Keeper",
-    //       icon: "📚",
-    //       description: "Created 200+ notes",
-    //       isAchievement: false,
-    //       date: null,
-    //     },
-    //     {
-    //       title: "Consistency King/Queen",
-    //       icon: "🏆",
-    //       description: "Journaled 1000 entries",
-    //       isAchievement: false,
-    //       date: null,
-    //     },
-    //     {
-    //       title: "Year-Round Journaler",
-    //       icon: "📅",
-    //       description: "Journaled every day for a year",
-    //       isAchievement: false,
-    //       date: null,
-    //     },
-    //   ],
-    // },
-
-    appLanguage: { type: String, default: "en" },
-    // interests: { type: Array, default: ["Student"] },
-
-    isEmailVerified: { type: Boolean, default: false },
-
-    emailVerificationCode: { type: String },
-    emailVerificationCodeExpires: { type: Date },
-
-    /* ===============================
-      Password Reset
-    ================================*/
-    resetPasswordToken: { type: String },
-    resetPasswordTokenExpires: { type: Date },
-
-    isApproved: { type: Boolean, default: true },
-    appLockTimeout: { type: Number, default: 5, enum: [2, 5, 10, 15] }, // in minutes
-
-    password: { type: String, required: true },
-    appPassword: { type: String },
-
-    isAccountLocked: { type: Boolean, default: false },
-    accountLockedUntil: { type: Date },
-
-    profilePictureUrl: { type: String, default: null },
+    bio: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    goals: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    appLanguage: {
+      type: String,
+      default: "en",
+    },
   },
   { timestamps: true },
 );
 
-userSchema.methods.isAccountCurrentlyLocked = function () {
-  if (!this.isAccountLocked) return false;
-  if (!this.accountLockedUntil) return true;
-  return new Date() < this.accountLockedUntil;
+userSchema.methods.comparePassword = async function (password) {
+  return await bcrypt.compare(password, this.password);
 };
 
-userSchema.methods.lockAccount = function (durationMinutes) {
-  this.isAccountLocked = true;
-
-  if (durationMinutes) {
-    this.accountLockedUntil = new Date(
-      Date.now() + durationMinutes * 60 * 1000,
-    );
-  } else {
-    this.accountLockedUntil = null;
-  }
-
-  return this.save();
+userSchema.methods.verifyEmailToken = async function (token) {
+  return await bcrypt.compare(token, this.emailVerifyToken);
 };
 
-userSchema.methods.unlockAccount = function () {
-  this.isAccountLocked = false;
-  this.accountLockedUntil = null;
-  return this.save();
-};
-
-userSchema.methods.getRemainingLockTime = function () {
-  if (!this.isAccountLocked || !this.accountLockedUntil) return 0;
-
-  const remaining = this.accountLockedUntil - new Date();
-  return remaining > 0 ? Math.ceil(remaining / 1000) : 0;
-};
-
-userSchema.methods.addFailedEmailAttempt = function () {
-  return Promise.resolve();
-};
-
-userSchema.methods.resetFailedEmailAttempts = function () {
-  return Promise.resolve();
+userSchema.methods.verifyResetPasswordToken = async function (token) {
+  return await bcrypt.compare(token, this.resetPasswordToken);
 };
 
 userSchema.pre("save", async function () {
-  if (!this.isModified("password")) return;
+  if (!this.isModified("password")) return next();
 
   this.password = await bcrypt.hash(this.password, 10);
 });
 
-userSchema.methods.verifyPassword = function (password) {
-  return bcrypt.compare(password, this.password);
-};
-module.exports = mongoose.model("User", userSchema);
+const User = mongoose.model.User || mongoose.model("User", userSchema);
+
+export default User;

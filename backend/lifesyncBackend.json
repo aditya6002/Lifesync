@@ -1,0 +1,100 @@
+{
+    "appFeatures":[
+        "auth",
+        "journal",
+        "notes",
+        "expenses",
+        "profile",
+        "dashboard",
+        "calendar",
+        "activity",
+        ""
+    ],
+    "auth":{
+        "models":{
+            "user":{
+                "property":[
+                "name",
+                "username - unique",
+                "gender",
+                "email - unique",
+                "isEmailVerified",
+                "emailVerifyToken",
+                "emailVerifyTokenExpires",
+                "password",
+                "resetPasswordToken",
+                "resetPasswordTokenExpires",
+                "passwordResetToken",
+                "profilePic",
+                "profession",
+                "bio",
+                "goals",
+                "appLanguage"
+            ],
+            
+            "methods":[
+                "comparePassword",
+                "verifyEmailToken",
+                "verifyResetPasswordToken"
+            ],
+            "dbMiddleware/hooks":[
+                "passwordHash"
+            ]
+        }
+        },
+        "routes":{
+            "register":"POST - /api/v1/register",
+            "login":"POST - /api/v1/login"
+        },
+        "controllers":[
+            "registerController",
+            "loginController"
+        ],
+        "middleware":[
+            "authRateLimiter",
+            "authValidator"
+        ],
+        "utils":[
+            "loginValidator",
+            "registerValidator ?"
+        ]
+    },
+
+
+    "models":[
+        "user"
+    ],
+
+    "routes":[
+        "auth",
+        ""
+    ],
+    "controller":[
+        "auth"
+    ],
+
+    "config":[
+        "db.js db connector"
+    ],
+
+    "helper":[
+        "getOtp"
+    ],
+
+    "middleware":[
+        "AppError",
+        "auth/",
+        "globalRateLimit",
+        "validator"
+    ],
+
+    "utils":[
+        "wrapAsync"
+    ],
+
+    "services":[
+        "email.service.js"
+    ]
+
+
+}

@@ -1,724 +1,234 @@
-const bcryptjs = require("bcryptjs");
-const User = require("../models/user.model");
-const UsernameReservation = require("../models/usernameReservation.model");
-const jwt = require("jsonwebtoken");
-const crypto = require("crypto");
-const { AppError, ApiError } = require("../middleware/errors.middleware");
-const {
-  sendEmail,
-  sendOTP,
-  sendResetPasswordEmail,
-} = require("../services/mail.service");
-const rateLimiter = require("../helper/rateLimiter.helper");
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
-const getJWTToken = require("../utils/generateJwtToken.js");
-
-const getUserIP = require("../utils/getUserIP.util");
-
-const { uploadImage } = require("../services/image.service.js");
-
-// Utility: Generate OTP (6 digit)
-const generateOTP = () => {
-  return crypto.randomInt(100000, 1000000).toString();
-};
+import User from "../models/user.model.js";
+import getOtp from "../helper/getOTP.js";
+import emailService from "../services/email.services.js";
+import AppError from "../middleware/AppError.middleware.js";
 
 /**
- * POST /api/auth/register
- * @public
- * @description Register a new user
- * @body {name,username,email,password}
+ * @desc Register a new user
+ * @route POST /api/v1/auth/register
+ * @access Public
+ * @body { name, username, email, password, profession }
+ * @returns { user, token }
  */
-const newUserRegister = async (req, res) => {
+const register = async (req, res) => {
   try {
-    const { name, username, email, password } = req.body; //interests
-
-    const ipAddress = getUserIP(req);
-
-    if (!name || !username || !email || !password) {
-      //|| interests.length < 0
+    // Check if all required fields are present and not empty
+    const { name, username, email, password, profession, gender } =
+      req?.body || {};
+    if (
+      !name ||
+      !username ||
+      !email ||
+      !password ||
+      !profession ||
+      !gender ||
+      !name.trim() ||
+      !username.trim() ||
+      !email.trim() ||
+      !password.trim() ||
+      !profession.trim() ||
+      !gender.trim()
+    ) {
       return res.status(400).json({
-        success: false,
-        message: "Please provide all required fields",
-        code: "ALL_DETAILS",
-        details: "Required all details",
+        message: "All fields are required",
       });
     }
 
-    const signupCheck = await rateLimiter.checkSignupAttempt(ipAddress);
-
-    if (!signupCheck.allowed) {
-      return res.status(429).json({
-        success: false,
-        message: signupCheck.reason,
-        remainingTime: signupCheck.remainingTime,
+    if (name.length < 3 || name.length > 50) {
+      return res.status(400).json({
+        message: "Name must be between 3 and 50 characters",
       });
     }
 
-    // Check username
-    const existingUsername = await User.findOne({ username });
-    if (existingUsername) {
+    if (username.length < 3 || username.length > 30) {
+      return res.status(400).json({
+        message: "Username must be between 3 and 30 characters",
+      });
+    }
+
+    if (password.length < 6 || password.length > 100) {
+      return res.status(400).json({
+        message: "Password must be between 6 and 100 characters",
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        message: "Invalid email format",
+      });
+    }
+
+    // Validate profession
+    const validProfessions = [
+      "student",
+      "professional",
+      "freelancer",
+      "entrepreneur",
+      "retired",
+      "unemployed",
+      "artist",
+      "content_creator",
+      "researcher",
+      "educator",
+      "healthcare_worker",
+      "engineer",
+      "scientist",
+      "developer",
+      "designer",
+      "writer",
+      "musician",
+      "athlete",
+      "other",
+    ];
+
+    if (!validProfessions.includes(profession.toLowerCase())) {
+      return res.status(400).json({
+        message: `Profession must be one of the following: ${validProfessions.join(", ")}`,
+      });
+    }
+
+    // Validate gender
+    const genderValidation = ["male", "female", "others"];
+    if (!genderValidation.includes(gender.toLowerCase())) {
+      return res.status(400).json({
+        message: `Gender must be one of the following: ${genderValidation.join(", ")}`,
+      });
+    }
+
+    // Check if the username or email already exists
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
       return res.status(400).json({
         message: "Username already exists",
-        success: false,
-        code: "USERNAME_EXIST",
       });
     }
 
-    // Check email
     const existingEmail = await User.findOne({ email });
     if (existingEmail) {
-      await rateLimiter.recordFailedSignupAttempt(ipAddress, email);
-      return res.status(409).json({
+      return res.status(400).json({
         message: "Email already exists",
-        success: false,
-        code: "EMAIL_EXIST",
       });
     }
 
-    const otp = generateOTP();
-    const hashedOtp = await bcryptjs.hash(otp, 10);
+    // Generate OTP and hash it
+    const otp = await getOtp();
+    const salt = await bcrypt.genSalt(10);
+    const hashOtp = await bcrypt.hash(otp, salt);
+    const emailVerifyTokenExpires = new Date(new Date() + 15 * 60 * 1000); // 15 minutes from now
 
-    const user = await User.create({
+    const newUser = new User({
       name,
       username,
+      gender,
       email,
       password,
-      emailVerificationCode: hashedOtp,
-      // interests,
-      emailVerificationCodeExpires: Date.now() + 10 * 60 * 1000, // 10 min
+      profession,
+      emailVerifyToken: hashOtp,
+      emailVerifyTokenExpires,
     });
+    await newUser.save();
 
-    await sendOTP(email, otp);
+    await emailService.sendOTP(email, otp);
 
-    // Remove reserved username if exists
-    const reserved = await UsernameReservation.findOne({ username });
-    if (reserved) {
-      await UsernameReservation.findByIdAndDelete(reserved._id);
-    }
-
-    const accessToken = getJWTToken.getAccessToken(user);
-    const refreshToken = getJWTToken.getRefreshToken(user);
-
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+    // Generate access and refresh tokens
+    const accessToken = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
     });
+    const refreshToken = jwt.sign(
+      { id: newUser._id },
+      process.env.JWT_REFRESH_SECRET,
+      {
+        expiresIn: "7d",
+      },
+    );
+
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     res.status(201).json({
-      success: true,
-      message: "Signup successful",
-      accessToken,
+      message: "User registered successfully",
       user: {
-        id: user._id,
-        email: user.email,
-        name: user.name,
+        id: newUser._id,
+        profilePic: newUser.profilePic,
+        username: newUser.username,
       },
+      token: accessToken,
+      refreshToken,
     });
   } catch (error) {
-    console.error("Signup error:", error);
-    const ipAddress = getUserIP(req);
-    if (req.body.email) {
-      await rateLimiter.recordFailedSignupAttempt(ipAddress, req.body.email);
-    }
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-// LOGIN
-const loginUser = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    console.log("Login attempt:", { email, ip: getUserIP(req) });
-    const ipAddress = getUserIP(req);
-
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password required" });
-    }
-
-    const loginCheck = await rateLimiter.checkLoginAttempt(email, ipAddress);
-
-    if (!loginCheck.allowed) {
-      return res.status(429).json({
-        success: false,
-        message: loginCheck.reason,
-        remainingTime: loginCheck.remainingTime,
-        locked: loginCheck.locked,
-      });
-    }
-
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      await rateLimiter.recordFailedLoginAttempt(email, ipAddress);
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-
-    const isPasswordCorrect = await user.verifyPassword(password);
-    if (!isPasswordCorrect) {
-      await rateLimiter.recordFailedLoginAttempt(email, ipAddress);
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-
-    await rateLimiter.clearLoginAttempts(email);
-    const accessToken = getJWTToken.getAccessToken(user);
-    const refreshToken = getJWTToken.getRefreshToken(user);
-
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
-
-    console.log("Res this login successfully");
-    res.json({
-      success: true,
-      message: "Login successful",
-      accessToken,
-      user: {
-        id: user._id,
-        email: user.email,
-        name: user.name,
-      },
-    });
-  } catch (error) {
-    console.error("Login error:", error);
+    console.log("Register new User Error", error);
     res.status(500).json({
-      message: "Internal server error",
-      code: "INTERNAL_SERVER_ERROR",
-      details: { error: error.message },
+      message: "Internal Server Error",
     });
   }
 };
 
-// LOGOUT
-const logoutFunction = async (req, res) => {
-  res.clearCookie("token");
-  res.status(200).json({
-    success: true,
-    message: "User logged out successfully",
+// Login
+const login = async (req, res) => {
+  const { loginId, password } = req.body;
+
+  const isUserExist = await User.findOne({
+    $or: [{ email: loginId }, { username: loginId }],
   });
-};
 
-// VERIFY EMAIL
-const verifyEmailFunction = async (req, res) => {
-  const { otp } = req.body;
-
-  if (!otp) {
-    throw new AppError("OTP is required", 400);
+  if (!isUserExist) {
+    throw new AppError(404, "User not found", true);
   }
 
-  const decoded = jwt.verify(
-    req.cookies.accessToken,
-    process.env.ACCESS_JWT_SECRET,
+  const isPasswordValid = await isUserExist.comparePassword(password);
+
+  if (!isPasswordValid) {
+    throw new AppError(401, "Invalid password", true);
+  }
+
+  const accessToken = jwt.sign(
+    { id: isUserExist._id },
+    process.env.JWT_SECRET,
+    { expiresIn: "20m" },
   );
-  const user = await User.findById(decoded.id);
 
-  if (!user) throw new AppError("User not found", 404);
+  const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+  };
 
-  if (user.isEmailVerified) {
-    throw new AppError("Email already verified", 400);
-  }
+  const refreshToken = jwt.sign(
+    { id: isUserExist._id },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: "7d" },
+  );
 
-  // Expiry check
-  if (Date.now() > user.emailVerificationCodeExpires) {
-    throw new AppError("OTP expired. Please request new one.", 400);
-  }
-
-  const isValid = bcryptjs.compare(otp, user.emailVerificationCode);
-  if (!isValid) {
-    throw new AppError("Invalid OTP", 400);
-  }
-
-  user.isEmailVerified = true;
-  user.emailVerificationCode = undefined;
-  user.emailVerificationCodeExpires = undefined;
-
-  await user.save();
+  res.cookie("accessToken", cookieOptions, {
+    accessToken,
+    maxAge: 20 * 60 * 1000,
+  });
+  res.cookie("refreshToken", cookieOptions, {
+    refreshToken,
+    maxAge: 7 * 24 * 60 * 1000,
+  });
 
   res.status(200).json({
-    success: true,
-    message: "Email verified successfully",
-  });
-};
-
-// RESEND OTP
-const reSendEmailVerificationFunction = async (req, res) => {
-  const user = await User.findById(req.user.id);
-
-  if (!user) throw new AppError("User not found", 404);
-
-  if (user.isEmailVerified) {
-    throw new AppError("Email already verified", 400);
-  }
-
-  const otp = generateOTP();
-  user.emailVerificationCode = await bcryptjs.hash(otp, 10);
-  user.emailVerificationCodeExpires = Date.now() + 10 * 60 * 1000;
-
-  await user.save();
-  await sendOTP(user.email, otp);
-
-  res.status(200).json({
-    success: true,
-    message: "Verification email resent successfully",
-  });
-};
-
-// CHECK USERNAME
-const checkUsername = async (req, res) => {
-  const { username } = req.body;
-
-  if (!username) {
-    throw new AppError("Username required", 400);
-  }
-
-  const exists = await User.findOne({ username });
-  const reserved = await UsernameReservation.findOne({ username });
-
-  if (exists || reserved) {
-    throw new AppError("Username already taken", 409);
-  }
-
-  await UsernameReservation.create({ username });
-
-  res.status(201).json({
-    success: true,
-    message: "Username available",
-  });
-};
-
-// CHECK LOGIN
-const isUserLoggedIn = async (req, res) => {
-  const user = await User.findById(req.user.id);
-
-  if (!user) throw new AppError("User not found", 404);
-
-  res.status(200).json({
-    success: true,
-    message: "User logged in",
+    message: "User logged in successfully",
     user: {
-      name: user.name,
-      username: user.username,
-      // email: user.email,
-      // isEmailVerified: user.isEmailVerified,
-      isAccountLocked: user.isAccountLocked,
+      id: isUserExist._id,
+      profilePic: isUserExist.profilePic,
+      username: isUserExist.username,
     },
+    token: accessToken,
   });
 };
 
-// CHANGE PASSWORD
-const changePassword = async (req, res) => {
-  const { oldPassword, password, confirmPassword } = req.body;
-
-  if (!oldPassword || !password || !confirmPassword) {
-    throw new AppError("Please provide all details", 400);
-  }
-
-  if (password !== confirmPassword) {
-    throw new AppError("Passwords do not match", 400);
-  }
-
-  const user = await User.findById(req.user.id);
-  if (!user) throw new AppError("User not found", 404);
-
-  const isMatch = await bcryptjs.compare(oldPassword, user.password);
-  if (!isMatch) {
-    throw new AppError("Invalid old password", 401);
-  }
-
-  user.password = await bcryptjs.hash(password, 10);
-  await user.save();
-
-  res.status(200).json({
-    success: true,
-    message: "Password changed successfully",
-  });
-};
-
-const deleteUser = (req, res) => {
-  const user = User.findById({ _id: req.user.id });
-};
-
-const verifyResetToken = async (req, res) => {
-  const { resetToken } = req.params;
-  const { password, confirmPassword } = req.body;
-
-  if (
-    !password ||
-    !password.trim() ||
-    !confirmPassword ||
-    !confirmPassword.trim()
-  ) {
-    throw new AppError("All details are required", 400);
-  } else if (password !== confirmPassword) {
-    throw new AppError("Password does not matched", 401);
-  }
-
-  let decoded;
-  try {
-    decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
-  } catch (err) {
-    throw new AppError("Invalid or expired token", 401);
-  }
-
-  console.log(decoded);
-  const user = await User.findById(decoded.id);
-
-  if (!user) {
-    throw new AppError("User not found", 404);
-  }
-
-  let tokenSendAgain = false;
-
-  if (user.resetPasswordTokenExpires < new Date()) {
-    tokenSendAgain = true;
-  }
-
-  if (user.resetPasswordToken !== resetToken) {
-    tokenSendAgain = true;
-  }
-
-  if (tokenSendAgain) {
-    const verifyToken = await generateToken(user._id, "10m");
-    user.resetPasswordToken = verifyToken;
-    user.resetPasswordTokenExpires = new Date(Date.now() + 10 * 60 * 1000);
-    await user.save();
-    sendResetPasswordEmail(user.email, verifyToken);
-    throw new AppError("Invalid token", 401);
-  }
-
-  const hashPassword = await bcryptjs.hash(password, 10);
-  user.resetPasswordToken = null;
-  user.resetPasswordTokenExpires = null;
-  user.password = hashPassword;
-  await user.save();
-
-  res
-    .status(200)
-    .json({ success: true, message: "Password changed successfully" });
-};
-
-const sendResetPassLink = async (req, res) => {
-  const { email } = req.body;
-
-  if (!email || !email.trim()) {
-    throw new AppError("Email is required", 400);
-  }
-
-  const user = await User.findOne({ email });
-  if (!user) {
-    throw new AppError("User does not exist", 404);
-  }
-
-  if (
-    user.resetPasswordTokenExpires &&
-    user.resetPasswordTokenExpires > Date.now()
-  ) {
-    throw new AppError("Reset link already sent. Please wait.", 429);
-  }
-
-  const token = generateToken(user._id, "10m");
-
-  user.resetPasswordToken = token;
-  user.resetPasswordTokenExpires = Date.now() + 10 * 60 * 1000;
-
-  await user.save();
-  await sendResetPasswordEmail(email, token);
-
-  res.status(200).json({
-    success: true,
-    message: "Reset password link sent successfully",
-  });
-};
-
-const refreshToken = async (req, res) => {
-  const refreshToken = req.cookies?.refreshToken || req.headers.split(" ")[1];
-
-  if (!refreshToken) {
-    return res.status(401).json({
-      message: "Refresh token missing",
-      code: "REFRESH_TOKEN_MISSING",
-    });
-  }
-
-  try {
-    const decoded = jwt.verify(refreshToken, process.env.REFRESH_JWT_SECRET);
-    const user = req.user;
-
-    if (!user) {
-      return res
-        .status(401)
-        .json({ message: "User not found", code: "USER_NOT_FOUND" });
-    }
-
-    const newAccessToken = getJWTToken.getAccessToken(user);
-    const newRefreshToken = getJWTToken.getRefreshToken(user);
-
-    res.cookie("accessToken", newAccessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
-    res.cookie("refreshToken", newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
-
-    res.json({
-      success: true,
-      message: "Token refreshed successfully",
-      accessToken: newAccessToken,
-    });
-  } catch (error) {
-    console.error("Refresh token error:", error);
-    res.status(401).json({
-      message: "Invalid or expired refresh token",
-      code: "INVALID_REFRESH_TOKEN",
-    });
-  }
-};
-
-const forgotPasswordController = async (req, res) => {
-  try {
-    const { email } = req.body;
-    const ipAddress = getUserIP(req);
-
-    if (!email) {
-      return res.status(400).json({ message: "Email required" });
-    }
-
-    // ✅ Step 1: Check rate limit
-    const resetCheck = await rateLimiter.checkPasswordResetAttempt(
-      email,
-      ipAddress,
-    );
-
-    if (!resetCheck.allowed) {
-      return res.status(429).json({
-        success: false,
-        message: resetCheck.reason,
-        remainingTime: resetCheck.remainingTime,
-      });
-    }
-
-    // ✅ Step 2: Find user
-    const user = await User.findOne({ email });
-    if (!user) {
-      // Record failed attempt (security: don't reveal if email exists)
-      await rateLimiter.recordFailedPasswordResetAttempt(email, ipAddress);
-      // But send success message for security
-      return res.json({
-        success: true,
-        message: "If email exists, reset link has been sent",
-      });
-    }
-
-    // ✅ Step 3: Generate reset token
-    const resetToken = user.generatePasswordResetToken();
-    await user.save();
-
-    // ✅ Step 4: Send email (ye tumhara function hoga)
-    // await sendPasswordResetEmail(user.email, resetToken);
-
-    // ✅ Step 5: Clear attempts on success
-    await rateLimiter.clearPasswordResetAttempts(email);
-
-    res.json({
-      success: true,
-      message: "Password reset link sent to email",
-    });
-  } catch (error) {
-    console.error("Password reset error:", error);
-    const ipAddress = getUserIP(req);
-    await rateLimiter.recordFailedPasswordResetAttempt(
-      req.body.email,
-      ipAddress,
-    );
-
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-const verifyOTPController = async (req, res) => {
-  try {
-    const { email, otp } = req.body;
-    const ipAddress = getUserIP(req);
-
-    if (!email || !otp) {
-      return res.status(400).json({ message: "Email and OTP required" });
-    }
-
-    // ✅ Step 1: Check rate limit
-    const otpCheck = await rateLimiter.checkOtpVerificationAttempt(
-      email,
-      ipAddress,
-    );
-
-    if (!otpCheck.allowed) {
-      return res.status(429).json({
-        success: false,
-        message: otpCheck.reason,
-        remainingTime: otpCheck.remainingTime,
-      });
-    }
-
-    // ✅ Step 2: Verify OTP (ye tumhara function)
-    const user = await User.findOne({ email });
-    if (!user || !user.verifyOTP(otp)) {
-      // Record failed attempt
-      await rateLimiter.recordFailedOtpVerificationAttempt(email, ipAddress);
-      return res.status(400).json({ message: "Invalid OTP" });
-    }
-
-    // ✅ Step 3: Clear OTP verification attempts
-    await rateLimiter.clearOtpVerificationAttempts(email);
-
-    // ✅ Step 4: Update user
-    user.isVerified = true;
-    await user.save();
-
-    res.json({
-      success: true,
-      message: "Email verified successfully",
-    });
-  } catch (error) {
-    console.error("OTP verification error:", error);
-    const ipAddress = getUserIP(req);
-    await rateLimiter.recordFailedOtpVerificationAttempt(
-      req.body.email,
-      ipAddress,
-    );
-
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-const adminRoute = async (req, res) => {
-  try {
-    const stats = await rateLimiter.getStatistics();
-    res.json({ success: true, data: stats });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-const adminRateLimitUnlockController = async (req, res) => {
-  try {
-    const { identifier, operationType } = req.body;
-
-    if (!identifier) {
-      return res.status(400).json({ message: "Identifier required" });
-    }
-
-    const result = await rateLimiter.forceUnlock(
-      identifier,
-      operationType || "login",
-    );
-
-    if (result.success) {
-      return res.json(result);
-    }
-
-    res.status(404).json(result);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-/**
- * Get all rate limit records for an identifier
- * @route GET /admin/rate-limit/:identifier
- * @access Admin only
- */
-const adminRateLimitIdentifierController = async (req, res) => {
-  try {
-    const { identifier } = req.params;
-    const result = await rateLimiter.getRecordsByIdentifier(identifier);
-
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-const addProfilePicture = async (req, res) => {
-  try {
-    const user = req.user;
-
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "No file uploaded",
-      });
-    }
-
-    const file = req.file;
-    if (!file.mimetype.startsWith("image/")) {
-      return res.status(400).json({
-        success: false,
-        message: "Only image files are allowed",
-      });
-    }
-
-    const uploadResult = await uploadImage(file);
-
-    const updatedUser = await User.findByIdAndUpdate(
-      user._id,
-      { profilePictureUrl: uploadResult.secure_url },
-      { new: true },
-    );
-
-    res.status(200).json({
-      success: true,
-      message: "Profile picture updated successfully",
-      profilePicture: uploadResult.secure_url,
-      user: {
-        updatedUser,
-      },
-    });
-  } catch (error) {
-    console.log("Profile route error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-      code: "INTERNAL_SERVER_ERROR",
-    });
-  }
-};
-
-const getProfile = (req, res) => {};
-
-module.exports = {
-  newUser: newUserRegister,
-  login: loginUser,
-  logout: logoutFunction,
-  verifyEmail: verifyEmailFunction,
-  reSendEmailVerification: reSendEmailVerificationFunction,
-  checkUsername,
-  isUserLoggedIn,
-  changePassword,
-  deleteUser,
-  sendResetPassLink,
-  verifyResetToken,
-  refreshToken,
-  forgotPasswordController,
-  verifyOTPController,
-  adminRoute,
-  adminRateLimitUnlockController,
-  adminRateLimitIdentifierController,
-  addProfilePicture,
-  getProfile,
+export default {
+  register,
+  login,
 };
