@@ -24,23 +24,7 @@ const profession = [
 ];
 
 /**
- * @body {
- *  name: string
- *  username
- *  email
- *  isEmailVerified
- *  emailVerifyToken
- *  password
- *  resetPasswordToken
- *  resetPasswordTokenExpires
- *  passwordResetToken
- *  profilePic
- *  profession
- *  bio
- *  goal
- *
- *
- * }
+
  */
 const userSchema = new mongoose.Schema(
   {
