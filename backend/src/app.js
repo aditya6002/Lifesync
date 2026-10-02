@@ -3,6 +3,7 @@ import express from "express";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import helmet from "helmet";
+import cookieParser from "cookie-parser";
 
 // Importing Routes
 import authRoute from "../src/routes/auth.routes.js";
@@ -31,6 +32,7 @@ app.use(
 app.set("trust proxy", 1);
 app.use(morgan("dev"));
 app.use(helmet());
+app.use(cookieParser());
 app.use(globalLimiter);
 
 // Health Check Endpoint

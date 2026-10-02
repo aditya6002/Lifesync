@@ -1,7 +1,13 @@
+// Import necessary packages
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-import User from "../models/user.model.js";
+// Import the User model
+import User from "../models/auth/user.model.js";
+import BlackListToken from "../models/auth/blackListToken.model.js";
+import ReserveUsername from "../models/auth/reserveUsername.model.js";
+
+// Import helper functions and services
 import getOtp from "../helper/getOTP.js";
 import emailService from "../services/email.services.js";
 import AppError from "../middleware/AppError.middleware.js";
@@ -93,6 +99,42 @@ const register = async (req, res) => {
 };
 
 /**
+ * @desc Reserve an username for 1 hour
+ * @route POST /api/v1/auth/username
+ * @access Public
+ * @body { username }
+ * @return { true/false, username }
+ * */
+const reserveUsername = async (req, res) => {
+  let { username } = req.body;
+
+  username = username.toLowerCase();
+  const existingUser = await User.findOne({ username });
+  const reservedUser = await ReserveUsername.findOne({ username });
+
+  if (existingUser || reservedUser) {
+    return res.status(400).json({
+      message: "Username already exists",
+      success: false,
+    });
+  } else {
+    const newReservedUser = new ReserveUsername({
+      username: username,
+    });
+
+    await newReservedUser.save();
+    res.status(200).json({
+      message: "Username is available",
+      success: true,
+      username: {
+        username: newReservedUser.username,
+        _id: newReservedUser._id,
+      },
+    });
+  }
+};
+
+/**
  * @desc Login a user
  * @route POST /api/v1/auth/login
  * @access Public
@@ -155,7 +197,46 @@ const login = async (req, res) => {
   });
 };
 
+/**
+ * @desc Logout user
+ * @route POST /api/v1/auth/logout
+ * @access @protected
+ * @cookies {accessToken,refreshToken}
+ * @returns {}
+ */
+const logout = async (req, res) => {
+  const user = req.user;
+  if (!user) {
+    throw new AppError(401, "User not logged in", true);
+  }
+
+  const accessToken = req.cookies.accessToken;
+  const refreshToken = req.cookies.refreshToken;
+
+  if (!accessToken || !refreshToken) {
+    throw new AppError(401, "User not logged in", true);
+  }
+
+  // Add the tokens to the blacklist
+  const blackListToken = new BlackListToken({
+    accessToken,
+    refreshToken,
+  });
+
+  await blackListToken.save();
+
+  // Clear the cookies
+  res.clearCookie("accessToken");
+  res.clearCookie("refreshToken");
+
+  res.status(200).json({
+    message: "User logged out successfully",
+  });
+};
+
 export default {
   register,
+  reserveUsername,
   login,
+  logout,
 };

@@ -41,28 +41,41 @@
                 "passwordHash"
             ]},
             "blackListToken":{
-                
+                "property":[
+                    "accessToken",
+                    "refreshToken"
+                ]
+            },
+            "reserveUsername":{
+                "property":["username"]
             }
         },
         "routes":{
             "register":"POST - /api/v1/register",
             "login":"POST - /api/v1/login",
-            "logout":"POST - /api/v1/logout ?"
+            "logout":"POST - /api/v1/logout",
+            "reserveUsername":"POST - /api/v1/auth/username"
         },
         "controllers":[
             "registerController",
+            "reserveUsername",
             "loginController",
-            "logoutController ?"
+            "logoutController"
         ],
         "middleware":[
-            "authRateLimiter",
-            "authValidator",
-            "isUserLogin ?"
+            {
+                "authRateLimiter":[
+                    "logoutLimiter",
+                    "usernameLimiter",
+                    "registerLimiter",
+                    "loginLimiter"
+                    ]
+            }
         ],
         "utils":[
             "loginValidator",
-            "registerValidator"
-
+            "registerValidator",
+            "reserveUsername"
         ]
     },
 
@@ -91,10 +104,12 @@
         "AppError",
         "auth/",
         "globalRateLimit",
+        "isUserLogin",
         "validator"
     ],
 
     "utils":[
+        "auth/",
         "wrapAsync"
     ],
 
