@@ -9,6 +9,7 @@ import {
   registerLimiter,
   usernameLimiter,
   logoutLimiter,
+  otpLimiter,
 } from "../middleware/auth/authRateLimit.middleware.js";
 
 // Import controllers, validators
@@ -17,6 +18,7 @@ import authController from "../controllers/auth.controller.js";
 import usernameValidator from "../utils/auth/username.validator.js";
 import loginValidationRules from "../utils/auth/login.validators.js";
 import registerValidator from "../utils/auth/register.validators.js";
+import otpValidator from "../utils/auth/otp.validator.js";
 import isUserLogin from "../middleware/isUserLogin.middleware.js";
 
 // Create a new router instance
@@ -25,7 +27,7 @@ const routes = new Router();
 /**
  * @desc Register a new user
  * @route POST /api/v1/auth/register
- * @access Public
+ * @access @public
  * @body { name, username, email, password, profession, gender  }
  * @returns { user, token }
  */
@@ -38,18 +40,52 @@ routes.post(
 );
 
 /**
+ * @desc Verify email by OTP
+ * @route POST - /api/v1/auth/verify-email
+ * @access @private
+ * @body { otp }
+ * @cookie { accessToken, refreshToken }
+ * @returns {}
+ * */
+
+routes.post(
+  "/verify-email",
+  isUserLogin,
+  otpLimiter,
+  otpValidator,
+  validate,
+  wrapAsync(authController.verifyEmailOtp),
+);
+
+/**
+ * @desc Send Email for verification
+ * @route POST - /api/v1/auth/send-email
+ * @access @private
+ * @body {}
+ * @cookie { accessToken, refreshToken }
+ * @returns {}
+ */
+routes.post(
+  "/send-email",
+  isUserLogin,
+  otpLimiter,
+  wrapAsync(authController.sendOtp),
+);
+
+/**
  * @desc Reserve an username for 1 hour
  * @route POST /api/v1/auth/username
  * @access Public
  * @body { username }
  * @return { true/false, username }
- * */
+ *
+ */
 routes.post(
   "/username",
   usernameLimiter,
   usernameValidator,
   validate,
-  authController.reserveUsername,
+  wrapAsync(authController.reserveUsername),
 );
 
 /**
