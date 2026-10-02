@@ -9,6 +9,8 @@ import {
   registerLimiter,
   usernameLimiter,
   logoutLimiter,
+  otpLimiter,
+  changePasswordLimit,
 } from "../middleware/auth/authRateLimit.middleware.js";
 
 // Import controllers, validators
@@ -17,7 +19,10 @@ import authController from "../controllers/auth.controller.js";
 import usernameValidator from "../utils/auth/username.validator.js";
 import loginValidationRules from "../utils/auth/login.validators.js";
 import registerValidator from "../utils/auth/register.validators.js";
+import otpValidator from "../utils/auth/otp.validator.js";
 import isUserLogin from "../middleware/isUserLogin.middleware.js";
+import editProfileValidator from "../utils/auth/editProfileValidator.js";
+import changePasswordValidator from "../utils/auth/changePassword.validator.js";
 
 // Create a new router instance
 const routes = new Router();
@@ -25,7 +30,7 @@ const routes = new Router();
 /**
  * @desc Register a new user
  * @route POST /api/v1/auth/register
- * @access Public
+ * @access @public
  * @body { name, username, email, password, profession, gender  }
  * @returns { user, token }
  */
@@ -38,18 +43,52 @@ routes.post(
 );
 
 /**
+ * @desc Verify email by OTP
+ * @route POST - /api/v1/auth/verify-email
+ * @access @private
+ * @body { otp }
+ * @cookie { accessToken, refreshToken }
+ * @returns {}
+ * */
+
+routes.post(
+  "/verify-email",
+  isUserLogin,
+  otpLimiter,
+  otpValidator,
+  validate,
+  wrapAsync(authController.verifyEmailOtp),
+);
+
+/**
+ * @desc Send Email for verification
+ * @route POST - /api/v1/auth/send-email
+ * @access @private
+ * @body {}
+ * @cookie { accessToken, refreshToken }
+ * @returns {}
+ */
+routes.post(
+  "/send-email",
+  isUserLogin,
+  otpLimiter,
+  wrapAsync(authController.sendOtp),
+);
+
+/**
  * @desc Reserve an username for 1 hour
  * @route POST /api/v1/auth/username
  * @access Public
  * @body { username }
  * @return { true/false, username }
- * */
+ *
+ */
 routes.post(
   "/username",
   usernameLimiter,
   usernameValidator,
   validate,
-  authController.reserveUsername,
+  wrapAsync(authController.reserveUsername),
 );
 
 /**
@@ -79,6 +118,57 @@ routes.post(
   logoutLimiter,
   isUserLogin,
   wrapAsync(authController.logout),
+);
+
+/**
+ * @desc Get current user details
+ * @route GET /api/v1/auth/me
+ * @access @private
+ * @cookie { refreshToken }
+ * @returns { user }
+ */
+routes.get("/me", wrapAsync(authController.getMe));
+
+/**
+ * @desc Get current user details
+ * @route GET /api/v1/auth/profile
+ * @access @private
+ * @cookie { accessToken }
+ * @returns { user }
+ */
+routes.get("/profile", isUserLogin, wrapAsync(authController.profile));
+
+/**
+ * @desc Edit current user details
+ * @route POST /api/v1/auth/profile
+ * @access @private
+ * @body { user }
+ * @cookie { accessToken }
+ * @returns { user }
+ */
+routes.post(
+  "/profile",
+  isUserLogin,
+  editProfileValidator,
+  validate,
+  wrapAsync(authController.editProfile),
+);
+
+/**
+ * @desc Change password for current user
+ * @route POST /api/v1/auth/change-password
+ * @access @private
+ * @body { oldPassword, newPassword }
+ * @cookie { accessToken }
+ * @returns {}
+ */
+routes.post(
+  "/change-password",
+  changePasswordLimit,
+  isUserLogin,
+  changePasswordValidator,
+  validate,
+  wrapAsync(authController.changePassword),
 );
 
 export default routes;

@@ -54,13 +54,17 @@
             "register":"POST - /api/v1/register",
             "login":"POST - /api/v1/login",
             "logout":"POST - /api/v1/logout",
-            "reserveUsername":"POST - /api/v1/auth/username"
+            "reserveUsername":"POST - /api/v1/auth/username",
+            "otp verification":"POST - /api/v1/auth/verify-email",
+            "send otp":"POST - /api/v1/auth/send-otp"
         },
         "controllers":[
             "registerController",
             "reserveUsername",
             "loginController",
-            "logoutController"
+            "logoutController",
+            "verifyOtp",
+            "sendOtp"
         ],
         "middleware":[
             {
@@ -68,14 +72,18 @@
                     "logoutLimiter",
                     "usernameLimiter",
                     "registerLimiter",
-                    "loginLimiter"
+                    "loginLimiter",
+                    "otpLimiter"
+                    
                     ]
             }
         ],
         "utils":[
+            "otpValidator",
             "loginValidator",
             "registerValidator",
-            "reserveUsername"
+            "reserveUsername",
+            "otpValidator"
         ]
     },
 

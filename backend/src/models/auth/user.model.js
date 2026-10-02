@@ -73,7 +73,6 @@ const userSchema = new mongoose.Schema(
     },
     emailVerifyToken: {
       type: String,
-      required: true,
       default: null,
     },
     emailVerifyTokenExpires: {
@@ -140,7 +139,7 @@ userSchema.methods.verifyResetPasswordToken = async function (token) {
 };
 
 userSchema.pre("save", async function () {
-  if (!this.isModified("password")) return next();
+  if (!this.isModified("password")) return;
 
   this.password = await bcrypt.hash(this.password, 10);
 });
