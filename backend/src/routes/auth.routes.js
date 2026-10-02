@@ -10,6 +10,7 @@ import {
   usernameLimiter,
   logoutLimiter,
   otpLimiter,
+  changePasswordLimit,
 } from "../middleware/auth/authRateLimit.middleware.js";
 
 // Import controllers, validators
@@ -20,6 +21,8 @@ import loginValidationRules from "../utils/auth/login.validators.js";
 import registerValidator from "../utils/auth/register.validators.js";
 import otpValidator from "../utils/auth/otp.validator.js";
 import isUserLogin from "../middleware/isUserLogin.middleware.js";
+import editProfileValidator from "../utils/auth/editProfileValidator.js";
+import changePasswordValidator from "../utils/auth/changePassword.validator.js";
 
 // Create a new router instance
 const routes = new Router();
@@ -115,6 +118,57 @@ routes.post(
   logoutLimiter,
   isUserLogin,
   wrapAsync(authController.logout),
+);
+
+/**
+ * @desc Get current user details
+ * @route GET /api/v1/auth/me
+ * @access @private
+ * @cookie { refreshToken }
+ * @returns { user }
+ */
+routes.get("/me", wrapAsync(authController.getMe));
+
+/**
+ * @desc Get current user details
+ * @route GET /api/v1/auth/profile
+ * @access @private
+ * @cookie { accessToken }
+ * @returns { user }
+ */
+routes.get("/profile", isUserLogin, wrapAsync(authController.profile));
+
+/**
+ * @desc Edit current user details
+ * @route POST /api/v1/auth/profile
+ * @access @private
+ * @body { user }
+ * @cookie { accessToken }
+ * @returns { user }
+ */
+routes.post(
+  "/profile",
+  isUserLogin,
+  editProfileValidator,
+  validate,
+  wrapAsync(authController.editProfile),
+);
+
+/**
+ * @desc Change password for current user
+ * @route POST /api/v1/auth/change-password
+ * @access @private
+ * @body { oldPassword, newPassword }
+ * @cookie { accessToken }
+ * @returns {}
+ */
+routes.post(
+  "/change-password",
+  changePasswordLimit,
+  isUserLogin,
+  changePasswordValidator,
+  validate,
+  wrapAsync(authController.changePassword),
 );
 
 export default routes;

@@ -51,6 +51,18 @@ const otpLimiter = rateLimit({
   },
 });
 
+const changePasswordLimit = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000,
+  max: 2,
+  standardHeaders: "draft-6",
+  legacyHeaders: false,
+  message: {
+    success: false,
+    statusCode: 429,
+    message: "Too many attempts, please try again later",
+  },
+});
+
 const logoutLimiter = loginLimiter;
 export {
   loginLimiter,
@@ -58,4 +70,5 @@ export {
   usernameLimiter,
   logoutLimiter,
   otpLimiter,
+  changePasswordLimit,
 };
