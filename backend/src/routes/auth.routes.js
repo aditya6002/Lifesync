@@ -26,6 +26,7 @@ import editProfileValidator from "../utils/auth/editProfileValidator.js";
 import changePasswordValidator from "../utils/auth/changePassword.validator.js";
 import emailValidation from "../utils/auth/email.validator.js";
 import resetPasswordValidator from "../utils/auth/resetPassword.validator.js";
+import passwordValidator from "../utils/auth/passwordValidator.js";
 
 // Create a new router instance
 const routes = new Router();
@@ -188,6 +189,20 @@ routes.post(
   emailValidation,
   validate,
   wrapAsync(authController.resetPassword),
+);
+
+routes.delete(
+  "/delete-account",
+  isUserLogin,
+  passwordValidator,
+  validate,
+  wrapAsync(authController.deleteUser),
+);
+
+routes.post(
+  "/activate-account",
+  isUserLogin,
+  wrapAsync(authController.activateAccount),
 );
 
 export default routes;

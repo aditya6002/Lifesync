@@ -4,6 +4,10 @@ import jwt from "jsonwebtoken";
 
 // Import the User model
 import User from "../models/auth/user.model.js";
+import Task from "../models/features/task.model.js";
+import Note from "../models/features/note.model.js";
+import Journal from "../models/features/journal.model.js";
+import Expense from "../models/features/expense.model.js";
 import BlackListToken from "../models/auth/blackListToken.model.js";
 import ReserveUsername from "../models/auth/reserveUsername.model.js";
 
@@ -591,8 +595,6 @@ const setNewPassword = async (req, res) => {
     throw new AppError(400, "Token has expired", true);
   }
 
-  
-
   user.password = newPassword;
   user.userVerifyToken = null;
   user.userVerifyTokenExpires = null;
@@ -601,6 +603,104 @@ const setNewPassword = async (req, res) => {
 
   res.status(200).json({
     message: "Password reset successfully",
+  });
+};
+
+// Delete user and all associated data
+const deleteUser = async (req, res) => {
+  const user = req.user;
+
+  if (!user) {
+    throw new AppError(400, "User not log in", true);
+  }
+
+  user.deleteIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Set deletion date to 30 days from now
+
+  for (const journalId of user.journals) {
+    const journal = await Journal.findById(journalId);
+    if (journal) {
+      journal.deleteIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      await journal.save();
+    }
+  }
+
+  for (const taskId of user.tasks) {
+    const task = await Task.findById(taskId);
+    if (task) {
+      task.deleteIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      await task.save();
+    }
+  }
+
+  for (const noteId of user.notes) {
+    const note = await Note.findById(noteId);
+    if (note) {
+      note.deleteIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      await note.save();
+    }
+  }
+
+  for (const expenseId of user.expenses) {
+    const expense = await Expense.findById(expenseId);
+    if (expense) {
+      expense.deleteIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      await expense.save();
+    }
+  }
+
+  await user.save();
+
+  res.status(200).json({
+    message: "User deleted successfully",
+  });
+};
+
+// Activate user and all associated data
+const activateUser = async (req, res) => {
+  const user = req.user;
+
+  if (!user) {
+    throw new AppError(400, "User not log in", true);
+  }
+
+  user.deleteIn = null;
+
+  for (const journalId of user.journals) {
+    const journal = await Journal.findById(journalId);
+    if (journal) {
+      journal.deleteIn = null;
+      await journal.save();
+    }
+  }
+
+  for (const taskId of user.tasks) {
+    const task = await Task.findById(taskId);
+    if (task) {
+      task.deleteIn = null;
+      await task.save();
+    }
+  }
+
+  for (const noteId of user.notes) {
+    const note = await Note.findById(noteId);
+    if (note) {
+      note.deleteIn = null;
+      await note.save();
+    }
+  }
+
+  for (const expenseId of user.expenses) {
+    const expense = await Expense.findById(expenseId);
+    if (expense) {
+      expense.deleteIn = null;
+      await expense.save();
+    }
+  }
+
+  await user.save();
+
+  res.status(200).json({
+    message: "User activated successfully",
   });
 };
 
@@ -617,4 +717,6 @@ export default {
   changePassword,
   resetPassword,
   setNewPassword,
+  deleteUser,
+  activateUser,
 };
