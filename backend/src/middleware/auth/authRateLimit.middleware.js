@@ -63,6 +63,19 @@ const changePasswordLimit = rateLimit({
   },
 });
 
+const resetPassword = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000, // 24 hour
+  max: 4,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: {
+    success: false,
+    statusCode: 429,
+    message:
+      "Too many login attempts from this IP, please try again after 24 hours",
+  },
+});
+
 const logoutLimiter = loginLimiter;
 export {
   loginLimiter,
@@ -71,4 +84,5 @@ export {
   logoutLimiter,
   otpLimiter,
   changePasswordLimit,
+  resetPassword,
 };

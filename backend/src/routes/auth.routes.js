@@ -11,6 +11,7 @@ import {
   logoutLimiter,
   otpLimiter,
   changePasswordLimit,
+  resetPassword,
 } from "../middleware/auth/authRateLimit.middleware.js";
 
 // Import controllers, validators
@@ -23,6 +24,8 @@ import otpValidator from "../utils/auth/otp.validator.js";
 import isUserLogin from "../middleware/isUserLogin.middleware.js";
 import editProfileValidator from "../utils/auth/editProfileValidator.js";
 import changePasswordValidator from "../utils/auth/changePassword.validator.js";
+import emailValidation from "../utils/auth/email.validator.js";
+import resetPasswordValidator from "../utils/auth/resetPassword.validator.js";
 
 // Create a new router instance
 const routes = new Router();
@@ -169,6 +172,22 @@ routes.post(
   changePasswordValidator,
   validate,
   wrapAsync(authController.changePassword),
+);
+
+routes.post(
+  "/set-password",
+  resetPassword,
+  resetPasswordValidator,
+  validate,
+  wrapAsync(authController.setNewPassword),
+);
+
+routes.post(
+  "/reset-password",
+  resetPassword,
+  emailValidation,
+  validate,
+  wrapAsync(authController.resetPassword),
 );
 
 export default routes;

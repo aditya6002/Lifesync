@@ -531,10 +531,78 @@ const changePassword = async (req, res) => {
 };
 
 // Send Reset Password OTP
-const resetPassword = async (req, res) => {};
+const resetPassword = async (req, res) => {
+  const { loginId } = req.body;
+
+  const user = await User.findOne({
+    $or: [{ email: loginId }, { username: loginId }],
+  });
+
+  if (!user) {
+    res.status(400).json({
+      success: false,
+      message: "User not exists",
+    });
+  }
+
+  const userVerifyToken = await jwt.sign(
+    { id: user._id },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "15m",
+    },
+  );
+  const emailVerifyTokenExpires = new Date(Date.now() + 15 * 60 * 1000);
+
+  user.userVerifyToken = userVerifyToken;
+  user.userVerifyTokenExpires = emailVerifyTokenExpires;
+  await user.save();
+
+  await emailService.sendResetPasswordEmail(user.email, otp);
+
+  res.status(200).json({
+    success: true,
+    message: "Email sended",
+  });
+};
 
 // Verify Reset Password OTP and Set Password
-const setNewPassword = async (req, res) => {};
+const setNewPassword = async (req, res) => {
+  const { newPassword } = req.body;
+  const token = req.query.token;
+
+  try {
+    jwt.verify(token, process.env.JWT_SECRET);
+  } catch (error) {
+    throw new AppError(400, "Invalid token", true);
+  }
+
+  if (!token) {
+    throw new AppError(400, "Token is required", true);
+  }
+
+  const user = await User.findOne({ userVerifyToken: token });
+
+  if (!user) {
+    throw new AppError(400, "Invalid token", true);
+  }
+
+  if (new Date() > user.userVerifyTokenExpires) {
+    throw new AppError(400, "Token has expired", true);
+  }
+
+  
+
+  user.password = newPassword;
+  user.userVerifyToken = null;
+  user.userVerifyTokenExpires = null;
+
+  await user.save();
+
+  res.status(200).json({
+    message: "Password reset successfully",
+  });
+};
 
 export default {
   register,

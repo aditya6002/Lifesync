@@ -84,16 +84,12 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    resetPasswordToken: {
+    userVerifyToken: {
       type: String,
       default: null,
     },
-    resetPasswordTokenExpires: {
+    userVerifyTokenExpires: {
       type: Date,
-      default: null,
-    },
-    passwordResetToken: {
-      type: String,
       default: null,
     },
     profilePic: {
@@ -132,10 +128,6 @@ userSchema.methods.comparePassword = async function (password) {
 
 userSchema.methods.verifyEmailToken = async function (token) {
   return await bcrypt.compare(token, this.emailVerifyToken);
-};
-
-userSchema.methods.verifyResetPasswordToken = async function (token) {
-  return await bcrypt.compare(token, this.resetPasswordToken);
 };
 
 userSchema.pre("save", async function () {

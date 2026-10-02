@@ -59,7 +59,7 @@ async function sendResetPasswordEmail(email, resetToken) {
     },
   });
 
-  const resetLink = `http://localhost:8080/auth/reset-password?token=${resetToken}`;
+  const resetLink = `${process.env.BACKEND_URL}/api/v1/auth/set-password?token=${resetToken}`;
 
   await transporter.sendMail({
     from: `"LifeSync" <${process.env.EMAIL_FROM}>`,
