@@ -39,24 +39,30 @@
             ],
             "dbMiddleware/hooks":[
                 "passwordHash"
-            ]
-        }
+            ]},
+            "blackListToken":{
+                
+            }
         },
         "routes":{
             "register":"POST - /api/v1/register",
-            "login":"POST - /api/v1/login"
+            "login":"POST - /api/v1/login",
+            "logout":"POST - /api/v1/logout ?"
         },
         "controllers":[
             "registerController",
-            "loginController"
+            "loginController",
+            "logoutController ?"
         ],
         "middleware":[
             "authRateLimiter",
-            "authValidator"
+            "authValidator",
+            "isUserLogin ?"
         ],
         "utils":[
             "loginValidator",
-            "registerValidator ?"
+            "registerValidator"
+
         ]
     },
 
