@@ -17,10 +17,18 @@ const journalSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    deleteIn: {
+      type: Date,
+      default: null,
+      index: {
+        expireAfterSeconds: 0,
+      },
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-const Journal = mongoose.models.Journal || mongoose.model("Journal", journalSchema);
+const Journal =
+  mongoose.models.Journal || mongoose.model("Journal", journalSchema);
 
 export default Journal;

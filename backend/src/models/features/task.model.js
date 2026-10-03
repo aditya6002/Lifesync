@@ -26,6 +26,14 @@ const taskSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+
+    deleteIn: {
+      type: Date,
+      default: null,
+      index: {
+        expireAfterSeconds: 0,
+      },
+    },
   },
   { timestamps: true },
 );

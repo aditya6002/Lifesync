@@ -131,34 +131,6 @@ const userSchema = new mongoose.Schema(
         expireAfterSeconds: 0,
       },
     },
-    journals: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Journal",
-        default: [],
-      },
-    ],
-    tasks: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Task",
-        default: [],
-      },
-    ],
-    notes: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Note",
-        default: [],
-      },
-    ],
-    expenses: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Expense",
-        default: [],
-      },
-    ],
   },
   { timestamps: true },
 );

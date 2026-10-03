@@ -17,8 +17,15 @@ const noteSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    deleteIn: {
+      type: Date,
+      default: null,
+      index: {
+        expireAfterSeconds: 0,
+      },
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Note = mongoose.models.Note || mongoose.model("Note", noteSchema);

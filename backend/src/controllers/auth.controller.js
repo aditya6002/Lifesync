@@ -701,36 +701,28 @@ const deleteUser = async (req, res) => {
 
   user.deleteIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Set deletion date to 30 days from now
 
-  for (const journalId of user.journals) {
-    const journal = await Journal.findById(journalId);
-    if (journal) {
-      journal.deleteIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-      await journal.save();
-    }
+  const journals = await Journal.find({ userId: user._id });
+  const tasks = await Task.find({ userId: user._id });
+  const notes = await Note.find({ userId: user._id });
+  const expenses = await Expense.find({ userId: user._id });
+  for (const journal of journals) {
+    journal.deleteIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    await journal.save();
   }
 
-  for (const taskId of user.tasks) {
-    const task = await Task.findById(taskId);
-    if (task) {
-      task.deleteIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-      await task.save();
-    }
+  for (const task of tasks) {
+    task.deleteIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    await task.save();
   }
 
-  for (const noteId of user.notes) {
-    const note = await Note.findById(noteId);
-    if (note) {
-      note.deleteIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-      await note.save();
-    }
+  for (const note of notes) {
+    note.deleteIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    await note.save();
   }
 
-  for (const expenseId of user.expenses) {
-    const expense = await Expense.findById(expenseId);
-    if (expense) {
-      expense.deleteIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-      await expense.save();
-    }
+  for (const expense of expenses) {
+    expense.deleteIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    await expense.save();
   }
 
   user.isAccountActive = false;
@@ -766,36 +758,28 @@ const activateAccount = async (req, res) => {
 
   user.deleteIn = null;
 
-  for (const journalId of user.journals) {
-    const journal = await Journal.findById(journalId);
-    if (journal) {
-      journal.deleteIn = null;
-      await journal.save();
-    }
+  const journals = await Journal.find({ userId: user._id });
+  const tasks = await Task.find({ userId: user._id });
+  const notes = await Note.find({ userId: user._id });
+  const expenses = await Expense.find({ userId: user._id });
+  for (const journal of journals) {
+    journal.deleteIn = null;
+    await journal.save();
   }
 
-  for (const taskId of user.tasks) {
-    const task = await Task.findById(taskId);
-    if (task) {
-      task.deleteIn = null;
-      await task.save();
-    }
+  for (const task of tasks) {
+    task.deleteIn = null;
+    await task.save();
   }
 
-  for (const noteId of user.notes) {
-    const note = await Note.findById(noteId);
-    if (note) {
-      note.deleteIn = null;
-      await note.save();
-    }
+  for (const note of notes) {
+    note.deleteIn = null;
+    await note.save();
   }
 
-  for (const expenseId of user.expenses) {
-    const expense = await Expense.findById(expenseId);
-    if (expense) {
-      expense.deleteIn = null;
-      await expense.save();
-    }
+  for (const expense of expenses) {
+    expense.deleteIn = null;
+    await expense.save();
   }
 
   user.isAccountActive = true;
