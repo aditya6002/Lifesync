@@ -119,6 +119,11 @@ const userSchema = new mongoose.Schema(
       default: "en",
     },
 
+    isAccountActive: {
+      type: Boolean,
+      default: true,
+    },
+
     deleteIn: {
       type: Date,
       default: null,

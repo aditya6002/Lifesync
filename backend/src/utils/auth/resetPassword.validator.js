@@ -1,11 +1,7 @@
 import { body, query } from "express-validator";
 
 const resetPasswordValidator = [
-  query("token")
-    .trim()
-    .notEmpty()
-    .withMessage("Token cannot be empty")
-    .bail(),
+  query("token").trim().notEmpty().withMessage("Token cannot be empty").bail(),
   body("newPassword")
     .trim()
     .notEmpty()
