@@ -26,6 +26,8 @@ import editProfileValidator from "../utils/auth/editProfileValidator.js";
 import changePasswordValidator from "../utils/auth/changePassword.validator.js";
 import emailValidation from "../utils/auth/email.validator.js";
 import resetPasswordValidator from "../utils/auth/resetPassword.validator.js";
+import passwordValidator from "../utils/auth/passwordValidator.js";
+import activeAccountValidator from "../utils/auth/activeAccount.validator.js";
 
 // Create a new router instance
 const routes = new Router();
@@ -64,7 +66,7 @@ routes.post(
 );
 
 /**
- * @desc Send Email for verification
+ * @desc Send Email for gmail verification
  * @route POST - /api/v1/auth/send-email
  * @access @private
  * @body {}
@@ -176,6 +178,7 @@ routes.post(
 
 routes.post(
   "/set-password",
+  changePasswordLimit,
   resetPassword,
   resetPasswordValidator,
   validate,
@@ -184,10 +187,28 @@ routes.post(
 
 routes.post(
   "/reset-password",
+  changePasswordLimit,
   resetPassword,
   emailValidation,
   validate,
   wrapAsync(authController.resetPassword),
+);
+
+routes.delete(
+  "/delete-account",
+  changePasswordLimit, //2 times limit for delete account
+  isUserLogin,
+  passwordValidator,
+  validate,
+  wrapAsync(authController.deleteUser),
+);
+
+routes.post(
+  "/activate-account",
+  changePasswordLimit, //2 times limit for activate account
+  activeAccountValidator,
+  validate,
+  wrapAsync(authController.activateAccount),
 );
 
 export default routes;

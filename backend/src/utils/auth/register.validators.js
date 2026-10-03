@@ -33,8 +33,8 @@ const registerValidator = [
     .notEmpty()
     .withMessage("Name cannot be empty")
     .bail()
-    .isLength({ min: 3, max: 80 })
-    .withMessage("Name length must be between 3 and 80 characters")
+    .isLength({ min: 3, max: 50 })
+    .withMessage("Name length must be between 3 and 50 characters")
     .bail()
     .matches(/^[a-zA-Z\s]+$/)
     .withMessage("Name can only contain letters and spaces"),
@@ -45,8 +45,8 @@ const registerValidator = [
     .notEmpty()
     .withMessage("Username cannot be empty")
     .bail()
-    .isLength({ min: 4, max: 80 })
-    .withMessage("Username length must be between 4 and 80 characters")
+    .isLength({ min: 4, max: 50 })
+    .withMessage("Username length must be between 4 and 50 characters")
     .bail()
     .matches(/^[a-zA-Z0-9_]+$/)
     .withMessage("Username can only contain letters, numbers, and underscores"),
@@ -60,8 +60,8 @@ const registerValidator = [
     .isEmail()
     .withMessage("Email is not valid")
     .bail()
-    .isLength({ min: 4, max: 80 })
-    .withMessage("Email length must be between 4 and 80 characters")
+    .isLength({ min: 4, max: 50 })
+    .withMessage("Email length must be between 4 and 50 characters")
     .normalizeEmail(),
 
   // Password validation
@@ -69,8 +69,8 @@ const registerValidator = [
     .notEmpty()
     .withMessage("Password cannot be empty")
     .bail()
-    .isLength({ min: 6, max: 80 })
-    .withMessage("Password length must be between 6 and 80 characters")
+    .isLength({ min: 6, max: 100 })
+    .withMessage("Password length must be between 6 and 100 characters")
     .bail()
     .matches(passwordRegex)
     .withMessage(
@@ -82,8 +82,8 @@ const registerValidator = [
     .notEmpty()
     .withMessage("Confirm Password cannot be empty")
     .bail()
-    .isLength({ min: 6, max: 80 })
-    .withMessage("Confirm Password length must be between 6 and 80 characters")
+    .isLength({ min: 6, max: 100 })
+    .withMessage("Confirm Password length must be between 6 and 100 characters")
     .bail()
     .custom((value, { req }) => {
       if (value !== req.body.password) {

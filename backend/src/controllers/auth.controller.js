@@ -4,6 +4,10 @@ import jwt from "jsonwebtoken";
 
 // Import the User model
 import User from "../models/auth/user.model.js";
+import Task from "../models/features/task.model.js";
+import Note from "../models/features/note.model.js";
+import Journal from "../models/features/journal.model.js";
+import Expense from "../models/features/expense.model.js";
 import BlackListToken from "../models/auth/blackListToken.model.js";
 import ReserveUsername from "../models/auth/reserveUsername.model.js";
 
@@ -118,6 +122,13 @@ const verifyEmailOtp = async (req, res) => {
   if (!user) {
     throw new AppError(401, "User not logged in", true);
   }
+  if (!user.isAccountActive) {
+    throw new AppError(
+      403,
+      "Account is deactivated. Please activate your account to perform this action.",
+      true,
+    );
+  }
 
   if (!user.emailVerifyToken || !user.emailVerifyTokenExpires) {
     throw new AppError(400, "No OTP found for this user", true);
@@ -197,6 +208,14 @@ const login = async (req, res) => {
     throw new AppError(404, "User not found", true);
   }
 
+  if (!isUserExist.isAccountActive) {
+    throw new AppError(
+      403,
+      "Account is deactivated. Please activate your account to perform this action.",
+      true,
+    );
+  }
+
   const isPasswordValid = await isUserExist.comparePassword(password);
 
   if (!isPasswordValid) {
@@ -256,6 +275,14 @@ const logout = async (req, res) => {
     throw new AppError(401, "User not logged in", true);
   }
 
+  if (!user.isAccountActive) {
+    throw new AppError(
+      403,
+      "Account is deactivated. Please activate your account to perform this action.",
+      true,
+    );
+  }
+
   const accessToken = req.cookies.accessToken;
   const refreshToken = req.cookies.refreshToken;
 
@@ -292,6 +319,14 @@ const sendOtp = async (req, res) => {
   const user = req.user;
   if (!user) {
     throw new AppError(400, "User not log in", true);
+  }
+
+  if (!user.isAccountActive) {
+    throw new AppError(
+      403,
+      "Account is deactivated. Please activate your account to perform this action.",
+      true,
+    );
   }
 
   if (
@@ -351,6 +386,14 @@ const getMe = async (req, res) => {
       throw new AppError(404, "User not found");
     }
 
+    if (!user.isAccountActive) {
+      throw new AppError(
+        403,
+        "Account is deactivated. Please activate your account to perform this action.",
+        true,
+      );
+    }
+
     const newAccessToken = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
@@ -402,6 +445,14 @@ const profile = async (req, res) => {
     throw new AppError(400, "User not log in", false);
   }
 
+  if (!user.isAccountActive) {
+    throw new AppError(
+      403,
+      "Account is deactivated. Please activate your account to perform this action.",
+      true,
+    );
+  }
+
   res.json({
     user: {
       _id: user._id,
@@ -445,6 +496,14 @@ const editProfile = async (req, res) => {
     throw new AppError(400, "User not log in", true);
   }
 
+  if (!user.isAccountActive) {
+    throw new AppError(
+      403,
+      "Account is deactivated. Please activate your account to perform this action.",
+      true,
+    );
+  }
+
   // Update user fields if they are provided in the request body
   if (name) user.name = name;
   if (gender) user.gender = gender;
@@ -473,6 +532,7 @@ const editProfile = async (req, res) => {
       }
     }
     user.email = email;
+    user.isEmailVerified = false;
   }
   if (profilePic) {
     // cloud logic
@@ -516,6 +576,14 @@ const changePassword = async (req, res) => {
     throw new AppError(400, "User not log in", true);
   }
 
+  if (!user.isAccountActive) {
+    throw new AppError(
+      403,
+      "Account is deactivated. Please activate your account to perform this action.",
+      true,
+    );
+  }
+
   const isPasswordValid = await user.comparePassword(oldPassword);
 
   if (!isPasswordValid) {
@@ -532,17 +600,23 @@ const changePassword = async (req, res) => {
 
 // Send Reset Password OTP
 const resetPassword = async (req, res) => {
-  const { loginId } = req.body;
+  const { email } = req.body;
 
-  const user = await User.findOne({
-    $or: [{ email: loginId }, { username: loginId }],
-  });
+  const user = await User.findOne({ email });
 
   if (!user) {
     res.status(400).json({
       success: false,
       message: "User not exists",
     });
+  }
+
+  if (!user.isAccountActive) {
+    throw new AppError(
+      403,
+      "Account is deactivated. Please activate your account to perform this action.",
+      true,
+    );
   }
 
   const userVerifyToken = await jwt.sign(
@@ -558,7 +632,7 @@ const resetPassword = async (req, res) => {
   user.userVerifyTokenExpires = emailVerifyTokenExpires;
   await user.save();
 
-  await emailService.sendResetPasswordEmail(user.email, otp);
+  await emailService.sendResetPasswordEmail(user.email, userVerifyToken);
 
   res.status(200).json({
     success: true,
@@ -587,11 +661,17 @@ const setNewPassword = async (req, res) => {
     throw new AppError(400, "Invalid token", true);
   }
 
+  if (!user.isAccountActive) {
+    throw new AppError(
+      403,
+      "Account is deactivated. Please activate your account to perform this action.",
+      true,
+    );
+  }
+
   if (new Date() > user.userVerifyTokenExpires) {
     throw new AppError(400, "Token has expired", true);
   }
-
-  
 
   user.password = newPassword;
   user.userVerifyToken = null;
@@ -601,6 +681,114 @@ const setNewPassword = async (req, res) => {
 
   res.status(200).json({
     message: "Password reset successfully",
+  });
+};
+
+// Delete user and all associated data
+const deleteUser = async (req, res) => {
+  const user = req.user;
+
+  if (!user) {
+    throw new AppError(400, "User not log in", true);
+  }
+  if (!user.isAccountActive) {
+    throw new AppError(
+      403,
+      "Account is deactivated. Please activate your account to perform this action.",
+      true,
+    );
+  }
+
+  user.deleteIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Set deletion date to 30 days from now
+
+  const journals = await Journal.find({ userId: user._id });
+  const tasks = await Task.find({ userId: user._id });
+  const notes = await Note.find({ userId: user._id });
+  const expenses = await Expense.find({ userId: user._id });
+  for (const journal of journals) {
+    journal.deleteIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    await journal.save();
+  }
+
+  for (const task of tasks) {
+    task.deleteIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    await task.save();
+  }
+
+  for (const note of notes) {
+    note.deleteIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    await note.save();
+  }
+
+  for (const expense of expenses) {
+    expense.deleteIn = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    await expense.save();
+  }
+
+  user.isAccountActive = false;
+  await user.save();
+
+  res.status(200).json({
+    message: "User account scheduled for deletion in 30 days",
+    success: true,
+  });
+};
+
+// Activate user and all associated data
+const activateAccount = async (req, res) => {
+  const { loginId, password } = req.body;
+
+  const user = await User.findOne({
+    $or: [{ email: loginId }, { username: loginId }],
+  });
+
+  if (!user) {
+    throw new AppError(400, "User not log in", true);
+  }
+
+  const isPasswordValid = await user.comparePassword(password);
+
+  if (!isPasswordValid) {
+    throw new AppError(401, "Invalid password", true);
+  }
+
+  if (user.isAccountActive) {
+    throw new AppError(400, "User account is already active", true);
+  }
+
+  user.deleteIn = null;
+
+  const journals = await Journal.find({ userId: user._id });
+  const tasks = await Task.find({ userId: user._id });
+  const notes = await Note.find({ userId: user._id });
+  const expenses = await Expense.find({ userId: user._id });
+  for (const journal of journals) {
+    journal.deleteIn = null;
+    await journal.save();
+  }
+
+  for (const task of tasks) {
+    task.deleteIn = null;
+    await task.save();
+  }
+
+  for (const note of notes) {
+    note.deleteIn = null;
+    await note.save();
+  }
+
+  for (const expense of expenses) {
+    expense.deleteIn = null;
+    await expense.save();
+  }
+
+  user.isAccountActive = true;
+
+  await user.save();
+
+  res.status(200).json({
+    message: "User activated successfully",
+    success: true,
   });
 };
 
@@ -617,4 +805,6 @@ export default {
   changePassword,
   resetPassword,
   setNewPassword,
+  deleteUser,
+  activateAccount,
 };

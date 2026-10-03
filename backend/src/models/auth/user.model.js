@@ -118,6 +118,19 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "en",
     },
+
+    isAccountActive: {
+      type: Boolean,
+      default: true,
+    },
+
+    deleteIn: {
+      type: Date,
+      default: null,
+      index: {
+        expireAfterSeconds: 0,
+      },
+    },
   },
   { timestamps: true },
 );

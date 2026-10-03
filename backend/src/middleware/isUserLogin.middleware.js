@@ -28,10 +28,18 @@ const isUserLogin = async (req, res, next) => {
     throw new AppError(401, "User not logged in", true);
   }
   try {
-    const decode = await jwt.verify(accessToken, process.env.JWT_SECRET);
+    const decode = jwt.verify(accessToken, process.env.JWT_SECRET);
 
     const userId = decode.id;
     const user = await User.findById(userId);
+
+    if (!user.isAccountActive) {
+      throw new AppError(
+        403,
+        "Account is deactivated. Please activate your account to perform this action.",
+        true,
+      );
+    }
 
     req.user = user;
     next();
