@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 
 // Importing Routes
 import authRoute from "../src/routes/auth.routes.js";
+import journalRoute from "../src/routes/journal.routes.js";
 
 // Importing Middleware
 import AppError from "./middleware/AppError.middleware.js";
@@ -48,6 +49,7 @@ app.get("/health", (_req, res) => {
 
 // Api Routes Setup
 app.use("/api/v1/auth", authRoute);
+app.use("/api/v1/journal", journalRoute);
 
 // 404 Error Handler
 app.use((req, res, next) => {
