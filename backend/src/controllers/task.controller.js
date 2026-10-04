@@ -45,6 +45,7 @@ const addTask = async (req, res) => {
     },
   });
 };
+
 const editTask = async (req, res) => {
   let { title, note, dueDate, startingTime, endingTime, priority } = req.body;
   const taskId = req.params.taskId;
@@ -99,11 +100,104 @@ const editTask = async (req, res) => {
     },
   });
 };
-const deleteTask = async (req, res) => {};
-const getTask = async (req, res) => {};
-const getAll = async (req, res) => {};
 
-const toggleTask = async (req, res) => {};
+const deleteTask = async (req, res) => {
+  const taskId = req.params.taskId;
+  const user = req.user;
+
+  const task = await Task.findOneAndDelete({ _id: taskId, userId: user._id });
+
+  if (!task) {
+    res.status(400).json({
+      success: false,
+      message: "Task not found",
+    });
+  }
+
+  res.status(202).json({
+    success: true,
+    message: "Task deleted successfully",
+  });
+};
+
+const getTask = async (req, res) => {
+  const taskId = req.params.taskId;
+  const user = req.user;
+
+  const task = await Task.findOne({
+    _id: taskId,
+    userId: user._id,
+  }).select("-deleteIn -createdAt -updatedAt");
+
+  if (!task) {
+    res.status(400).json({
+      success: false,
+      message: "Task not found",
+    });
+  }
+
+  task.task = decrypt(task.task);
+  task.note = task.note ? decrypt(task.note) : null;
+
+  res.status(200).json({
+    success: true,
+    task,
+  });
+};
+const getAll = async (req, res) => {
+  const user = req.user;
+  const skip = req.query.skip || 0;
+  const limit = req.query.limit || 15;
+
+  const tasks = await Task.find({ userId: user._id })
+    .sort({ dueDate: 1, startingTime: 1 })
+    .skip(skip)
+    .limit(limit)
+    .select("-deleteIn -createdAt -updatedAt");
+
+  const decryptedTasks = tasks.map((task) => {
+    return {
+      ...task.toObject(),
+      task: decrypt(task.task),
+      note: task.note ? decrypt(task.note) : null,
+    };
+  });
+
+  res.status(200).json({
+    success: true,
+    tasks: decryptedTasks,
+  });
+};
+
+const toggleTask = async (req, res) => {
+  const taskId = req.params.taskId;
+  const user = req.user;
+
+  const task = await Task.findOne({ _id: taskId, userId: user._id }).select(
+    "-deleteIn -createdAt -updatedAt",
+  );
+
+  if (!task) {
+    res.status(400).json({
+      success: false,
+      message: "Task not found",
+    });
+  }
+
+  task.status = !task.status;
+  await task.save();
+
+  const updatedTask = task.toObject();
+
+  updatedTask.task = decrypt(task.task);
+  updatedTask.note = task.note ? decrypt(task.note) : null;
+
+  res.status(200).json({
+    success: true,
+    task: updatedTask,
+    message: `Task marked as ${updatedTask.status ? "completed" : "incomplete"}`,
+  });
+};
 
 export default {
   addTask,

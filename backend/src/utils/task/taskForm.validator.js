@@ -40,6 +40,7 @@ const taskFormValidator = [
     .optional()
     .isIn(["low", "medium", "high"])
     .withMessage("Invalid priority"),
+  body("status").optional().isBoolean().withMessage("Status must be a boolean"),
 ];
 
 export default taskFormValidator;
