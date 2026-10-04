@@ -2,6 +2,13 @@ import mongoose from "mongoose";
 
 const taskSchema = new mongoose.Schema(
   {
+    type: {
+      type: String,
+      default: "task",
+      trim: true,
+      lowercase: true,
+      enum: ["task", "inbox"],
+    },
     task: {
       type: String,
       required: true,
@@ -9,6 +16,7 @@ const taskSchema = new mongoose.Schema(
     },
     note: {
       type: String,
+      trim: true,
       default: null,
       trim: true,
     },
@@ -17,22 +25,30 @@ const taskSchema = new mongoose.Schema(
       default: null,
     },
     startingTime: {
-      type: String,
+      type: Date,
       default: null,
       required: true,
     },
     endingTime: {
-      type: String,
+      type: Date,
       default: null,
+      required: true,
+    },
+    duration: {
+      type: String,
       required: true,
     },
     priority: {
       type: String,
+      trim: true,
+      lowercase: true,
       enum: ["low", "medium", "high"],
       default: "medium",
     },
     status: {
       type: String,
+      trim: true,
+      lowercase: true,
       enum: ["pending", "in-progress", "completed"],
       default: "pending",
     },
