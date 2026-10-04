@@ -2,12 +2,12 @@ import mongoose from "mongoose";
 
 const taskSchema = new mongoose.Schema(
   {
-    title: {
+    task: {
       type: String,
       required: true,
       trim: true,
     },
-    description: {
+    note: {
       type: String,
       default: null,
       trim: true,
@@ -15,6 +15,21 @@ const taskSchema = new mongoose.Schema(
     dueDate: {
       type: Date,
       default: null,
+    },
+    startingTime: {
+      type: String,
+      default: null,
+      required: true,
+    },
+    endingTime: {
+      type: String,
+      default: null,
+      required: true,
+    },
+    priority: {
+      type: String,
+      enum: ["low", "medium", "high"],
+      default: "medium",
     },
     status: {
       type: String,
@@ -25,6 +40,7 @@ const taskSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
 
     deleteIn: {
