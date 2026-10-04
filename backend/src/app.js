@@ -9,6 +9,7 @@ import cookieParser from "cookie-parser";
 import authRoute from "../src/routes/auth.routes.js";
 import journalRoute from "../src/routes/journal.routes.js";
 import noteRoute from "../src/routes/note.routes.js";
+import taskRoute from '../src/routes/task.routes.js'
 
 // Importing Middleware
 import AppError from "./middleware/AppError.middleware.js";
@@ -52,6 +53,7 @@ app.get("/health", (_req, res) => {
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/journal", journalRoute);
 app.use("/api/v1/note", noteRoute);
+app.use("/api/v1/task", taskRoute);
 
 // 404 Error Handler
 app.use((req, res, next) => {

@@ -4,12 +4,10 @@ import isUserLogin from "../middleware/isUserLogin.middleware.js";
 import wrapAsync from "../utils/wrapAsync.utils.js";
 import validator from "../middleware/validate.middleware.js";
 
-import journalRateLimiter from "../middleware/features/journalRateLimiter.middleware.js";
+import featureRateLimiter from "../middleware/features/featureRateLimiter.middleware.js";
 import createJournalValidator from "../utils/journal/createJournal.validator.js";
-import getJournalValidator from "../utils/journal/getJournal.validator.js";
-const noteRateLimiter = journalRateLimiter;
+import { getNoteValidator } from "../utils/mongooseId.validator.js";
 const createNoteValidator = createJournalValidator;
-const getNoteValidator = getJournalValidator;
 
 // import all controllers
 import noteController from "../controllers/note.controller.js";
@@ -18,9 +16,9 @@ const routes = new Router();
 
 routes
   .route("/")
-  .get(noteRateLimiter, isUserLogin, wrapAsync(noteController.getAll))
+  .get(featureRateLimiter, isUserLogin, wrapAsync(noteController.getAll))
   .post(
-    noteRateLimiter,
+    featureRateLimiter,
     isUserLogin,
     createNoteValidator,
     validator,
@@ -30,21 +28,21 @@ routes
 routes
   .route("/:noteId")
   .get(
-    noteRateLimiter,
+    featureRateLimiter,
     isUserLogin,
     getNoteValidator,
     validator,
     wrapAsync(noteController.getNote),
   )
   .patch(
-    noteRateLimiter,
+    featureRateLimiter,
     isUserLogin,
     createNoteValidator,
     validator,
     wrapAsync(noteController.editNote),
   )
   .delete(
-    noteRateLimiter,
+    featureRateLimiter,
     isUserLogin,
     getNoteValidator,
     validator,

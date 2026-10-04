@@ -1,6 +1,6 @@
 import { rateLimit } from "express-rate-limit";
 
-const journalRateLimiter = rateLimit({
+const featureRateLimiter = rateLimit({
   windowMs: 2 * 60 * 1000,
   max: 50,
   standardHeaders: "draft-7",
@@ -12,4 +12,4 @@ const journalRateLimiter = rateLimit({
   },
 });
 
-export default journalRateLimiter;
+export default featureRateLimiter;

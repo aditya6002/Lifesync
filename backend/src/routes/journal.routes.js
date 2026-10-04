@@ -3,11 +3,11 @@ import { Router } from "express";
 import isUserLogin from "../middleware/isUserLogin.middleware.js";
 import wrapAsync from "../utils/wrapAsync.utils.js";
 import validator from "../middleware/validate.middleware.js";
-import journalRateLimiter from "../middleware/features/journalRateLimiter.middleware.js";
+import featureRateLimiter from "../middleware/features/featureRateLimiter.middleware.js";
 
 // Import all utils/validators
 import createJournalValidator from "../utils/journal/createJournal.validator.js";
-import getJournalValidator from "../utils/journal/getJournal.validator.js";
+import { getJournalValidator } from "../utils/mongooseId.validator.js";
 
 // import all controllers
 import journalController from "../controllers/journal.controller.js";
@@ -17,9 +17,9 @@ const routes = new Router();
 // Add routes
 routes
   .route("/")
-  .get(journalRateLimiter, isUserLogin, wrapAsync(journalController.getAll))
+  .get(featureRateLimiter, isUserLogin, wrapAsync(journalController.getAll))
   .post(
-    journalRateLimiter,
+    featureRateLimiter,
     isUserLogin,
     createJournalValidator,
     validator,
@@ -29,21 +29,21 @@ routes
 routes
   .route("/:journalId")
   .get(
-    journalRateLimiter,
+    featureRateLimiter,
     isUserLogin,
     getJournalValidator,
     validator,
     wrapAsync(journalController.getJournal),
   )
   .patch(
-    journalRateLimiter,
+    featureRateLimiter,
     isUserLogin,
     createJournalValidator,
     validator,
     wrapAsync(journalController.editJournal),
   )
   .delete(
-    journalRateLimiter,
+    featureRateLimiter,
     isUserLogin,
     getJournalValidator,
     validator,
