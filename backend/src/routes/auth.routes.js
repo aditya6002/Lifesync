@@ -205,7 +205,7 @@ routes.delete(
 
 routes.post(
   "/activate-account",
-  changePasswordLimit, //2 times limit for activate account
+  loginLimiter, // 10 times limit for activate account
   activeAccountValidator,
   validate,
   wrapAsync(authController.activateAccount),
