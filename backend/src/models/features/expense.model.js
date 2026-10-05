@@ -1,43 +1,5 @@
 import mongoose from "mongoose";
-
-const expenseList = [
-  "food",
-  "transportation",
-  "utilities",
-  "entertainment",
-  "healthcare",
-  "education",
-  "personal care",
-  "clothing",
-  "gifts and donations",
-  "travel",
-  "subscriptions and memberships",
-  "miscellaneous",
-  "housing",
-  "insurance",
-  "savings and investments",
-  "debt payments",
-  "childcare",
-  "pet care",
-  "home maintenance",
-  "taxes",
-  "emergency fund",
-  "retirement contributions",
-  "luxury items",
-  "professional development",
-  "hobbies",
-  "transportation maintenance",
-  "home improvement",
-  "technology and gadgets",
-  "fitness and wellness",
-  "social activities",
-  "cultural experiences",
-  "charitable contributions",
-  "financial services",
-  "legal expenses",
-  "miscellaneous services",
-  "others"
-];
+import expenseList from "../../utils/expenseList.js";
 
 const expenseSchema = new mongoose.Schema(
   {
@@ -56,7 +18,7 @@ const expenseSchema = new mongoose.Schema(
       },
     },
     amount: {
-      type: Number,
+      type: String,
       required: true,
       min: 0,
     },

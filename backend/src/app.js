@@ -9,7 +9,8 @@ import cookieParser from "cookie-parser";
 import authRoute from "../src/routes/auth.routes.js";
 import journalRoute from "../src/routes/journal.routes.js";
 import noteRoute from "../src/routes/note.routes.js";
-import taskRoute from '../src/routes/task.routes.js'
+import taskRoute from "../src/routes/task.routes.js";
+import expenseRoute from "../src/routes/expenses.routes.js";
 
 // Importing Middleware
 import AppError from "./middleware/AppError.middleware.js";
@@ -54,9 +55,10 @@ app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/journal", journalRoute);
 app.use("/api/v1/note", noteRoute);
 app.use("/api/v1/task", taskRoute);
+app.use("/api/v1/expense", expenseRoute);
 
 // 404 Error Handler
-app.use((req, res, next) => {
+app.use((_req, _res, _next) => {
   throw new AppError(404, "Route not found", false, "Route not found");
 });
 
