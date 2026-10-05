@@ -1,7 +1,11 @@
-import crypto from "crypto";
 import dotenv from "dotenv";
+import path from "path";
 
-dotenv.config();
+dotenv.config({
+  path: path.resolve(process.cwd(), ".env"),
+});
+
+import crypto from "crypto";
 
 const algorithm = process.env.CRYPTO_ALGORITHM;
 const securityKey = Buffer.from(process.env.CRYPTO_SECRET_KEY, "hex");
