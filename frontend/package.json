@@ -13,9 +13,11 @@
     "@reduxjs/toolkit": "^2.13.0",
     "@tailwindcss/vite": "^4.3.3",
     "axios": "^1.20.0",
+    "lucide-react": "^1.38.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-redux": "^9.3.0",
+    "react-router-dom": "^7.18.5",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
