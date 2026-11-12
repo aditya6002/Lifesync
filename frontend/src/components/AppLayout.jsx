@@ -1,12 +1,11 @@
-import Protected from "./Protected.jsx";
-import Nav from "../common/Nav.jsx";
+import React from "react";
 
-const AppLayout = () => {
+const AppLayout = ({ children }) => {
   return (
-    <>
-      <Protected />
-      <Nav />
-    </>
+    <div>
+      app layout
+      {children}
+    </div>
   );
 };
 

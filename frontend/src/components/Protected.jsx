@@ -1,10 +1,11 @@
-const Protected = ({ children }) => {
+
+const Protected = ({children}) => {
   return (
     <div>
-      Protected route
+      Protected Route
       {children}
     </div>
-  );
-};
+  )
+}
 
-export default Protected;
+export default Protected
