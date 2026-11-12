@@ -1,11 +1,14 @@
+import { useNavigate } from "react-router-dom";
 
-const Protected = ({children}) => {
-  return (
-    <div>
-      Protected Route
-      {children}
-    </div>
-  )
-}
+const Protected = ({ children }) => {
+  const nav = useNavigate();
+  const isAuthenticated = true;
 
-export default Protected
+  if (!isAuthenticated) {
+    nav("/login");
+  }
+
+  return children;
+};
+
+export default Protected;
