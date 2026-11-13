@@ -4,8 +4,8 @@ import {
   StickyNote,
   UserCircleIcon,
   BookMinusIcon,
-  IndianRupee,
   Wallet,
+  LucideListTodo,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -46,6 +46,14 @@ const Sidebar = () => {
       >
         <Wallet />
       </div>
+
+      <div
+        onClick={() => changePage("tasks")}
+        className={`${styles} ${isActive === "tasks" && activeClass}`}
+      >
+        <LucideListTodo />
+      </div>
+
       <div
         onClick={() => changePage("note")}
         className={`${styles} ${isActive === "note" && activeClass}`}
