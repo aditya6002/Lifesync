@@ -21,18 +21,38 @@ import globalLimiter from "./middleware/globalRateLimit.middleware.js";
 // Initializing Express App and dotenv
 const app = express();
 
+// CORS Middleware
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS"
+    );
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-refresh-token"
+    );
+  }
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
 // Middleware Setup
 app.use(
   express.json({
-    limits: "5mb",
-    credentials: true,
-  }),
+    limit: "5mb",
+  })
 );
 app.use(
   express.urlencoded({
-    limits: "5mb",
+    limit: "5mb",
     extended: true,
-  }),
+  })
 );
 app.set("trust proxy", 1);
 app.use(morgan("dev"));

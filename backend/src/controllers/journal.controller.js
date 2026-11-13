@@ -37,13 +37,79 @@ const getJournal = async (req, res) => {
     });
   }
 
-  journal.title = decrypt(journal.title);
-  journal.content = decrypt(journal.content);
+  try {
+    journal.title = decrypt(journal.title);
+    journal.content = decrypt(journal.content);
+  } catch (e) {
+    // Keep raw if not encrypted
+  }
 
   res.status(200).json({
     success: true,
     journal: journal,
     message: "Journal entry retrieved successfully",
+  });
+};
+
+const getLastJournal = async (req, res) => {
+  const user = req.user;
+
+  let journal = await Journal.findOne({ userId: user._id })
+    .sort({ createdAt: -1 })
+    .select("-userId -deleteIn");
+
+  // In development, if no journal exists, seed a starter entry
+  if (!journal && process.env.NODE_ENV === "development") {
+    const rawTitle = "Finding Stillness in the Chaos";
+    const rawContent =
+      "Today was a grounding reminder that progress isn't about rushing through a checklist. Taking an hour to disconnect and write brought immediate clarity on what truly matters for tomorrow. Gratitude for the quiet wins.";
+    const hashTitle = encrypt(rawTitle);
+    const hashContent = encrypt(rawContent);
+
+    journal = await Journal.create({
+      title: hashTitle,
+      content: hashContent,
+      userId: user._id,
+    });
+  }
+
+  if (!journal) {
+    return res.status(200).json({
+      success: true,
+      journal: null,
+      message: "No journal entry found",
+    });
+  }
+
+  const doc = journal.toObject();
+  try {
+    doc.title = decrypt(doc.title);
+    doc.content = decrypt(doc.content);
+  } catch (e) {
+    // Keep as-is if unencrypted
+  }
+
+  const wordCount = doc.content ? doc.content.trim().split(/\s+/).length : 0;
+  const formattedDate = doc.createdAt
+    ? new Date(doc.createdAt).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+      })
+    : "Today";
+
+  res.status(200).json({
+    success: true,
+    journal: {
+      ...doc,
+      id: doc._id.toString(),
+      date: formattedDate,
+      tag: "Reflection",
+      mood: "Calm 🌿",
+      wordCount,
+    },
+    message: "Last journal retrieved successfully",
   });
 };
 
@@ -97,18 +163,34 @@ const deleteJournal = async (req, res) => {
     message: "Journal entry deleted successfully",
   });
 };
+
 const getAll = async (req, res) => {
   const user = req.user;
-  const skip = req.query.skip || 0;
-  const limit = req.query.limit || 15;
+  const skip = Number(req.query.skip) || 0;
+  const limit = Number(req.query.limit) || 15;
 
   const journals = await Journal.find({ userId: user._id })
+    .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);
 
+  const decryptedJournals = journals.map((j) => {
+    const doc = j.toObject();
+    try {
+      doc.title = decrypt(doc.title);
+      doc.content = decrypt(doc.content);
+    } catch (e) {
+      // Keep as-is
+    }
+    return {
+      ...doc,
+      id: doc._id.toString(),
+    };
+  });
+
   res.status(200).json({
     success: true,
-    journals: journals,
+    journals: decryptedJournals,
     message: "Journals retrieved successfully",
   });
 };
@@ -116,6 +198,7 @@ const getAll = async (req, res) => {
 export default {
   addJournal,
   getJournal,
+  getLastJournal,
   editJournal,
   deleteJournal,
   getAll,
