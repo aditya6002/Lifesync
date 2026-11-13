@@ -6,8 +6,10 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 
 // Importing Routes
-import authRoute from "../src/routes/auth.routes.js";
-import journalRoute from "../src/routes/journal.routes.js";
+import authRoute from "./routes/auth.routes.js";
+import journalRoute from "./routes/journal.routes.js";
+import taskRoute from "./routes/task.routes.js";
+import noteRoute from "./routes/note.routes.js";
 
 // Importing Middleware
 import AppError from "./middleware/AppError.middleware.js";
@@ -17,18 +19,38 @@ import globalLimiter from "./middleware/globalRateLimit.middleware.js";
 const app = express();
 dotenv.config();
 
+// CORS Middleware
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS"
+    );
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-refresh-token"
+    );
+  }
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
 // Middleware Setup
 app.use(
   express.json({
-    limits: "5mb",
-    credentials: true,
-  }),
+    limit: "5mb",
+  })
 );
 app.use(
   express.urlencoded({
-    limits: "5mb",
+    limit: "5mb",
     extended: true,
-  }),
+  })
 );
 app.set("trust proxy", 1);
 app.use(morgan("dev"));
@@ -50,6 +72,8 @@ app.get("/health", (_req, res) => {
 // Api Routes Setup
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/journal", journalRoute);
+app.use("/api/v1/tasks", taskRoute);
+app.use("/api/v1/notes", noteRoute);
 
 // 404 Error Handler
 app.use((req, res, next) => {

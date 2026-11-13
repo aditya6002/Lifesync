@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Marcellus&family=Marcellus+SC&display=swap");
 @import "tailwindcss" important;
 
 * {
@@ -5,10 +6,9 @@
   margin: 0;
   box-sizing: border-box;
   /* font-family: Albertus; */
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
 }
-
-/* 1. Import both Regular (Marcellus) and Small Caps (Marcellus SC) */
-@import url("https://googleapis.com");
 
 /* 2. Apply to the entire website body and form elements */
 body,

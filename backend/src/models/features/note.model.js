@@ -12,6 +12,11 @@ const noteSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    tag: {
+      type: String,
+      default: "Ideas",
+      trim: true,
+    },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -25,7 +30,7 @@ const noteSchema = new mongoose.Schema(
       },
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 const Note = mongoose.models.Note || mongoose.model("Note", noteSchema);

@@ -59,7 +59,7 @@ const LeftSidePage = () => {
     "p-2 rounded-full hover:bg-white/60 active:scale-95 transition cursor-pointer";
 
   return (
-    <div className="left w-[40%] h-11/12 bg-white rounded-3xl p-4">
+    <div className="left w-[40%] h-10/12 bg-white rounded-3xl p-4">
       <div className="h-full w-full rounded-2xl p-4 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between">

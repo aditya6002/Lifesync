@@ -1,6 +1,5 @@
-
-import RightSidePage from "./RightSidePage";
-import LeftSidePage from "./LeftSidePage";
+import RightSidePage from "./RightSidePage1";
+import LeftSidePage from "./LeftSidePage1";
 
 const Page1 = () => {
   return (

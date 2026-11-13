@@ -1,7 +1,19 @@
 import { MoveLeft, MoveRight } from "lucide-react";
 import { useState } from "react";
 
-const SECTIONS = ["todo", "journal", "expenses", "notes"];
+const totalActivity = 10000; // Placeholder for total activity count
+
+const SECTIONS = [
+  { name: "Journal", data: "12", span: "Entries", color: "purple" },
+  {
+    name: "Expenses",
+    data: `₹${totalActivity}`,
+    span: "Expenses",
+    color: "sky",
+  },
+  { name: "Todo", data: "10/12", span: "Completed", color: "green" },
+  { name: "Notes", data: "10", span: "Notes", color: "yellow" },
+];
 
 // Chart drawing area inside the SVG viewBox
 const CHART = {
@@ -135,13 +147,17 @@ const RightSidePage = () => {
     <div className="right w-1/2 h-11/12 bg-white rounded-3xl p-4 flex flex-col justify-around">
       <div className="top h-3/12 flex justify-around items-center">
         {SECTIONS.map((item) => (
-          <button
-            key={item}
+          <div
+            key={item.name}
             type="button"
-            className="h-24 w-24 bg-[#e3e3e3] hover:bg-[#d4d4d4] hover:-translate-y-0.5 active:scale-95 transition rounded-3xl flex justify-center items-center select-none capitalize"
+            className={`h-28 w-28 bg-[#e3e3e3] hover:bg-[#d4d4d4] hover:-translate-y-0.5 active:scale-95 transition rounded-3xl select-none capitalize text-black flex justify-center items-center  cursor-pointer`}
           >
-            {item}
-          </button>
+            {/* .  d4d4d4*/}
+            <div className="text-md font-bold w-8/12  h-16 overflow-hidden text-ellipsis text-center flex justify-center items-center flex-col gap-1">
+              <div className="">{item.data}</div>
+              <div className="w-full text-xs font-light">{item.span}</div>
+            </div>
+          </div>
         ))}
       </div>
 

@@ -26,6 +26,11 @@ routes
     wrapAsync(journalController.addJournal),
   );
 
+// Route for getting the last/latest journal entry
+routes
+  .route("/last")
+  .get(journalRateLimiter, isUserLogin, wrapAsync(journalController.getLastJournal));
+
 routes
   .route("/:journalId")
   .get(

@@ -12,6 +12,16 @@ const taskSchema = new mongoose.Schema(
       default: null,
       trim: true,
     },
+    category: {
+      type: String,
+      default: "Work",
+      trim: true,
+    },
+    time: {
+      type: String,
+      default: "Today",
+      trim: true,
+    },
     dueDate: {
       type: Date,
       default: null,
@@ -26,7 +36,6 @@ const taskSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-
     deleteIn: {
       type: Date,
       default: null,
@@ -35,7 +44,7 @@ const taskSchema = new mongoose.Schema(
       },
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 const Task = mongoose.models.Task || mongoose.model("Task", taskSchema);
