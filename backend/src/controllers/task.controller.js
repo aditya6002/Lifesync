@@ -1,207 +1,209 @@
 import Task from "../models/features/task.model.js";
+import { encrypt, decrypt } from "../helper/hashing.helper.js";
 
-const getAllTasks = async (req, res) => {
-  const userId = req.user._id;
-  const { status } = req.query;
+const addTask = async (req, res) => {
+  let { title, note, dueDate, startingTime, endingTime, priority } = req.body;
 
-  const query = { userId };
-  if (status && status !== "all") {
-    query.status = status;
-  }
+  const user = req.user;
 
-  let tasks = await Task.find(query).sort({ createdAt: -1 });
+  let startTime = new Date();
+  let endTime = new Date();
+  let [hours, minutes] = startingTime.split(":");
+  let [endHours, endMinutes] = endingTime.split(":");
 
-  // If no tasks exist for user in dev mode, seed initial tasks for convenience
-  if (tasks.length === 0 && process.env.NODE_ENV === "development") {
-    const defaultTasks = [
-      {
-        title: "Review product design specs & wireframes",
-        category: "Work",
-        status: "completed",
-        time: "9:00 AM",
-        userId,
-      },
-      {
-        title: "Implement LifeSync dashboard Page 2 UI",
-        category: "Dev",
-        status: "completed",
-        time: "11:30 AM",
-        userId,
-      },
-      {
-        title: "Daily 30-min cardio & mindful walk",
-        category: "Health",
-        status: "pending",
-        time: "5:00 PM",
-        userId,
-      },
-      {
-        title: "Write evening journal reflection on weekly goals",
-        category: "Personal",
-        status: "pending",
-        time: "7:30 PM",
-        userId,
-      },
-      {
-        title: "Audit expenses and categorize monthly subscriptions",
-        category: "Finance",
-        status: "pending",
-        time: "Tomorrow",
-        userId,
-      },
-      {
-        title: "Plan upcoming sprint focus & review team PRs",
-        category: "Work",
-        status: "pending",
-        time: "Tomorrow",
-        userId,
-      },
-    ];
-    tasks = await Task.insertMany(defaultTasks);
-  }
+  startTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+  endTime.setHours(parseInt(endHours), parseInt(endMinutes), 0, 0);
 
-  // Format response with `isDone` for seamless frontend compatibility
-  const formattedTasks = tasks.map((t) => ({
-    id: t._id.toString(),
-    _id: t._id,
-    title: t.title,
-    description: t.description,
-    category: t.category || "Work",
-    status: t.status,
-    isDone: t.status === "completed",
-    time: t.time || "Today",
-    createdAt: t.createdAt,
-  }));
-
-  res.status(200).json({
-    success: true,
-    tasks: formattedTasks,
-    message: "Tasks retrieved successfully",
-  });
-};
-
-const createTask = async (req, res) => {
-  const userId = req.user._id;
-  const { title, description, category, time, status, isDone, dueDate } =
-    req.body;
-
-  if (!title || !title.trim()) {
-    return res.status(400).json({
-      success: false,
-      message: "Task title is required",
-    });
-  }
-
-  const taskStatus =
-    status || (isDone !== undefined ? (isDone ? "completed" : "pending") : "pending");
+  const durationInMinutes = (endTime - startTime) / (1000 * 60);
+  const dueDateObj = new Date(dueDate);
+  const hashTitle = encrypt(title);
+  const hashNote = note ? encrypt(note) : null;
+  priority = priority || "low";
 
   const task = await Task.create({
-    title: title.trim(),
-    description: description ? description.trim() : null,
-    category: category || "Work",
-    time: time || "Today",
-    dueDate: dueDate || null,
-    status: taskStatus,
-    userId,
+    task: hashTitle,
+    note: hashNote,
+    dueDate: dueDateObj,
+    startingTime: startTime,
+    endingTime: endTime,
+    duration: durationInMinutes,
+    priority: priority,
+    userId: user.id,
   });
 
   res.status(201).json({
-    success: true,
-    task: {
-      id: task._id.toString(),
-      _id: task._id,
-      title: task.title,
-      description: task.description,
-      category: task.category,
-      status: task.status,
-      isDone: task.status === "completed",
-      time: task.time,
-      createdAt: task.createdAt,
-    },
     message: "Task created successfully",
+    task: {
+      id: task.id,
+      title: decrypt(task.task),
+      note: task.note ? decrypt(task.note) : null,
+      dueDate: task.dueDate,
+      startingTime: task.startingTime,
+      endingTime: task.endingTime,
+      duration: task.duration,
+      priority: task.priority,
+    },
   });
 };
 
-const updateTask = async (req, res) => {
-  const { taskId } = req.params;
-  const userId = req.user._id;
-  const { title, description, category, time, status, isDone } = req.body;
+const editTask = async (req, res) => {
+  let { title, note, dueDate, startingTime, endingTime, priority } = req.body;
+  const taskId = req.params.taskId;
 
-  const updateFields = {};
-  if (title !== undefined) updateFields.title = title.trim();
-  if (description !== undefined) updateFields.description = description;
-  if (category !== undefined) updateFields.category = category;
-  if (time !== undefined) updateFields.time = time;
-  if (status !== undefined) {
-    updateFields.status = status;
-  } else if (isDone !== undefined) {
-    updateFields.status = isDone ? "completed" : "pending";
-  }
+  const user = req.user;
 
-  const updatedTask = await Task.findOneAndUpdate(
-    { _id: taskId, userId },
-    { $set: updateFields },
-    { new: true }
+  let startTime = new Date();
+  let endTime = new Date();
+  let [hours, minutes] = startingTime.split(":");
+  let [endHours, endMinutes] = endingTime.split(":");
+
+  startTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+  endTime.setHours(parseInt(endHours), parseInt(endMinutes), 0, 0);
+
+  const durationInMinutes = (endTime - startTime) / (1000 * 60);
+  const dueDateObj = new Date(dueDate);
+  const hashTitle = encrypt(title);
+  const hashNote = note ? encrypt(note) : null;
+  priority = priority || "low";
+
+  const task = await Task.findOneAndUpdate(
+    { _id: taskId, userId: user._id },
+    {
+      task: hashTitle,
+      note: hashNote,
+      dueDate: dueDateObj,
+      startingTime: startTime,
+      endingTime: endTime,
+      duration: durationInMinutes,
+      priority: priority,
+    },
+    { new: true },
   );
 
-  if (!updatedTask) {
+  if (!task) {
     return res.status(404).json({
-      success: false,
       message: "Task not found",
     });
   }
 
-  res.status(200).json({
-    success: true,
-    task: {
-      id: updatedTask._id.toString(),
-      _id: updatedTask._id,
-      title: updatedTask.title,
-      description: updatedTask.description,
-      category: updatedTask.category,
-      status: updatedTask.status,
-      isDone: updatedTask.status === "completed",
-      time: updatedTask.time,
-      createdAt: updatedTask.createdAt,
-    },
+  res.status(201).json({
     message: "Task updated successfully",
+    task: {
+      id: task._id,
+      title: decrypt(task.task),
+      note: task.note ? decrypt(task.note) : null,
+      dueDate: task.dueDate,
+      startingTime: task.startingTime,
+      endingTime: task.endingTime,
+      duration: task.duration,
+      priority: task.priority,
+    },
   });
 };
 
 const deleteTask = async (req, res) => {
-  const { taskId } = req.params;
-  const userId = req.user._id;
+  const taskId = req.params.taskId;
+  const user = req.user;
 
-  const deletedTask = await Task.findOneAndDelete({ _id: taskId, userId });
+  const task = await Task.findOneAndDelete({ _id: taskId, userId: user._id });
 
-  if (!deletedTask) {
-    return res.status(404).json({
+  if (!task) {
+    res.status(400).json({
       success: false,
       message: "Task not found",
     });
   }
 
-  res.status(200).json({
+  res.status(202).json({
     success: true,
     message: "Task deleted successfully",
   });
 };
 
-const clearCompleted = async (req, res) => {
-  const userId = req.user._id;
+const getTask = async (req, res) => {
+  const taskId = req.params.taskId;
+  const user = req.user;
 
-  await Task.deleteMany({ userId, status: "completed" });
+  const task = await Task.findOne({
+    _id: taskId,
+    userId: user._id,
+  }).select("-deleteIn -createdAt -updatedAt");
+
+  if (!task) {
+    res.status(400).json({
+      success: false,
+      message: "Task not found",
+    });
+  }
+
+  task.task = decrypt(task.task);
+  task.note = task.note ? decrypt(task.note) : null;
 
   res.status(200).json({
     success: true,
-    message: "Completed tasks cleared successfully",
+    task,
+  });
+};
+const getAll = async (req, res) => {
+  const user = req.user;
+  const skip = req.query.skip || 0;
+  const limit = req.query.limit || 15;
+
+  const tasks = await Task.find({ userId: user._id })
+    .sort({ dueDate: 1, startingTime: 1 })
+    .skip(skip)
+    .limit(limit)
+    .select("-deleteIn -createdAt -updatedAt");
+
+  const decryptedTasks = tasks.map((task) => {
+    return {
+      ...task.toObject(),
+      task: decrypt(task.task),
+      note: task.note ? decrypt(task.note) : null,
+    };
+  });
+
+  res.status(200).json({
+    success: true,
+    tasks: decryptedTasks,
+  });
+};
+
+const toggleTask = async (req, res) => {
+  const taskId = req.params.taskId;
+  const user = req.user;
+
+  const task = await Task.findOne({ _id: taskId, userId: user._id }).select(
+    "-deleteIn -createdAt -updatedAt",
+  );
+
+  if (!task) {
+    res.status(400).json({
+      success: false,
+      message: "Task not found",
+    });
+  }
+
+  task.status = !task.status;
+  await task.save();
+
+  const updatedTask = task.toObject();
+
+  updatedTask.task = decrypt(task.task);
+  updatedTask.note = task.note ? decrypt(task.note) : null;
+
+  res.status(200).json({
+    success: true,
+    task: updatedTask,
+    message: `Task marked as ${updatedTask.status ? "completed" : "incomplete"}`,
   });
 };
 
 export default {
-  getAllTasks,
-  createTask,
-  updateTask,
+  addTask,
   deleteTask,
-  clearCompleted,
+  editTask,
+  getAll,
+  getTask,
+  toggleTask,
 };

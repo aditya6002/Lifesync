@@ -1,22 +1,55 @@
 import { Router } from "express";
-import isUserLogin from "../middleware/isUserLogin.middleware.js";
-import wrapAsync from "../utils/wrapAsync.utils.js";
+
 import taskController from "../controllers/task.controller.js";
+import isUserLogin from "../middleware/isUserLogin.middleware.js";
+import validator from "../middleware/validate.middleware.js";
+import wrapAsync from "../utils/wrapAsync.utils.js";
+import featureRateLimiter from "../middleware/features/featureRateLimiter.middleware.js";
+import taskFormValidator from "../utils/task/taskForm.validator.js";
+import { getTaskValidator } from "../utils/mongooseId.validator.js";
+const routes = new Router();
 
-const router = new Router();
-
-router
+routes
   .route("/")
-  .get(isUserLogin, wrapAsync(taskController.getAllTasks))
-  .post(isUserLogin, wrapAsync(taskController.createTask));
+  .get(featureRateLimiter, isUserLogin, wrapAsync(taskController.getAll))
+  .post(
+    featureRateLimiter,
+    isUserLogin,
+    taskFormValidator,
+    validator,
+    wrapAsync(taskController.addTask),
+  );
 
-router
-  .route("/clear-completed")
-  .delete(isUserLogin, wrapAsync(taskController.clearCompleted));
-
-router
+routes
   .route("/:taskId")
-  .patch(isUserLogin, wrapAsync(taskController.updateTask))
-  .delete(isUserLogin, wrapAsync(taskController.deleteTask));
+  .get(
+    featureRateLimiter,
+    isUserLogin,
+    getTaskValidator,
+    validator,
+    wrapAsync(taskController.getTask),
+  )
+  .put(
+    featureRateLimiter,
+    isUserLogin,
+    taskFormValidator,
+    getTaskValidator,
+    validator,
+    wrapAsync(taskController.editTask),
+  )
+  .patch(
+    featureRateLimiter,
+    getTaskValidator,
+    isUserLogin,
+    validator,
+    wrapAsync(taskController.toggleTask),
+  )
+  .delete(
+    featureRateLimiter,
+    isUserLogin,
+    getTaskValidator,
+    validator,
+    wrapAsync(taskController.deleteTask),
+  );
 
-export default router;
+export default routes;

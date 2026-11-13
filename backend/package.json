@@ -7,14 +7,18 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "test:health": "cross-env NODE_OPTIONS=--experimental-vm-modules jest src/_test/health.test.js --runInBand --silent",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand --detectOpenHandles --silent",
+    "test:auth": "cross-env NODE_OPTIONS=--experimental-vm-modules jest src/_test/auth.test.js --runInBand --silent",
+    "test:watch":"jest --watch"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "crypto": "^1.0.1",
+
     "dotenv": "^18.0.4",
     "express": "^5.2.1",
     "express-rate-limit": "^8.7.0",
@@ -24,5 +28,10 @@
     "mongoose": "^9.10.3",
     "morgan": "^1.12.1",
     "nodemailer": "^10.0.13"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "jest": "^30.5.2",
+    "supertest": "^7.3.1"
   }
 }

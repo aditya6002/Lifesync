@@ -1,15 +1,18 @@
 // Importing Dependencies
+import dotenv from "dotenv";
+import path from "path";
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 import express from "express";
 import morgan from "morgan";
-import dotenv from "dotenv";
+
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 
 // Importing Routes
-import authRoute from "./routes/auth.routes.js";
-import journalRoute from "./routes/journal.routes.js";
-import taskRoute from "./routes/task.routes.js";
-import noteRoute from "./routes/note.routes.js";
+import authRoute from "../src/routes/auth.routes.js";
+import journalRoute from "../src/routes/journal.routes.js";
+import noteRoute from "../src/routes/note.routes.js";
+import taskRoute from "../src/routes/task.routes.js";
 
 // Importing Middleware
 import AppError from "./middleware/AppError.middleware.js";
@@ -17,7 +20,6 @@ import globalLimiter from "./middleware/globalRateLimit.middleware.js";
 
 // Initializing Express App and dotenv
 const app = express();
-dotenv.config();
 
 // CORS Middleware
 app.use((req, res, next) => {
@@ -59,9 +61,9 @@ app.use(cookieParser());
 app.use(globalLimiter);
 
 // Health Check Endpoint
-app.get("/health", (_req, res) => {
+app.get("/api/health", (_req, res) => {
   res.status(200).json({
-    status: "ok",
+    success: true,
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || "development",
@@ -72,8 +74,8 @@ app.get("/health", (_req, res) => {
 // Api Routes Setup
 app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/journal", journalRoute);
-app.use("/api/v1/tasks", taskRoute);
-app.use("/api/v1/notes", noteRoute);
+app.use("/api/v1/note", noteRoute);
+app.use("/api/v1/task", taskRoute);
 
 // 404 Error Handler
 app.use((req, res, next) => {
