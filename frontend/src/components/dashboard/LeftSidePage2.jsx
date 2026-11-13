@@ -219,7 +219,7 @@ const LeftSidePage2 = () => {
       {/* Task List */}
       <div className="flex-1 overflow-y-auto px-8 py-5 space-y-2.5">
         {filteredTasks.length === 0 ? (
-          <div className="h-full min-h-[200px] flex flex-col items-center justify-center text-center text-black/40 select-none">
+          <div className="h-full min-h-50 flex flex-col items-center justify-center text-center text-black/40 select-none">
             <p className="text-sm font-medium">No tasks found</p>
             <p className="text-xs text-black/30 mt-1">
               {filter === "completed"
@@ -240,7 +240,7 @@ const LeftSidePage2 = () => {
                     type="button"
                     onClick={() => toggleTask(taskId)}
                     aria-label={t.isDone ? "Mark pending" : "Mark completed"}
-                    className={`h-5.5 w-5.5 rounded-full flex items-center justify-center transition cursor-pointer select-none flex-shrink-0 ${
+                    className={`h-5.5 w-5.5 rounded-full flex items-center justify-center transition cursor-pointer select-none shrink-0 ${
                       t.isDone
                         ? "bg-black text-white"
                         : "border-2 border-black/30 hover:border-black bg-white"

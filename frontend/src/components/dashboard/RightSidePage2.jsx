@@ -184,7 +184,7 @@ const RightSidePage2 = () => {
                 return (
                   <div
                     key={noteId}
-                    className="group relative bg-[#f9f9f9] hover:bg-[#f1f1f1] border border-black/5 rounded-2xl p-3 flex flex-col justify-between transition min-h-[110px]"
+                    className="group relative bg-[#f9f9f9] hover:bg-[#f1f1f1] border border-black/5 rounded-2xl p-3 flex flex-col justify-between transition min-h-27.5"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
