@@ -85,12 +85,16 @@ const RightSidePage2 = () => {
     const fetchNotes = async () => {
       try {
         const data = await noteApi.getNotes();
+        console.log(data);
         if (isMounted && data?.notes && data.notes.length > 0) {
           setNotes(data.notes);
           localStorage.setItem("lifesync_notes", JSON.stringify(data.notes));
         }
       } catch (err) {
-        console.warn("Could not fetch notes from backend, using cached state:", err?.message);
+        console.warn(
+          "Could not fetch notes from backend, using cached state:",
+          err?.message,
+        );
       }
     };
 
@@ -106,15 +110,19 @@ const RightSidePage2 = () => {
     const fetchLastJournal = async () => {
       try {
         const data = await journalApi.getLastJournal();
+        console.log(data);
         if (isMounted && data?.journal) {
           setLastJournal(data.journal);
           localStorage.setItem(
             "lifesync_last_journal",
-            JSON.stringify(data.journal)
+            JSON.stringify(data.journal),
           );
         }
       } catch (err) {
-        console.warn("Could not fetch last journal from backend, using cached state:", err?.message);
+        console.warn(
+          "Could not fetch last journal from backend, using cached state:",
+          err?.message,
+        );
       }
     };
 
@@ -151,9 +159,9 @@ const RightSidePage2 = () => {
   };
 
   return (
-    <div className="h-10/12 w-[40%] flex flex-col justify-between select-none">
+    <div className="h-9/12 w-[40%] flex flex-col justify-between select-none">
       {/* Top Section (60%): Quick Notes & Ideas */}
-      <div className="bg-white h-[61%] w-full rounded-4xl p-6 flex flex-col justify-between overflow-hidden shadow-xs">
+      <div className="bg-white h-[60%] w-full rounded-4xl p-6 flex flex-col justify-between overflow-hidden shadow-xs">
         {/* Notes Header */}
         <div className="flex items-center justify-between pb-3 border-b border-black/5">
           <div className="flex items-center gap-2.5">
@@ -184,13 +192,13 @@ const RightSidePage2 = () => {
                 return (
                   <div
                     key={noteId}
-                    className="group relative bg-[#f9f9f9] hover:bg-[#f1f1f1] border border-black/5 rounded-2xl p-3 flex flex-col justify-between transition min-h-[110px]"
+                    className="group relative bg-[#f9f9f9] hover:bg-[#f1f1f1] border border-black/5 rounded-2xl p-3 flex flex-col justify-between transition min-h-27.5"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
                         <span
                           className={`text-[9px] px-2 py-0.2 rounded-full border font-medium ${getTagStyle(
-                            n.tag
+                            n.tag,
                           )}`}
                         >
                           {n.tag}
@@ -239,7 +247,9 @@ const RightSidePage2 = () => {
               <h2 className="text-base font-semibold select-none text-black leading-tight">
                 Last Journal Entry
               </h2>
-              <p className="text-[10px] text-black/45">{lastJournal.date || "Today"}</p>
+              <p className="text-[10px] text-black/45">
+                {lastJournal.date || "Today"}
+              </p>
             </div>
           </div>
 
