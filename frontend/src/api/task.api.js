@@ -3,12 +3,12 @@ import apiClient from "./apiClient";
 export const taskApi = {
   getTasks: async (status = "all") => {
     const params = status && status !== "all" ? { status } : {};
-    const res = await apiClient.get("/tasks", { params });
+    const res = await apiClient.get("/task", { params });
     return res.data;
   },
 
   createTask: async (taskData) => {
-    const res = await apiClient.post("/tasks", taskData);
+    const res = await apiClient.post("/task", taskData);
     return res.data;
   },
 

@@ -157,7 +157,7 @@ const LeftSidePage2 = () => {
   };
 
   return (
-    <div className="h-10/12 w-1/2 bg-white rounded-4xl overflow-hidden flex flex-col shadow-xs">
+    <div className="h-9/12 w-1/2 bg-white rounded-4xl overflow-hidden flex flex-col shadow-xs">
       {/* Header */}
       <div className="py-4.5 px-8 flex justify-between items-center select-none">
         <div className="flex items-center gap-3">

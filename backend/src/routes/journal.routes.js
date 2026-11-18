@@ -11,6 +11,7 @@ import { getJournalValidator } from "../utils/mongooseId.validator.js";
 
 // import all controllers
 import journalController from "../controllers/journal.controller.js";
+import journalRateLimiter from "../middleware/features/featureRateLimiter.middleware.js";
 
 const routes = new Router();
 
@@ -29,7 +30,11 @@ routes
 // Route for getting the last/latest journal entry
 routes
   .route("/last")
-  .get(journalRateLimiter, isUserLogin, wrapAsync(journalController.getLastJournal));
+  .get(
+    journalRateLimiter,
+    isUserLogin,
+    wrapAsync(journalController.getLastJournal),
+  );
 
 routes
   .route("/:journalId")
