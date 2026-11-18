@@ -8,6 +8,7 @@ import {
   UserCircleIcon,
 } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router";
 
 const TABS = [
   { id: "home", label: "Home", icon: Home },
@@ -29,15 +30,10 @@ const Sidebar = () => {
 
   const ActiveIcon = TABS[activeIndex].icon;
 
-  const handleTabClick = (tabId) => {
-    setActiveTab(tabId);
-
-    // Contextual smooth scrolling based on selected tab
-    if (tabId === "home" || tabId === "calendar") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else if (tabId === "tasks" || tabId === "note" || tabId === "journal") {
-      window.scrollTo({ top: window.innerHeight * 0.88, behavior: "smooth" });
-    }
+  const nav = useNavigate();
+  const changeRoute = (route) => {
+    setActiveTab(route);
+    nav(route);
   };
 
   return (
@@ -87,7 +83,9 @@ const Sidebar = () => {
                 <button
                   key={tab.id}
                   type="button"
-                  onClick={() => handleTabClick(tab.id)}
+                  onClick={() => {
+                    changeRoute(tab.id);
+                  }}
                   className="group relative flex flex-col items-center justify-center h-full w-full cursor-pointer focus:outline-none"
                   aria-label={tab.label}
                 >
