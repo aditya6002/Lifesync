@@ -2,7 +2,7 @@ import apiClient from "./apiClient";
 
 export const noteApi = {
   getNotes: async () => {
-    const res = await apiClient.get("/note");
+    const res = await apiClient.get("/notes");
     return res.data;
   },
 
