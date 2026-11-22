@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Activity, Loader2 } from "lucide-react";
 import authApi from "../api/auth.api";
@@ -53,7 +53,10 @@ const Protected = ({ children }) => {
             LifeSync
           </h2>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-2 mt-3 font-medium">
-            <Loader2 size={14} className="animate-spin text-purple-600 dark:text-purple-400" />
+            <Loader2
+              size={14}
+              className="animate-spin text-purple-600 dark:text-purple-400"
+            />
             Verifying secure session…
           </p>
         </div>
@@ -65,7 +68,7 @@ const Protected = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  return children;
+  return <Outlet />;
 };
 
 export default Protected;

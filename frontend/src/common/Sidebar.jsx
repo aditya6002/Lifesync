@@ -14,9 +14,9 @@ const ITEMS = [
   { id: "calendar", label: "Calendar", Icon: CalendarCheck, path: "/calendar" },
   { id: "journal", label: "Journal", Icon: BookOpen, path: "/journal" },
   { id: "expenses", label: "Expenses", Icon: Wallet, path: "/expenses" },
-  { id: "tasks", label: "Tasks", Icon: ListChecks, path: "/" },
-  { id: "notes", label: "Notes", Icon: FileText, path: "/" },
-  { id: "profile", label: "Profile", Icon: UserRound, path: "/" },
+  { id: "tasks", label: "Tasks", Icon: ListChecks, path: "/tasks" },
+  { id: "notes", label: "Notes", Icon: FileText, path: "/notes" },
+  { id: "profile", label: "Profile", Icon: UserRound, path: "/profile" },
 ];
 
 const Sidebar = () => {
@@ -35,6 +35,12 @@ const Sidebar = () => {
           isActive = pathname.startsWith("/expenses");
         } else if (id === "journal") {
           isActive = pathname.startsWith("/journal");
+        } else if (id === "tasks") {
+          isActive = pathname.startsWith("/tasks");
+        } else if (id === "notes") {
+          isActive = pathname.startsWith("/notes");
+        } else if (id === "profile") {
+          isActive = pathname.startsWith("/profile");
         } else {
           isActive = false;
         }

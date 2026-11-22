@@ -4,6 +4,7 @@ import LockScreen from "./lock/LockScreen.jsx";
 import LockSetupModal from "./lock/LockSetupModal.jsx";
 import LockSettingsModal from "./lock/LockSettingsModal.jsx";
 import LockForgotModal from "./lock/LockForgotModal.jsx";
+import { Outlet } from "react-router-dom";
 
 const AppLayout = ({ children }) => (
   <div className="min-h-screen relative overflow-x-hidden pt-28 pb-32 px-4 sm:px-8 md:px-12 bg-[#fbf2ef] dark:bg-[#120f17] transition-colors duration-300">
@@ -23,7 +24,9 @@ const AppLayout = ({ children }) => (
     />
 
     <Nav />
-    <div className="relative z-10 max-w-7xl mx-auto">{children}</div>
+    <div className="relative z-10 max-w-7xl mx-auto">
+      <Outlet />
+    </div>
     <Sidebar />
 
     <LockScreen />

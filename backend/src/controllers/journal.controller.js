@@ -5,8 +5,8 @@ const addJournal = async (req, res) => {
   const { title, content, tags, mood } = req.body;
   const user = req.user;
 
-  const hashTitle = encrypt(title);
-  const hashContent = encrypt(content);
+  const hashTitle = encrypt(title, user._id);
+  const hashContent = encrypt(content, user._id);
 
   const newJournal = await Journal.create({
     title: hashTitle,
@@ -43,8 +43,8 @@ const getJournal = async (req, res) => {
   }
 
   try {
-    journal.title = decrypt(journal.title);
-    journal.content = decrypt(journal.content);
+    journal.title = decrypt(journal.title, user._id);
+    journal.content = decrypt(journal.content, user._id);
   } catch (e) {
     // Keep raw if not encrypted
   }
@@ -72,12 +72,9 @@ const getLastJournal = async (req, res) => {
   }
 
   const doc = journal.toObject();
-  try {
-    doc.title = decrypt(doc.title);
-    doc.content = decrypt(doc.content);
-  } catch (e) {
-    // Keep as-is if unencrypted
-  }
+
+  doc.title = decrypt(doc.title, user._id);
+  doc.content = decrypt(doc.content, user._id);
 
   const wordCount = doc.content ? doc.content.trim().split(/\s+/).length : 0;
   const formattedDate = doc.createdAt
@@ -117,8 +114,8 @@ const editJournal = async (req, res) => {
     });
   }
 
-  const hashTitle = encrypt(title);
-  const hashContent = encrypt(content);
+  const hashTitle = encrypt(title, user._id);
+  const hashContent = encrypt(content, user._id);
 
   journal.title = hashTitle;
   journal.content = hashContent;
@@ -172,8 +169,8 @@ const getAll = async (req, res) => {
   const decryptedJournals = journals.map((j) => {
     const doc = j.toObject();
     try {
-      doc.title = decrypt(doc.title);
-      doc.content = decrypt(doc.content);
+      doc.title = decrypt(doc.title, user._id);
+      doc.content = decrypt(doc.content, user._id);
     } catch (e) {
       // Keep as-is
     }
