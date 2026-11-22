@@ -25,7 +25,6 @@ const LockScreen = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [showForgotNotice, setShowForgotNotice] = useState(false);
 
-  // Clear state when locked status changes
   useEffect(() => {
     if (isLocked) {
       setPin("");
@@ -45,30 +44,28 @@ const LockScreen = () => {
       setErrorMessage("");
 
       if (nextPin.length === 4) {
-        // Verify PIN
         const success = await unlockApp(nextPin);
         if (success) {
           setIsSuccess(true);
-          if (navigator.vibrate) navigator.vibrate([40]);
         } else {
           setIsShaking(true);
           setErrorMessage("Incorrect passcode. Try again.");
-          if (navigator.vibrate) navigator.vibrate([60, 50, 60]);
           setTimeout(() => {
             setPin("");
             setIsShaking(false);
-          }, 650);
+          }, 600);
         }
       }
     },
-    [pin, isSuccess, isShaking, unlockApp]
+    [isSuccess, isShaking, pin, unlockApp]
   );
 
   const handleDelete = useCallback(() => {
-    if (isSuccess || isShaking) return;
-    setPin((prev) => prev.slice(0, -1));
-    setErrorMessage("");
-  }, [isSuccess, isShaking]);
+    if (pin.length > 0) {
+      setPin((prev) => prev.slice(0, -1));
+      setErrorMessage("");
+    }
+  }, [pin]);
 
   // Physical keyboard support
   useEffect(() => {
@@ -76,13 +73,9 @@ const LockScreen = () => {
 
     const handleKeyDown = (e) => {
       if (e.key >= "0" && e.key <= "9") {
-        e.preventDefault();
         handleDigit(e.key);
       } else if (e.key === "Backspace") {
-        e.preventDefault();
         handleDelete();
-      } else if (e.key === "Escape") {
-        setPin("");
       }
     };
 
@@ -94,68 +87,71 @@ const LockScreen = () => {
 
   return (
     <div
-      className={`applock-screen ${isSuccess ? "applock-screen--unlocked" : ""}`}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/95 backdrop-blur-3xl animate-in fade-in duration-300"
       role="dialog"
       aria-modal="true"
-      aria-label="Application Lock Screen"
+      aria-label="Enter Passcode"
     >
-      <div className="applock-screen__backdrop" />
-
-      <div className="applock-container">
-        {/* Header with Lock Icon */}
-        <div className="applock-header">
-          <div className={`applock-icon-wrap ${isSuccess ? "unlocked" : ""}`}>
-            {isSuccess ? (
-              <Unlock size={28} className="applock-icon applock-icon--success" />
-            ) : (
-              <Lock size={28} className="applock-icon" />
-            )}
-          </div>
-          <h1 className="applock-title">LifeSync</h1>
-          <p className="applock-subtitle">
-            {isSuccess ? "Unlocked" : "Enter Passcode"}
-          </p>
+      <div className="w-full max-w-sm flex flex-col items-center text-center">
+        {/* Animated Lock Icon */}
+        <div
+          className={`w-16 h-16 rounded-3xl flex items-center justify-center text-white shadow-xl transition-all duration-300 mb-6 ${
+            isSuccess
+              ? "bg-emerald-500 shadow-emerald-500/40 scale-110"
+              : "bg-gradient-to-tr from-purple-600 to-amber-500 shadow-purple-600/30"
+          }`}
+        >
+          {isSuccess ? <Unlock size={28} /> : <Lock size={28} />}
         </div>
 
-        {/* 4 Dot Indicators */}
+        {/* Title */}
+        <h2 className="font-serif text-2xl sm:text-3xl font-bold text-white mb-1.5">
+          {isSuccess ? "Vault Unlocked" : "Enter Passcode"}
+        </h2>
+        <p className="text-xs text-zinc-400 mb-6">
+          {isSuccess ? "Welcome back to LifeSync" : "Your private space is secured"}
+        </p>
+
+        {/* 4 Pin Indicator Dots */}
         <div
-          className={`applock-dots ${isShaking ? "shake" : ""} ${
-            isSuccess ? "success" : ""
+          className={`flex items-center gap-4 mb-4 ${
+            isShaking ? "animate-bounce" : ""
           }`}
-          aria-label={`${pin.length} of 4 digits entered`}
         >
           {[0, 1, 2, 3].map((index) => {
-            const isFilled = index < pin.length;
+            const isFilled = pin.length > index;
             return (
               <span
                 key={index}
-                className={`applock-dot ${isFilled ? "filled" : ""}`}
+                className={`w-3.5 h-3.5 rounded-full transition-all duration-200 ${
+                  isFilled
+                    ? "bg-purple-500 shadow-md shadow-purple-500 scale-110"
+                    : "border-2 border-zinc-600 bg-transparent"
+                }`}
               />
             );
           })}
         </div>
 
-        {/* Error message */}
-        <div className="applock-status-msg">
-          {errorMessage && <span className="applock-err">{errorMessage}</span>}
-          {showForgotNotice && (
-            <span className="applock-hint">
-              Passcode is stored locally. You can reset it from Lock Settings or clear site data if lost.
+        {/* Error Message */}
+        <div className="h-6 mb-4">
+          {errorMessage && (
+            <span className="text-xs font-semibold text-rose-400 animate-in fade-in">
+              {errorMessage}
             </span>
           )}
         </div>
 
-        {/* iOS-Style Dial Keypad */}
-        <div className="applock-keypad" role="group" aria-label="Passcode keypad">
+        {/* Keypad Grid */}
+        <div className="grid grid-cols-3 gap-3.5 sm:gap-4 w-full max-w-[260px]">
           {KEYPAD_KEYS.map((k, idx) => {
             if (k.num === "empty") {
               return (
                 <button
                   key={idx}
                   type="button"
-                  className="applock-key-forgot"
                   onClick={() => setShowForgotModal(true)}
-                  aria-label="Forgot passcode recovery"
+                  className="w-16 h-16 sm:w-18 sm:h-18 rounded-full flex items-center justify-center text-xs font-semibold text-purple-400 hover:text-purple-300 transition-colors"
                 >
                   Forgot?
                 </button>
@@ -167,10 +163,10 @@ const LockScreen = () => {
                 <button
                   key={idx}
                   type="button"
-                  className="applock-key applock-key--action"
                   onClick={handleDelete}
                   disabled={pin.length === 0}
-                  aria-label="Delete last digit"
+                  className="w-16 h-16 sm:w-18 sm:h-18 rounded-full flex items-center justify-center text-zinc-400 hover:text-white disabled:opacity-20 transition-all"
+                  aria-label="Delete"
                 >
                   <Delete size={22} strokeWidth={1.8} />
                 </button>
@@ -181,12 +177,15 @@ const LockScreen = () => {
               <button
                 key={idx}
                 type="button"
-                className="applock-key"
                 onClick={() => handleDigit(k.num)}
-                aria-label={`Digit ${k.num}`}
+                className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 border border-white/10 text-white flex flex-col items-center justify-center transition-all duration-150"
               >
-                <span className="applock-key__num">{k.num}</span>
-                {k.sub && <span className="applock-key__sub">{k.sub}</span>}
+                <span className="text-2xl font-light leading-none">{k.num}</span>
+                {k.sub && (
+                  <span className="text-[8.5px] font-bold tracking-widest text-zinc-400 mt-0.5">
+                    {k.sub}
+                  </span>
+                )}
               </button>
             );
           })}

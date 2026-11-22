@@ -12,18 +12,8 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const MONTH_NAMES = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
 ];
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const firstOfMonth = (date) => new Date(date.getFullYear(), date.getMonth(), 1);
@@ -35,8 +25,10 @@ const LeftSidePage = () => {
     const now = new Date();
     return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
   });
+
   const year = viewDate.getFullYear();
   const monthIndex = viewDate.getMonth();
+
   const cells = useMemo(() => {
     const firstWeekday = new Date(year, monthIndex, 1).getDay();
     const totalDays = new Date(year, monthIndex + 1, 0).getDate();
@@ -45,13 +37,12 @@ const LeftSidePage = () => {
       ...Array.from({ length: totalDays }, (_, i) => i + 1),
     ];
   }, [year, monthIndex]);
+
   const changeMonth = (offset) =>
-    setViewDate(
-      (prev) => new Date(prev.getFullYear(), prev.getMonth() + offset, 1),
-    );
+    setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + offset, 1));
+
   const today = new Date();
-  const isCurrentMonth =
-    year === today.getFullYear() && monthIndex === today.getMonth();
+  const isCurrentMonth = year === today.getFullYear() && monthIndex === today.getMonth();
   const dayKey = (day) => `${year}-${monthIndex + 1}-${day}`;
 
   const shortcuts = [
@@ -63,92 +54,112 @@ const LeftSidePage = () => {
 
   return (
     <section
-      className="glass-card card-hover calendar-card"
-      aria-label="Calendar"
+      className="p-6 sm:p-7 rounded-3xl bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xl border border-white/80 dark:border-zinc-800 shadow-xl shadow-purple-950/5 dark:shadow-black/30 flex flex-col gap-5 min-h-[520px]"
+      aria-label="Calendar overview"
     >
-      <div className="calendar-head">
-        <div className="calendar-icon" onClick={() => navigate("/calendar")} style={{ cursor: "pointer" }} title="Open Calendar Page">
-          <CalendarDays size={26} />
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div
+          onClick={() => navigate("/calendar")}
+          className="w-11 h-11 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
+          title="Open Calendar Page"
+        >
+          <CalendarDays size={22} />
         </div>
-        <div style={{ flex: 1, marginLeft: 12 }}>
-          <h1 className="calendar-title" onClick={() => navigate("/calendar")} style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+
+        <div className="flex-1 ml-3.5">
+          <h2
+            onClick={() => navigate("/calendar")}
+            className="font-serif text-2xl font-bold text-zinc-900 dark:text-white inline-flex items-center gap-1.5 cursor-pointer hover:text-purple-600 transition-colors"
+          >
             {MONTH_NAMES[monthIndex]} {year}
-            <ArrowUpRight size={18} style={{ opacity: 0.6 }} />
-          </h1>
-          <div>
+            <ArrowUpRight size={17} className="opacity-60" />
+          </h2>
+          <p className="text-xs text-zinc-400 dark:text-zinc-500">
             {!isCurrentMonth ? (
               <button
                 type="button"
                 onClick={() => setViewDate(firstOfMonth(new Date()))}
-                style={{
-                  border: 0,
-                  background: "transparent",
-                  color: "#a76b2d",
-                  fontSize: 11,
-                  cursor: "pointer",
-                }}
+                className="text-amber-600 dark:text-amber-400 hover:underline"
               >
                 Back to today
               </button>
             ) : (
-              <span style={{ fontSize: 11, color: "var(--muted)" }}>Click to view full calendar & activity</span>
+              "Click to view full calendar & activity"
             )}
-          </div>
+          </p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
-            className="round-icon-btn"
-            aria-label="Previous month"
             onClick={() => changeMonth(-1)}
+            aria-label="Previous month"
+            className="w-8 h-8 rounded-xl flex items-center justify-center bg-white/80 dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-700/60 text-zinc-700 dark:text-zinc-200 hover:scale-105 active:scale-95 transition-all"
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={16} />
           </button>
           <button
             type="button"
-            className="round-icon-btn"
-            aria-label="Next month"
             onClick={() => changeMonth(1)}
+            aria-label="Next month"
+            className="w-8 h-8 rounded-xl flex items-center justify-center bg-white/80 dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-700/60 text-zinc-700 dark:text-zinc-200 hover:scale-105 active:scale-95 transition-all"
           >
-            <ChevronRight size={20} />
+            <ChevronRight size={16} />
           </button>
         </div>
       </div>
 
-      <div className="calendar-weekdays">
-        {WEEKDAYS.map((day) => (
-          <span key={day}>{day}</span>
+      {/* Weekdays */}
+      <div className="grid grid-cols-7 gap-1 text-center">
+        {WEEKDAYS.map((d) => (
+          <span key={d} className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 py-1">
+            {d}
+          </span>
         ))}
       </div>
-      <div className="calendar-days">
-        {cells.map((day, index) => {
-          if (!day) return <span key={`blank-${index}`} />;
+
+      {/* Days Grid */}
+      <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+        {cells.map((day, idx) => {
+          if (!day) return <span key={`blank-${idx}`} className="h-9 sm:h-10" />;
           const key = dayKey(day);
           const isSelected = selected === key;
           const isToday = isCurrentMonth && day === today.getDate();
+          const isSunday = idx % 7 === 0;
+
           return (
             <button
               key={key}
               type="button"
               onClick={() => setSelected(key)}
-              aria-pressed={isSelected}
-              className={`calendar-day ${index % 7 === 0 ? "sunday" : ""} ${isSelected ? "selected" : ""} ${isToday ? "today" : ""}`}
+              className={`h-9 sm:h-10 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center transition-all ${
+                isSelected
+                  ? "bg-gradient-to-tr from-purple-600 to-fuchsia-600 text-white shadow-md shadow-purple-600/30 scale-105"
+                  : isToday
+                  ? "bg-amber-500/10 border-2 border-amber-500 text-amber-600 dark:text-amber-400 font-bold"
+                  : isSunday
+                  ? "text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                  : "text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              }`}
             >
               {day}
             </button>
           );
         })}
       </div>
-      <div className="calendar-shortcuts">
+
+      {/* Shortcuts */}
+      <div className="grid grid-cols-4 gap-2 mt-auto pt-3 border-t border-zinc-200/50 dark:border-zinc-800">
         {shortcuts.map(({ name, Icon, color, path }) => (
           <button
-            type="button"
-            className="shortcut-pill"
             key={name}
+            type="button"
             onClick={() => path && navigate(path)}
+            className="flex flex-col items-center gap-1.5 p-2 rounded-2xl bg-white/60 dark:bg-zinc-800/50 hover:bg-white dark:hover:bg-zinc-800 border border-zinc-200/60 dark:border-zinc-700/50 text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 hover:scale-105 transition-all shadow-sm"
           >
-            <Icon size={15} color={color} strokeWidth={2.3} />
-            {name}
+            <Icon size={16} color={color} strokeWidth={2.2} />
+            <span>{name}</span>
           </button>
         ))}
       </div>

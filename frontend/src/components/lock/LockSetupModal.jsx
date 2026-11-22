@@ -11,7 +11,7 @@ const KEYPAD_KEYS = [
 
 const LockSetupModal = () => {
   const { showSetupModal, setShowSetupModal, setPasscode } = useLock();
-  const [step, setStep] = useState(1); // 1 = enter, 2 = confirm
+  const [step, setStep] = useState(1);
   const [firstPin, setFirstPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [isShaking, setIsShaking] = useState(false);
@@ -19,7 +19,6 @@ const LockSetupModal = () => {
 
   const currentPin = step === 1 ? firstPin : confirmPin;
 
-  // Reset state on open
   useEffect(() => {
     if (showSetupModal) {
       setStep(1);
@@ -41,9 +40,7 @@ const LockSetupModal = () => {
         setErrorMessage("");
 
         if (next.length === 4) {
-          setTimeout(() => {
-            setStep(2);
-          }, 250);
+          setTimeout(() => setStep(2), 250);
         }
       } else {
         if (confirmPin.length >= 4) return;
@@ -66,99 +63,79 @@ const LockSetupModal = () => {
         }
       }
     },
-    [step, firstPin, confirmPin, isShaking, setPasscode, setShowSetupModal]
+    [isShaking, step, firstPin, confirmPin, setPasscode, setShowSetupModal]
   );
 
   const handleDelete = useCallback(() => {
-    if (isShaking) return;
     if (step === 1) {
       setFirstPin((prev) => prev.slice(0, -1));
     } else {
       setConfirmPin((prev) => prev.slice(0, -1));
     }
     setErrorMessage("");
-  }, [step, isShaking]);
-
-  // Keyboard support inside modal
-  useEffect(() => {
-    if (!showSetupModal) return;
-
-    const handleKeyDown = (e) => {
-      if (e.key >= "0" && e.key <= "9") {
-        e.preventDefault();
-        handleDigit(e.key);
-      } else if (e.key === "Backspace") {
-        e.preventDefault();
-        handleDelete();
-      } else if (e.key === "Escape") {
-        setShowSetupModal(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [showSetupModal, handleDigit, handleDelete, setShowSetupModal]);
+  }, [step]);
 
   if (!showSetupModal) return null;
 
   return (
     <div
-      className="applock-modal-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Set up App Lock"
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
       onClick={() => setShowSetupModal(false)}
     >
       <div
-        className="applock-modal-card"
+        className="w-full max-w-sm p-6 sm:p-7 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 shadow-2xl relative flex flex-col items-center text-center"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           type="button"
-          className="applock-modal-close"
           onClick={() => setShowSetupModal(false)}
-          aria-label="Close setup modal"
+          aria-label="Close"
+          className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
         >
           <X size={18} />
         </button>
 
-        <div className="applock-modal-header">
-          <div className="applock-modal-icon">
-            <ShieldCheck size={26} />
-          </div>
-          <h2 className="applock-modal-title">
-            {step === 1 ? "Set App Passcode" : "Confirm Passcode"}
-          </h2>
-          <p className="applock-modal-sub">
-            {step === 1
-              ? "Choose a 4-digit code to protect your journal & data"
-              : "Re-enter your 4-digit passcode to confirm"}
-          </p>
+        <div className="w-12 h-12 rounded-2xl bg-purple-500/10 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-3">
+          <ShieldCheck size={24} />
         </div>
 
-        {/* Dots */}
-        <div className={`applock-dots ${isShaking ? "shake" : ""}`}>
-          {[0, 1, 2, 3].map((index) => (
-            <span
-              key={index}
-              className={`applock-dot ${index < currentPin.length ? "filled" : ""}`}
-            />
-          ))}
+        <h3 className="font-serif text-xl font-bold text-zinc-900 dark:text-white mb-1">
+          {step === 1 ? "Set App Passcode" : "Confirm Passcode"}
+        </h3>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-5">
+          {step === 1 ? "Choose a 4-digit PIN for your vault" : "Re-enter the 4-digit PIN to confirm"}
+        </p>
+
+        {/* 4 Pin Indicator Dots */}
+        <div className={`flex items-center gap-3.5 mb-3 ${isShaking ? "animate-bounce" : ""}`}>
+          {[0, 1, 2, 3].map((index) => {
+            const isFilled = currentPin.length > index;
+            return (
+              <span
+                key={index}
+                className={`w-3.5 h-3.5 rounded-full transition-all duration-200 ${
+                  isFilled
+                    ? "bg-purple-600 scale-110 shadow-sm shadow-purple-600"
+                    : "border-2 border-zinc-300 dark:border-zinc-600 bg-transparent"
+                }`}
+              />
+            );
+          })}
         </div>
 
-        {errorMessage && (
-          <div className="applock-modal-err">{errorMessage}</div>
-        )}
+        {/* Error message */}
+        <div className="h-5 mb-3">
+          {errorMessage && <span className="text-xs font-semibold text-rose-500">{errorMessage}</span>}
+        </div>
 
-        {/* Keypad */}
-        <div className="applock-keypad applock-keypad--compact">
+        {/* Compact Keypad */}
+        <div className="grid grid-cols-3 gap-3 w-full max-w-[220px]">
           {KEYPAD_KEYS.map((k, idx) => {
             if (k === "") {
               return (
                 <button
                   key={idx}
                   type="button"
-                  className="applock-key-forgot"
                   onClick={() => {
                     if (step === 2) {
                       setStep(1);
@@ -168,6 +145,7 @@ const LockSetupModal = () => {
                       setShowSetupModal(false);
                     }
                   }}
+                  className="w-14 h-14 rounded-full flex items-center justify-center text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-purple-600 transition-colors"
                 >
                   {step === 2 ? "Back" : "Cancel"}
                 </button>
@@ -179,12 +157,12 @@ const LockSetupModal = () => {
                 <button
                   key={idx}
                   type="button"
-                  className="applock-key applock-key--action"
                   onClick={handleDelete}
                   disabled={currentPin.length === 0}
+                  className="w-14 h-14 rounded-full flex items-center justify-center text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 disabled:opacity-20 transition-all"
                   aria-label="Delete"
                 >
-                  <Delete size={20} />
+                  <Delete size={20} strokeWidth={1.8} />
                 </button>
               );
             }
@@ -193,10 +171,10 @@ const LockSetupModal = () => {
               <button
                 key={idx}
                 type="button"
-                className="applock-key"
                 onClick={() => handleDigit(k)}
+                className="w-14 h-14 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 active:scale-95 text-zinc-800 dark:text-zinc-100 text-xl font-light flex items-center justify-center transition-all duration-150"
               >
-                <span className="applock-key__num">{k}</span>
+                {k}
               </button>
             );
           })}
