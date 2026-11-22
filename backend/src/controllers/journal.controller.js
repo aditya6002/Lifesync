@@ -72,12 +72,9 @@ const getLastJournal = async (req, res) => {
   }
 
   const doc = journal.toObject();
-  try {
-    doc.title = decrypt(doc.title);
-    doc.content = decrypt(doc.content);
-  } catch (e) {
-    // Keep as-is if unencrypted
-  }
+
+  doc.title = decrypt(doc.title, user._id);
+  doc.content = decrypt(doc.content, user._id);
 
   const wordCount = doc.content ? doc.content.trim().split(/\s+/).length : 0;
   const formattedDate = doc.createdAt
