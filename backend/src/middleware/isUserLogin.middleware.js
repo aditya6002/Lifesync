@@ -13,18 +13,7 @@ const isUserLogin = async (req, res, next) => {
     req.header("x-refresh-token") ||
     req.header("Authorization")?.replace("Bearer ", "");
 
-  // In development mode, provide smooth dev-fallback if not logged in
   if (!accessToken && !refreshToken) {
-    if (process.env.NODE_ENV === "development") {
-      let devUser = await User.findOne({ isAccountActive: true });
-      if (!devUser) {
-        devUser = await User.findOne();
-      }
-      if (devUser) {
-        req.user = devUser;
-        return next();
-      }
-    }
     throw new AppError(401, "User not logged in", true);
   }
 
@@ -68,14 +57,6 @@ const isUserLogin = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      const devUser = await User.findOne({ isAccountActive: true });
-      if (devUser) {
-        req.user = devUser;
-        return next();
-      }
-    }
-
     res.status(401).json({
       message: "Access token expired or invalid",
       code: "ACCESS_TOKEN_EXPIRES",

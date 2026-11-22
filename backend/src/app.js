@@ -13,6 +13,8 @@ import authRoute from "../src/routes/auth.routes.js";
 import journalRoute from "../src/routes/journal.routes.js";
 import noteRoute from "../src/routes/note.routes.js";
 import taskRoute from "../src/routes/task.routes.js";
+import expenseRoute from "../src/routes/expense.routes.js";
+import activityRoute from "../src/routes/activity.routes.js";
 
 // Importing Middleware
 import AppError from "./middleware/AppError.middleware.js";
@@ -29,11 +31,11 @@ app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Credentials", "true");
     res.setHeader(
       "Access-Control-Allow-Methods",
-      "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS"
+      "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
     );
     res.setHeader(
       "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-refresh-token"
+      "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-refresh-token",
     );
   }
   if (req.method === "OPTIONS") {
@@ -46,13 +48,13 @@ app.use((req, res, next) => {
 app.use(
   express.json({
     limit: "5mb",
-  })
+  }),
 );
 app.use(
   express.urlencoded({
     limit: "5mb",
     extended: true,
-  })
+  }),
 );
 app.set("trust proxy", 1);
 app.use(morgan("dev"));
@@ -61,7 +63,7 @@ app.use(cookieParser());
 app.use(globalLimiter);
 
 // Health Check Endpoint
-app.get("/api/health", (_req, res) => {
+app.get("/api/v1/health", (_req, res) => {
   res.status(200).json({
     success: true,
     timestamp: new Date().toISOString(),
@@ -73,9 +75,12 @@ app.get("/api/health", (_req, res) => {
 
 // Api Routes Setup
 app.use("/api/v1/auth", authRoute);
+app.use("/auth", authRoute);
 app.use("/api/v1/journal", journalRoute);
 app.use("/api/v1/note", noteRoute);
 app.use("/api/v1/task", taskRoute);
+app.use("/api/v1/expense", expenseRoute);
+app.use("/api/v1/activity", activityRoute);
 
 // 404 Error Handler
 app.use((req, res, next) => {

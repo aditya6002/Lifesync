@@ -1,36 +1,62 @@
-import { BookOpen, CalendarCheck, FileText, House, ListChecks, Wallet, UserRound } from "lucide-react";
-import { useState } from "react";
+import {
+  BookOpen,
+  CalendarCheck,
+  FileText,
+  House,
+  ListChecks,
+  Wallet,
+  UserRound,
+} from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const ITEMS = [
-  { id: "home", label: "Home", Icon: House },
-  { id: "calendar", label: "Calendar", Icon: CalendarCheck },
-  { id: "journal", label: "Journal", Icon: BookOpen },
-  { id: "expenses", label: "Expenses", Icon: Wallet },
-  { id: "tasks", label: "Tasks", Icon: ListChecks },
-  { id: "notes", label: "Notes", Icon: FileText },
-  { id: "profile", label: "Profile", Icon: UserRound },
+  { id: "home", label: "Home", Icon: House, path: "/" },
+  { id: "calendar", label: "Calendar", Icon: CalendarCheck, path: "/calendar" },
+  { id: "journal", label: "Journal", Icon: BookOpen, path: "/journal" },
+  { id: "expenses", label: "Expenses", Icon: Wallet, path: "/expenses" },
+  { id: "tasks", label: "Tasks", Icon: ListChecks, path: "/tasks" },
+  { id: "notes", label: "Notes", Icon: FileText, path: "/notes" },
+  { id: "profile", label: "Profile", Icon: UserRound, path: "/profile" },
 ];
 
 const Sidebar = () => {
-  const [active, setActive] = useState("home");
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   return (
     <nav className="bottom-nav" aria-label="Main navigation">
-      {ITEMS.map(({ id, label, Icon }, index) => (
-        <div className="contents" key={id}>
-          <button
-            type="button"
-            aria-label={label}
-            aria-current={active === id ? "page" : undefined}
-            title={label}
-            onClick={() => setActive(id)}
-            className={`nav-item ${active === id ? "active" : ""}`}
-          >
-            <Icon size={23} strokeWidth={1.8} />
-          </button>
-          {index < ITEMS.length - 1 && <span className="nav-divider" aria-hidden="true" />}
-        </div>
-      ))}
+      {ITEMS.map(({ id, label, Icon, emoji, path }, index) => {
+        let isActive = false;
+        if (id === "home") {
+          isActive = pathname === "/";
+        } else if (id === "calendar") {
+          isActive = pathname === "/calendar";
+        } else if (id === "expenses") {
+          isActive = pathname.startsWith("/expenses");
+        } else if (id === "journal") {
+          isActive = pathname.startsWith("/journal");
+        } else {
+          isActive = false;
+        }
+
+        return (
+          <div className="contents" key={id}>
+            <button
+              type="button"
+              aria-label={`${label} (${emoji})`}
+              aria-current={isActive ? "page" : undefined}
+              title={`${emoji} ${label}`}
+              onClick={() => navigate(path)}
+              className={`nav-item ${isActive ? "active" : ""}`}
+            >
+              <Icon size={21} strokeWidth={1.8} className="nav-icon" />
+            </button>
+            {index < ITEMS.length - 1 && (
+              <span className="nav-divider" aria-hidden="true" />
+            )}
+          </div>
+        );
+      })}
     </nav>
   );
 };

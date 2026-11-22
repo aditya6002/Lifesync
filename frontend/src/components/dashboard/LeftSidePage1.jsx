@@ -1,11 +1,35 @@
-import { CalendarDays, CheckCircle2, FileText, NotebookPen, Wallet, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  CalendarDays,
+  CheckCircle2,
+  FileText,
+  NotebookPen,
+  Wallet,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpRight,
+} from "lucide-react";
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const firstOfMonth = (date) => new Date(date.getFullYear(), date.getMonth(), 1);
 
 const LeftSidePage = () => {
+  const navigate = useNavigate();
   const [viewDate, setViewDate] = useState(() => firstOfMonth(new Date()));
   const [selected, setSelected] = useState(() => {
     const now = new Date();
@@ -16,36 +40,85 @@ const LeftSidePage = () => {
   const cells = useMemo(() => {
     const firstWeekday = new Date(year, monthIndex, 1).getDay();
     const totalDays = new Date(year, monthIndex + 1, 0).getDate();
-    return [...Array.from({ length: firstWeekday }, () => null), ...Array.from({ length: totalDays }, (_, i) => i + 1)];
+    return [
+      ...Array.from({ length: firstWeekday }, () => null),
+      ...Array.from({ length: totalDays }, (_, i) => i + 1),
+    ];
   }, [year, monthIndex]);
-  const changeMonth = (offset) => setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + offset, 1));
+  const changeMonth = (offset) =>
+    setViewDate(
+      (prev) => new Date(prev.getFullYear(), prev.getMonth() + offset, 1),
+    );
   const today = new Date();
-  const isCurrentMonth = year === today.getFullYear() && monthIndex === today.getMonth();
+  const isCurrentMonth =
+    year === today.getFullYear() && monthIndex === today.getMonth();
   const dayKey = (day) => `${year}-${monthIndex + 1}-${day}`;
 
   const shortcuts = [
-    { name: "Journal", Icon: NotebookPen, color: "#8a4add" },
-    { name: "Expenses", Icon: Wallet, color: "#e99731" },
-    { name: "Tasks", Icon: CheckCircle2, color: "#6a9f4d" },
-    { name: "Notes", Icon: FileText, color: "#5792dc" },
+    { name: "Journal", Icon: NotebookPen, color: "#8a4add", path: "/journal" },
+    { name: "Expenses", Icon: Wallet, color: "#e99731", path: "/expenses" },
+    { name: "Calendar", Icon: CalendarDays, color: "#3b82f6", path: "/calendar" },
+    { name: "Tasks", Icon: CheckCircle2, color: "#6a9f4d", path: "/" },
   ];
 
   return (
-    <section className="glass-card card-hover calendar-card" aria-label="Calendar">
+    <section
+      className="glass-card card-hover calendar-card"
+      aria-label="Calendar"
+    >
       <div className="calendar-head">
-        <div className="calendar-icon"><CalendarDays size={26} /></div>
-        <div>
-          <h1 className="calendar-title">{MONTH_NAMES[monthIndex]} {year}</h1>
-          {!isCurrentMonth && <button type="button" onClick={() => setViewDate(firstOfMonth(new Date()))} style={{ border: 0, background: "transparent", color: "#a76b2d", fontSize: 11 }}>Back to today</button>}
+        <div className="calendar-icon" onClick={() => navigate("/calendar")} style={{ cursor: "pointer" }} title="Open Calendar Page">
+          <CalendarDays size={26} />
+        </div>
+        <div style={{ flex: 1, marginLeft: 12 }}>
+          <h1 className="calendar-title" onClick={() => navigate("/calendar")} style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}>
+            {MONTH_NAMES[monthIndex]} {year}
+            <ArrowUpRight size={18} style={{ opacity: 0.6 }} />
+          </h1>
+          <div>
+            {!isCurrentMonth ? (
+              <button
+                type="button"
+                onClick={() => setViewDate(firstOfMonth(new Date()))}
+                style={{
+                  border: 0,
+                  background: "transparent",
+                  color: "#a76b2d",
+                  fontSize: 11,
+                  cursor: "pointer",
+                }}
+              >
+                Back to today
+              </button>
+            ) : (
+              <span style={{ fontSize: 11, color: "var(--muted)" }}>Click to view full calendar & activity</span>
+            )}
+          </div>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <button type="button" className="round-icon-btn" aria-label="Previous month" onClick={() => changeMonth(-1)}><ChevronLeft size={20} /></button>
-          <button type="button" className="round-icon-btn" aria-label="Next month" onClick={() => changeMonth(1)}><ChevronRight size={20} /></button>
+          <button
+            type="button"
+            className="round-icon-btn"
+            aria-label="Previous month"
+            onClick={() => changeMonth(-1)}
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <button
+            type="button"
+            className="round-icon-btn"
+            aria-label="Next month"
+            onClick={() => changeMonth(1)}
+          >
+            <ChevronRight size={20} />
+          </button>
         </div>
       </div>
 
       <div className="calendar-weekdays">
-        {WEEKDAYS.map((day) => <span key={day}>{day}</span>)}
+        {WEEKDAYS.map((day) => (
+          <span key={day}>{day}</span>
+        ))}
       </div>
       <div className="calendar-days">
         {cells.map((day, index) => {
@@ -60,14 +133,22 @@ const LeftSidePage = () => {
               onClick={() => setSelected(key)}
               aria-pressed={isSelected}
               className={`calendar-day ${index % 7 === 0 ? "sunday" : ""} ${isSelected ? "selected" : ""} ${isToday ? "today" : ""}`}
-            >{day}</button>
+            >
+              {day}
+            </button>
           );
         })}
       </div>
       <div className="calendar-shortcuts">
-        {shortcuts.map(({ name, Icon, color }) => (
-          <button type="button" className="shortcut-pill" key={name}>
-            <Icon size={15} color={color} strokeWidth={2.3} />{name}
+        {shortcuts.map(({ name, Icon, color, path }) => (
+          <button
+            type="button"
+            className="shortcut-pill"
+            key={name}
+            onClick={() => path && navigate(path)}
+          >
+            <Icon size={15} color={color} strokeWidth={2.3} />
+            {name}
           </button>
         ))}
       </div>

@@ -104,6 +104,11 @@ const getAll = async (req, res) => {
 
   const notes = await Note.find({ userId: user._id }).skip(skip).limit(limit);
 
+  notes.forEach((note) => {
+    note.title = decrypt(note.title);
+    note.content = decrypt(note.content);
+  });
+
   res.status(200).json({
     success: true,
     notes: notes,

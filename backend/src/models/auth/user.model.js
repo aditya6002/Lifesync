@@ -119,6 +119,22 @@ const userSchema = new mongoose.Schema(
       default: "en",
     },
 
+    appLock: {
+      isLockEnabled: {
+        type: Boolean,
+        default: false,
+      },
+      passcode: {
+        type: String,
+        default: null,
+      },
+      autoLock: {
+        type: String,
+        default: "1m",
+        enum: ["immediately", "1m", "5m", "tabSwitch", "never"],
+      },
+    },
+
     isAccountActive: {
       type: Boolean,
       default: true,
@@ -137,6 +153,11 @@ const userSchema = new mongoose.Schema(
 
 userSchema.methods.comparePassword = async function (password) {
   return await bcrypt.compare(password, this.password);
+};
+
+userSchema.methods.comparePasscode = async function (passcode) {
+  if (!this.appLock?.passcode) return false;
+  return await bcrypt.compare(passcode, this.appLock.passcode);
 };
 
 userSchema.methods.verifyEmailToken = async function (token) {

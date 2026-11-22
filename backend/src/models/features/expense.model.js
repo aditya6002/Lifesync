@@ -35,25 +35,36 @@ const expenseList = [
   "charitable contributions",
   "financial services",
   "legal expenses",
-  "miscellaneous services",
+  "salary",
+  "freelance",
+  "investment",
+  "bonus",
+  "business",
   "others"
 ];
 
 const expenseSchema = new mongoose.Schema(
   {
+    title: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    type: {
+      type: String,
+      enum: ["expense", "income"],
+      default: "expense",
+    },
     category: {
       type: String,
       required: true,
       trim: true,
-      enum: expenseList,
+      default: "others",
     },
     note: {
       type: String,
       trim: true,
-      length: {
-        min: 0,
-        max: 100,
-      },
+      default: "",
     },
     amount: {
       type: Number,
@@ -71,7 +82,6 @@ const expenseSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-
     deleteIn: {
       type: Date,
       default: null,
@@ -80,8 +90,7 @@ const expenseSchema = new mongoose.Schema(
       },
     },
   },
-
-  { timestamps: true },
+  { timestamps: true }
 );
 
 const Expense =

@@ -199,6 +199,7 @@ const reserveUsername = async (req, res) => {
  */
 const login = async (req, res) => {
   const { loginId, password } = req.body;
+  console.log("Login route")
 
   const isUserExist = await User.findOne({
     $or: [{ email: loginId }, { username: loginId }],
@@ -254,9 +255,17 @@ const login = async (req, res) => {
     message: "User logged in successfully",
     user: {
       id: isUserExist._id,
+      _id: isUserExist._id,
+      name: isUserExist.name,
+      email: isUserExist.email,
       profilePic: isUserExist.profilePic,
       username: isUserExist.username,
       appLanguage: isUserExist.appLanguage,
+      appLock: {
+        isLockEnabled: Boolean(isUserExist.appLock?.isLockEnabled),
+        hasPasscode: Boolean(isUserExist.appLock?.passcode),
+        autoLock: isUserExist.appLock?.autoLock || "1m",
+      },
     },
     token: accessToken,
   });
@@ -407,11 +416,19 @@ const getMe = async (req, res) => {
 
     res.status(200).json({
       user: {
+        _id: user._id,
+        id: user._id,
+        name: user.name,
         username: user.username,
+        email: user.email,
         profilePic: user.profilePic,
         isEmailVerified: user.isEmailVerified,
-        _id: user._id,
         appLanguage: user.appLanguage,
+        appLock: {
+          isLockEnabled: Boolean(user.appLock?.isLockEnabled),
+          hasPasscode: Boolean(user.appLock?.passcode),
+          autoLock: user.appLock?.autoLock || "1m",
+        },
       },
     });
   } catch (error) {
@@ -456,6 +473,7 @@ const profile = async (req, res) => {
   res.json({
     user: {
       _id: user._id,
+      id: user._id,
       name: user.name,
       username: user.username,
       gender: user.gender,
@@ -467,6 +485,11 @@ const profile = async (req, res) => {
       goal: user.goal,
       appLanguage: user.appLanguage,
       createdAt: user.createdAt,
+      appLock: {
+        isLockEnabled: Boolean(user.appLock?.isLockEnabled),
+        hasPasscode: Boolean(user.appLock?.passcode),
+        autoLock: user.appLock?.autoLock || "1m",
+      },
     },
   });
 };
@@ -544,6 +567,7 @@ const editProfile = async (req, res) => {
     message: "Profile updated successfully",
     user: {
       _id: user._id,
+      id: user._id,
       name: user.name,
       username: user.username,
       gender: user.gender,
@@ -555,6 +579,11 @@ const editProfile = async (req, res) => {
       goal: user.goal,
       appLanguage: user.appLanguage,
       createdAt: user.createdAt,
+      appLock: {
+        isLockEnabled: Boolean(user.appLock?.isLockEnabled),
+        hasPasscode: Boolean(user.appLock?.passcode),
+        autoLock: user.appLock?.autoLock || "1m",
+      },
     },
   });
 };
@@ -792,6 +821,250 @@ const activateAccount = async (req, res) => {
   });
 };
 
+/**
+ * @desc Get App Lock status
+ * @route GET /api/v1/auth/app-lock/status
+ * @access Private
+ */
+const getAppLockStatus = async (req, res) => {
+  const user = req.user;
+  if (!user) {
+    throw new AppError(401, "User not logged in", true);
+  }
+
+  res.status(200).json({
+    success: true,
+    appLock: {
+      isLockEnabled: Boolean(user.appLock?.isLockEnabled),
+      hasPasscode: Boolean(user.appLock?.passcode),
+      autoLock: user.appLock?.autoLock || "1m",
+    },
+  });
+};
+
+/**
+ * @desc Set / Change App Lock passcode
+ * @route POST /api/v1/auth/app-lock/set
+ * @access Private
+ * @body { passcode, autoLock }
+ */
+const setAppLock = async (req, res) => {
+  const { passcode, autoLock } = req.body;
+  const user = req.user;
+  if (!user) {
+    throw new AppError(401, "User not logged in", true);
+  }
+
+  if (!passcode || String(passcode).length !== 4) {
+    throw new AppError(400, "A 4-digit passcode is required", true);
+  }
+
+  const hashed = await bcrypt.hash(String(passcode), 10);
+  if (!user.appLock) user.appLock = {};
+  user.appLock.passcode = hashed;
+  user.appLock.isLockEnabled = true;
+  if (autoLock) user.appLock.autoLock = autoLock;
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "App lock passcode saved successfully",
+    appLock: {
+      isLockEnabled: true,
+      hasPasscode: true,
+      autoLock: user.appLock.autoLock || "1m",
+    },
+  });
+};
+
+/**
+ * @desc Verify App Lock passcode
+ * @route POST /api/v1/auth/app-lock/verify
+ * @access Private
+ * @body { passcode }
+ */
+const verifyAppLock = async (req, res) => {
+  const { passcode } = req.body;
+  const user = req.user;
+  if (!user) {
+    throw new AppError(401, "User not logged in", true);
+  }
+
+  if (!user.appLock?.passcode) {
+    return res.status(200).json({
+      success: true,
+      message: "No passcode set on account",
+    });
+  }
+
+  const isMatch = await user.comparePasscode(String(passcode));
+  if (!isMatch) {
+    return res.status(400).json({
+      success: false,
+      message: "Incorrect passcode. Try again.",
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Passcode verified successfully",
+  });
+};
+
+/**
+ * @desc Toggle App Lock enabled state
+ * @route POST /api/v1/auth/app-lock/toggle
+ * @access Private
+ * @body { isLockEnabled }
+ */
+const toggleAppLock = async (req, res) => {
+  const { isLockEnabled } = req.body;
+  const user = req.user;
+  if (!user) {
+    throw new AppError(401, "User not logged in", true);
+  }
+
+  if (!user.appLock) user.appLock = {};
+  user.appLock.isLockEnabled = Boolean(isLockEnabled);
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: `App lock ${user.appLock.isLockEnabled ? "enabled" : "disabled"}`,
+    appLock: {
+      isLockEnabled: user.appLock.isLockEnabled,
+      hasPasscode: Boolean(user.appLock.passcode),
+      autoLock: user.appLock.autoLock || "1m",
+    },
+  });
+};
+
+/**
+ * @desc Update App Lock auto-lock timeout
+ * @route POST /api/v1/auth/app-lock/settings
+ * @access Private
+ * @body { autoLock }
+ */
+const updateAppLockSettings = async (req, res) => {
+  const { autoLock } = req.body;
+  const user = req.user;
+  if (!user) {
+    throw new AppError(401, "User not logged in", true);
+  }
+
+  if (!user.appLock) user.appLock = {};
+  if (autoLock) user.appLock.autoLock = autoLock;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Settings updated successfully",
+    appLock: {
+      isLockEnabled: Boolean(user.appLock.isLockEnabled),
+      hasPasscode: Boolean(user.appLock.passcode),
+      autoLock: user.appLock.autoLock || "1m",
+    },
+  });
+};
+
+/**
+ * @desc Remove App Lock passcode
+ * @route DELETE /api/v1/auth/app-lock
+ * @access Private
+ * @body { currentPasscode }
+ */
+const removeAppLock = async (req, res) => {
+  const { currentPasscode } = req.body;
+  const user = req.user;
+  if (!user) {
+    throw new AppError(401, "User not logged in", true);
+  }
+
+  if (user.appLock?.passcode) {
+    const isMatch = await user.comparePasscode(String(currentPasscode));
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Incorrect passcode",
+      });
+    }
+  }
+
+  user.appLock = {
+    isLockEnabled: false,
+    passcode: null,
+    autoLock: "1m",
+  };
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "App lock removed successfully",
+    appLock: {
+      isLockEnabled: false,
+      hasPasscode: false,
+      autoLock: "1m",
+    },
+  });
+};
+
+/**
+ * @desc Forgot Passcode Recovery - verify with Account Password
+ * @route POST /api/v1/auth/app-lock/forgot
+ * @access Private
+ * @body { accountPassword, newPasscode }
+ */
+const forgotAppLock = async (req, res) => {
+  const { accountPassword, newPasscode } = req.body;
+  const user = req.user;
+  if (!user) {
+    throw new AppError(401, "User not logged in", true);
+  }
+
+  if (!accountPassword) {
+    throw new AppError(400, "Account password is required for identity verification", true);
+  }
+
+  const isPasswordValid = await user.comparePassword(accountPassword);
+  if (!isPasswordValid) {
+    return res.status(401).json({
+      success: false,
+      message: "Incorrect account password. Verification failed.",
+    });
+  }
+
+  if (newPasscode) {
+    if (String(newPasscode).length !== 4) {
+      throw new AppError(400, "New passcode must be exactly 4 digits", true);
+    }
+    const hashed = await bcrypt.hash(String(newPasscode), 10);
+    user.appLock.passcode = hashed;
+    user.appLock.isLockEnabled = true;
+  } else {
+    // If no new passcode is given, unlock and disable the passcode
+    user.appLock = {
+      isLockEnabled: false,
+      passcode: null,
+      autoLock: "1m",
+    };
+  }
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: newPasscode
+      ? "Passcode reset successfully"
+      : "Passcode removed and app unlocked successfully",
+    appLock: {
+      isLockEnabled: user.appLock.isLockEnabled,
+      hasPasscode: Boolean(user.appLock.passcode),
+      autoLock: user.appLock.autoLock || "1m",
+    },
+  });
+};
+
 export default {
   register,
   verifyEmailOtp,
@@ -807,4 +1080,11 @@ export default {
   setNewPassword,
   deleteUser,
   activateAccount,
+  getAppLockStatus,
+  setAppLock,
+  verifyAppLock,
+  toggleAppLock,
+  updateAppLockSettings,
+  removeAppLock,
+  forgotAppLock,
 };

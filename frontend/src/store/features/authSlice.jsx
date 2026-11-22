@@ -31,6 +31,12 @@ export const userSlice = createSlice({
     setAuthLoading: (state, action) => {
       state.authLoading = action.payload;
     },
+    logoutUser: (state) => {
+      state.user = null;
+      state.accessToken = null;
+      state.error = null;
+      state.authLoading = false;
+    },
   },
 });
 
@@ -42,6 +48,7 @@ export const {
   setLoading,
   setToast,
   setAuthLoading,
+  logoutUser,
 } = userSlice.actions;
 
 export default userSlice.reducer;

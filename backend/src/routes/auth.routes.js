@@ -107,7 +107,10 @@ routes.post(
   "/login",
   loginLimiter,
   loginValidationRules,
-  validate,
+  // validate,
+  () => {
+    console.log("auth route");
+  },
   wrapAsync(authController.login),
 );
 
@@ -209,6 +212,49 @@ routes.post(
   activeAccountValidator,
   validate,
   wrapAsync(authController.activateAccount),
+);
+
+/**
+ * ───────────────────────────────────────
+ * App Lock Routes (Stored on User in DB)
+ * ───────────────────────────────────────
+ */
+routes.get(
+  "/app-lock/status",
+  isUserLogin,
+  wrapAsync(authController.getAppLockStatus),
+);
+
+routes.post("/app-lock/set", isUserLogin, wrapAsync(authController.setAppLock));
+
+routes.post(
+  "/app-lock/verify",
+  isUserLogin,
+  wrapAsync(authController.verifyAppLock),
+);
+
+routes.post(
+  "/app-lock/toggle",
+  isUserLogin,
+  wrapAsync(authController.toggleAppLock),
+);
+
+routes.post(
+  "/app-lock/settings",
+  isUserLogin,
+  wrapAsync(authController.updateAppLockSettings),
+);
+
+routes.delete(
+  "/app-lock",
+  isUserLogin,
+  wrapAsync(authController.removeAppLock),
+);
+
+routes.post(
+  "/app-lock/forgot",
+  isUserLogin,
+  wrapAsync(authController.forgotAppLock),
 );
 
 export default routes;

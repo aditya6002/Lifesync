@@ -2,7 +2,7 @@ import Journal from "../models/features/journal.model.js";
 import { encrypt, decrypt } from "../helper/hashing.helper.js";
 
 const addJournal = async (req, res) => {
-  const { title, content } = req.body;
+  const { title, content, tags, mood } = req.body;
   const user = req.user;
 
   const hashTitle = encrypt(title);
@@ -11,8 +11,13 @@ const addJournal = async (req, res) => {
   const newJournal = await Journal.create({
     title: hashTitle,
     content: hashContent,
+    tags: "#trytofigureout",
+    mood: "calm",
     userId: user._id,
   });
+
+  newJournal.title = title;
+  newJournal.content = content;
 
   res.status(201).json({
     message: "Journal entry created successfully",
@@ -58,21 +63,6 @@ const getLastJournal = async (req, res) => {
     .sort({ createdAt: -1 })
     .select("-userId -deleteIn");
 
-  // In development, if no journal exists, seed a starter entry
-  if (!journal && process.env.NODE_ENV === "development") {
-    const rawTitle = "Finding Stillness in the Chaos";
-    const rawContent =
-      "Today was a grounding reminder that progress isn't about rushing through a checklist. Taking an hour to disconnect and write brought immediate clarity on what truly matters for tomorrow. Gratitude for the quiet wins.";
-    const hashTitle = encrypt(rawTitle);
-    const hashContent = encrypt(rawContent);
-
-    journal = await Journal.create({
-      title: hashTitle,
-      content: hashContent,
-      userId: user._id,
-    });
-  }
-
   if (!journal) {
     return res.status(200).json({
       success: true,
@@ -114,7 +104,7 @@ const getLastJournal = async (req, res) => {
 };
 
 const editJournal = async (req, res) => {
-  const { title, content } = req.body;
+  const { title, content, tags, mood } = req.body;
   const journalId = req.params.journalId;
   const user = req.user;
 
@@ -132,8 +122,13 @@ const editJournal = async (req, res) => {
 
   journal.title = hashTitle;
   journal.content = hashContent;
+  journal.tags = "#trytofigureout";
+  journal.mood = mood || "calm";
 
   await journal.save();
+
+  journal.title = title;
+  journal.content = content;
 
   res.status(200).json({
     success: true,

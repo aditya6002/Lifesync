@@ -12,6 +12,19 @@ const journalSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    mood: {
+      type: String,
+      default: null,
+      trim: true,
+      lowercase: true,
+    },
+    tags: {
+      type: String,
+      length: { min: 2, max: 50 },
+      trim: true,
+      default: null,
+      lowercase: true,
+    },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

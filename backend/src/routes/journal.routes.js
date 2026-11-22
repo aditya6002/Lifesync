@@ -11,6 +11,7 @@ import { getJournalValidator } from "../utils/mongooseId.validator.js";
 
 // import all controllers
 import journalController from "../controllers/journal.controller.js";
+import journalRateLimiter from "../middleware/features/journalRateLimiter.middleware.js";
 
 const routes = new Router();
 
