@@ -74,3 +74,97 @@
 .animate-float {
   animation: floatSlow 3.5s ease-in-out infinite;
 }
+
+
+/* ── Original Bottom Navigation Sidebar UI ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 12px;
+  height: 72px;
+  border-radius: 999px;
+  background: rgba(36, 29, 38, 0.93);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 18px 45px rgba(28, 15, 36, 0.42);
+  z-index: 999;
+}
+
+.nav-item {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c9bed2;
+  transition: all 0.25s ease;
+  position: relative;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.nav-item:hover {
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.nav-item.active {
+  color: #fff;
+  background: linear-gradient(135deg, #ff9d32, #ffb353);
+  box-shadow: 0 8px 24px rgba(255, 157, 50, 0.55), 0 0 24px rgba(255, 157, 50, 0.55), inset 0 0 13px rgba(255, 157, 50, 0.18);
+  transform: translateY(-17px);
+}
+
+.nav-item.active::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 177, 83, 0.55);
+  animation: nav-pulse 2.5s ease-out infinite;
+}
+
+.nav-divider {
+  height: 25px;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.17);
+}
+
+@keyframes nav-pulse {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 650px) {
+  .bottom-nav {
+    bottom: 12px;
+    height: 65px;
+    width: calc(100% - 24px);
+    padding: 0 9px;
+  }
+  .nav-item {
+    width: 43px;
+    height: 43px;
+  }
+  .nav-item svg {
+    width: 19px;
+  }
+  .nav-divider {
+    height: 20px;
+  }
+}
