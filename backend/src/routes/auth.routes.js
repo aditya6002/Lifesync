@@ -107,10 +107,7 @@ routes.post(
   "/login",
   loginLimiter,
   loginValidationRules,
-  // validate,
-  () => {
-    console.log("auth route");
-  },
+  validate,
   wrapAsync(authController.login),
 );
 
